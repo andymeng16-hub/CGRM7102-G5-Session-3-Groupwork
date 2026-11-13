@@ -24,9 +24,10 @@
     <div class="nav-links">
       <a href="#map">MAP</a>
       <a href="#elevation">ELEVATION</a>
-      <a href="#model">3D</a>
+      <a href="#tombolo">TIDE</a>
       <a href="#stages">ROUTE</a>
-      <a href="#advice">ADVICE</a>
+      <a href="#vegetation">PLANTS</a>
+      <a href="#reading">READING</a>
       <a href="#survey">SOURCES</a>
     </div>
     <button class="icon-btn" id="themeToggle" aria-label="Switch appearance" title="Switch appearance">
@@ -42,11 +43,11 @@
     <p class="eyebrow">FIELD SURVEY <span id="heroDate">13 NOV 2026</span> KIU TSUI CHAU<span class="bi-zh">桥咀洲实地考察 2026 年 11 月 13 日</span></p>
     <h1>ONE ISLAND.<br>ONE ROUTE.</h1>
     <p class="hero-zh">一条路线，走完桥咀洲</p>
-    <p class="lede">A GIS-style field guide built from our group survey: eight observation points, twenty-nine photographs, a tiled terrain map, an elevation profile and a 3D model of the island.</p>
-    <p class="zh-line">以实地记录重建桥咀洲纵走：叠加地形瓦片、沿海拔剖面交互，并在三维模型中查看路线起伏。</p>
+    <p class="lede">A GIS-style field guide built from our group survey: eight observation points, twenty-nine photographs, a detailed basemap, an elevation profile and a working model of the sandbar that the tide takes away.</p>
+    <p class="zh-line">以实地记录重建桥咀洲纵走：官方底图、海拔剖面、八个观察点，以及一座会随潮汐消失的沙洲模型。</p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="#map">OPEN THE MAP<span class="bi-zh">打开地图</span></a>
-      <a class="btn btn-ghost" href="#model">VIEW THE 3D MODEL<span class="bi-zh">三维地形</span></a>
+      <a class="btn btn-ghost" href="#tombolo">WATCH THE TIDE<span class="bi-zh">看潮汐模型</span></a>
     </div>
   </div>
   <figure class="hero-figure reveal">
@@ -72,7 +73,7 @@
       <p class="body">Our first field records start at 11:10, after that window had closed. Photo p02 shows the shingle bar only partly above water. We timed the coastal stage around the tide and kept the rest of the traverse on the main island.</p>
       <div class="tide-actions">
         <a class="text-link" href="https://tide1.hydro.gov.hk/" target="_blank" rel="noopener">HKO REAL-TIME TIDE</a>
-        <a class="text-link" href="#survey">EVIDENCE AND SOURCES</a>
+        <a class="text-link" href="#tombolo">OPEN THE TIDE MODEL</a>
       </div>
     </div>
     <figure class="tide-card reveal">
@@ -91,28 +92,17 @@
     <div class="section-head reveal">
       <div>
         <p class="eyebrow">INTERACTIVE MAP<span class="bi-zh">互动地图</span></p>
-        <h2>MAP, TILES &amp; ROUTE.<span class="zh-sub">地图瓦片与路线</span></h2>
-        <p class="body">Our own Sharp Island terrain tiles are overlaid as a raster layer on a GCJ-02 base map. Switch layers, adjust overlay opacity, drag the route cursor, or open any numbered observation point.</p>
-        <p class="zh-line">自绘地形瓦片叠加于合规底图之上：可切换图层、调整透明度、拖动路线游标，点选编号查看实地记录。</p>
+        <h2>MAP AND ROUTE.<span class="zh-sub">地图与路线</span></h2>
+        <p class="body">Street-level Tencent basemap at zoom 16, with our single route, eight numbered observation points and the elevation cursor drawn on top. Drag to pan, pinch or scroll to zoom, drag the scrubber to walk the line.</p>
+        <p class="zh-line">腾讯地图十六级街道底图，叠加一条路线、八个编号观察点与海拔游标；可拖动平移、双指或滚轮缩放，拖动游标即沿线行走。</p>
       </div>
     </div>
 
     <div class="gis-shell reveal">
-      <div class="gis-topbar">
-        <div class="segmented" role="group" aria-label="Base layer">
-          <button class="seg active" data-base="survey" aria-pressed="true">SURVEY TILES<span class="bi-zh">实测瓦片</span></button>
-          <button class="seg" data-base="official" aria-pressed="false">OFFICIAL BASEMAP<span class="bi-zh">官方底图</span></button>
-        </div>
-        <div class="gis-tools">
-          <label class="switch"><input type="checkbox" id="overlayToggle" checked><span class="switch-text">OVERLAY<span class="bi-zh">叠加层</span></span></label>
-          <label class="range-label"><span class="switch-text">OPACITY<span class="bi-zh">透明度</span></span><input type="range" id="overlayOpacity" min="0" max="100" value="72"><output id="opacityOut">72%</output></label>
-        </div>
-      </div>
-
       <div class="gis-body">
         <div class="map-stage">
           <canvas id="tileMap" aria-label="Interactive tiled map of the Sharp Island route"></canvas>
-          <div id="tmap" hidden aria-label="Tencent Maps base map with Sharp Island tile overlay"></div>
+          <div id="tmap" hidden aria-label="Tencent Maps base map with the Sharp Island route"></div>
           <div class="map-overlay-note" id="mapNote" hidden></div>
           <div class="compass" aria-hidden="true">N<span class="bi-zh">北</span></div>
           <div class="map-scale"><span></span><b id="scaleLabel">200 m</b></div>
@@ -121,7 +111,11 @@
             <button class="icon-btn" id="zoomOut" aria-label="Zoom out">－</button>
             <button class="icon-btn" id="zoomReset" aria-label="Reset view">⌖</button>
           </div>
-          <div class="map-legend"><span class="lg-line"></span> ROUTE <span class="lg-dot"></span> OBSERVATION POINT <span class="lg-tile"></span> TERRAIN TILES</div>
+          <div class="map-legend">
+            <span class="lg"><i class="lg-line"></i><span class="lg-txt">ROUTE<span class="bi-zh">路线</span></span></span>
+            <span class="lg"><i class="lg-dot"></i><span class="lg-txt">OBSERVATION POINT<span class="bi-zh">观察点</span></span></span>
+            <span class="lg"><i class="lg-tile"></i><span class="lg-txt">CONTOUR 10 M<span class="bi-zh">等高线</span></span></span>
+          </div>
         </div>
 
         <aside class="gis-side">
@@ -139,17 +133,15 @@
           <div class="side-nearest" id="nearestPoint">START KIU TSUI PIER &amp; BEACH<span class="bi-zh">桥咀码头</span></div>
           <div class="side-head"><span>STAGES<span class="bi-zh">分段</span></span></div>
           <div class="stage-chips" id="stageChips"></div>
-          <div class="side-head"><span>LAYERS<span class="bi-zh">图层</span></span></div>
-          <ul class="layer-list">
-            <li><span class="lyr base"></span><span class="layer-name">BASE HYPSOMETRIC TILES<span class="bi-zh">分层设色底图</span></span></li>
-            <li><span class="lyr over"></span><span class="layer-name">OVERLAY CONTOUR AND HILLSHADE<span class="bi-zh">等高线与晕渲</span></span></li>
-            <li><span class="lyr route"></span><span class="layer-name">VECTOR GPS TRACK (INDICATIVE)<span class="bi-zh">路线矢量</span></span></li>
-            <li><span class="lyr dem"></span><span class="layer-name">DEM SRTM 90 M<span class="bi-zh">数值高程</span></span></li>
-          </ul>
-          <p class="side-fine">TILES Z13 TO Z17, GCJ-02 GRID, GROUP-DRAWN SCHEMATIC, NOT AN OFFICIAL BASEMAP.<span class="bi-zh">瓦片为本组自绘示意图。</span></p>
+          <div class="side-fact">
+            <span class="mini-label">TIDE WINDOW, 13 NOV 2026<span class="bi-zh">当日露出时段</span></span>
+            <p>08:00 to 10:00 only. Our survey began two hours after it closed.</p>
+            <p class="zh-line">仅上午 8 时至 10 时；调查开始前两小时已结束。</p>
+          </div>
         </aside>
       </div>
     </div>
+    <p class="map-caption">BASE MAP TENCENT MAPS, GCJ-02. ROUTE, POINTS AND SURVEY DATA COLLECTED 13 NOVEMBER 2026.<span class="bi-zh">底图为腾讯地图；路线、观察点与调查数据采集于 2026 年 11 月 13 日。</span></p>
 
     <div class="stops-head reveal"><h3>OBSERVATION POINTS<span class="bi-zh">观察点</span></h3><span id="stopsCount">8 points</span></div>
     <div class="stops-rail" id="stopsRail" aria-label="Observation points"></div>
@@ -163,8 +155,8 @@
       <div>
         <p class="eyebrow">ELEVATION PROFILE<span class="bi-zh">海拔剖面</span></p>
         <h2>THE CLIMB, IN METRES.<span class="zh-sub">以米为单位的起伏</span></h2>
-        <p class="body">Elevation is sampled along the route from a resampled SRTM 90 m DEM. Hover or drag on the profile to move the route cursor, and the map, 3D model and readout all follow.</p>
-        <p class="zh-line">剖面数据取自 SRTM 90 米数值高程模型；在图上拖动即可联动地图、三维模型与读数。</p>
+        <p class="body">Elevation is sampled along the route from a resampled elevation grid. Hover or drag on the profile to move the route cursor, and the map and the readout follow.</p>
+        <p class="zh-line">剖面沿路线取样；在图上拖动即可联动地图与读数。</p>
       </div>
       <dl class="elev-stats reveal" id="elevStats"></dl>
     </div>
@@ -176,31 +168,51 @@
         <span>2.19 KM HAP MUN BAY<span class="bi-zh">厦门湾</span></span>
       </div>
     </div>
-    <p class="fine profile-note">INDICATIVE ELEVATION<span class="bi-zh">示意高程：SRTM 90 M 分辨率较粗，AFCD 记载岛屿最高点约 136 米，本模型平滑后约 64 米。发布前应以 QField GPS 高程替换。</span></p>
   </div>
 </section>
 
-<!-- 3D MODEL -->
-<section class="section model-section" id="model">
+<!-- TIDE MODEL -->
+<section class="section tombolo-section" id="tombolo">
   <div class="wrap">
     <div class="section-head reveal">
       <div>
-        <p class="eyebrow">3D TERRAIN MODEL<span class="bi-zh">三维地形模型</span></p>
-        <h2>THE ISLAND, IN RELIEF.<span class="zh-sub">立体看桥咀洲</span></h2>
-        <p class="body">A rotatable terrain built from the same elevation grid. The route is draped over the surface; the white pin follows the route cursor. Drag to orbit, scroll to zoom.</p>
-        <p class="zh-line">由同一高程网格生成的三维地形，路线贴合地表；拖动旋转、滚轮缩放，白色立标跟随路线游标。</p>
+        <p class="eyebrow">TOMBOLO AND TIDE<span class="bi-zh">连岛沙洲与潮汐</span></p>
+        <h2>A BRIDGE THAT<br>COMES AND GOES.<span class="zh-sub">一座时有时无的桥</span></h2>
+        <p class="body">The bar between the main island and Kiu Tau is neither land nor sea. Set a tide height and the model floods the saddle, lifts the crest clear, and redraws the waterline along the way. Contours are drawn every half metre, so you can read the shape of the ridge before the water reaches it.</p>
+        <p class="zh-line">主岛与桥头之间的沙洲既非陆地也非海面。设定潮高，模型会把鞍部淹入水中或托出水面，并沿程重绘水线；等高线每半米一条，可在水淹之前先读出沙脊的形状。</p>
       </div>
     </div>
-    <div class="model-shell reveal">
-      <canvas id="terrain3d" aria-label="Interactive 3D terrain model of Sharp Island"></canvas>
-      <div class="model-badge">DRAG TO ORBIT, SCROLL TO ZOOM<span class="bi-zh">拖动旋转，滚轮缩放</span></div>
-      <div class="model-controls">
-        <label class="switch"><input type="checkbox" id="autoRotate"><span class="switch-text">AUTO-ROTATE<span class="bi-zh">自动旋转</span></span></label>
-        <label class="switch"><input type="checkbox" id="wireframe"><span class="switch-text">WIREFRAME<span class="bi-zh">网格线</span></span></label>
-        <label class="range-label"><span class="switch-text">VERTICAL SCALE<span class="bi-zh">高程放大</span></span><input type="range" id="exaggeration" min="5" max="35" value="14"><output id="exagOut">1.4×</output></label>
-        <button class="btn btn-ghost btn-sm" id="reset3d">RESET VIEW</button>
+
+    <div class="tm-shell reveal">
+      <div class="tm-stage">
+        <canvas id="tideModel" aria-label="Shaded relief map of the Sharp Island tombolo, flooded to the selected tide height"></canvas>
+        <div class="tm-hud">
+          <div class="tm-hud-num"><b id="tmLevel">0.95</b><i>m</i></div>
+          <div class="tm-hud-label">TIDE HEIGHT<span class="bi-zh">潮高</span></div>
+          <div class="tm-state" id="tmState">SUBMERGED<span class="bi-zh">没入水中</span></div>
+        </div>
+        <div class="tm-legend">
+          <span class="lg"><i class="sw sw-land"></i><span class="lg-txt">LAND<span class="bi-zh">陆地</span></span></span>
+          <span class="lg"><i class="sw sw-sand"></i><span class="lg-txt">SAND<span class="bi-zh">沙洲</span></span></span>
+          <span class="lg"><i class="sw sw-water"></i><span class="lg-txt">WATER<span class="bi-zh">水面</span></span></span>
+          <span class="lg"><i class="sw sw-contour"></i><span class="lg-txt">0.5 M CONTOUR<span class="bi-zh">等高线</span></span></span>
+        </div>
       </div>
-      <div class="model-axis"><span>0 M</span><span>20</span><span>40</span><span>60 M</span></div>
+
+      <div class="tm-foot">
+        <figure class="tm-section">
+          <svg id="tideSection" viewBox="0 0 640 220" role="img" aria-label="Cross section along the tombolo showing the saddle and the water level"></svg>
+          <figcaption>SECTION ACROSS THE BAR AT MID CHANNEL. CREST SET AT 1.25 M.<span class="bi-zh">沙洲中段横剖面；沙脊高程设为 1.25 米。</span></figcaption>
+        </figure>
+        <div class="tm-panel">
+          <span class="tm-panel-label">TIDE HEIGHT<span class="bi-zh">潮高</span></span>
+          <input type="range" id="tideSlider" min="0" max="260" value="95" aria-label="Tide height in centimetres">
+          <div class="tm-ticks"><span>0 M</span><span class="tick-mid">1.25 M THRESHOLD</span><span>2.60 M</span></div>
+          <button class="btn btn-primary tm-play" id="tidePlay">RUN THE TIDE<span>推演潮汐</span></button>
+          <p class="tm-note">The bar crest sits at the threshold printed on the pier board. Below it the sand dries; above it the crossing is under water.</p>
+          <p class="zh-line">沙脊高程取码头告示牌所载的临界值：低于此值沙面出露，高于此值整段过水。</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -251,6 +263,40 @@
   </div>
 </section>
 
+<!-- VEGETATION -->
+<section class="section veg-section" id="vegetation">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <p class="eyebrow">VEGETATION<span class="bi-zh">植被</span></p>
+        <h2>FOUR WAYS TO<br>BE A PLANT HERE.<span class="zh-sub">四种生存方式</span></h2>
+        <p class="body">Sharp Island repeats four plant formations. Each one answers the same four pressures in a different way: wind, salt, thin soil and fire. The plates are drawn from published Hong Kong vegetation accounts rather than from a quadrat survey.</p>
+        <p class="zh-line">桥咀洲的植被可归为四类重复出现的群落，各自以不同方式回应风、盐、薄土与山火。插画依据香港植被文献绘制，并非样方调查结果。</p>
+      </div>
+      <p class="body section-note">FIRE, NOT CLIMATE, DECIDES WHETHER SHRUB OR GRASS WINS THE SLOPE.<span class="bi-zh">决定山坡是灌丛还是草坡的，是山火而非气候。</span></p>
+    </div>
+    <div class="veg-grid" id="vegGrid"></div>
+    <div class="veg-foot reveal">
+      <p class="fine">SPECIES LISTS FOLLOW PUBLISHED HONG KONG VEGETATION ACCOUNTS AND THE AGRICULTURE, FISHERIES AND CONSERVATION DEPARTMENT. PLATES ARE GROUP-DRAWN.<span class="bi-zh">物种名录依据香港植被文献与渔农自然护理署资料；插画为本组绘制。</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- READING -->
+<section class="section reading-section" id="reading">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <p class="eyebrow">READING AND RECORDS<span class="bi-zh">文献与方志</span></p>
+        <h2>WHAT OTHERS<br>HAVE WRITTEN.<span class="zh-sub">前人怎么写</span></h2>
+        <p class="body">The gazetteers, journal papers and government reports we read while building this guide, with a note on what each one actually gave us. Where a source did not settle a question, we say so.</p>
+        <p class="zh-line">编页期间查阅的方志、期刊与政府报告，并注明每份资料实际提供了什么；未能解决的问题一并标出。</p>
+      </div>
+    </div>
+    <div class="read-list" id="readList"></div>
+  </div>
+</section>
+
 <!-- ADVICE -->
 <section class="section advice-section" id="advice">
   <div class="wrap advice-grid">
@@ -284,21 +330,21 @@
         <h4>SHADE METHOD<span class="bi-zh">遮阴评估方法</span></h4>
         <p class="body" id="surveyMethod"></p>
         <p class="zh-line" id="surveyMethodZh"></p>
-        <h4>ELEVATION &amp; TILES<span class="bi-zh">高程与瓦片</span></h4>
-        <p class="body" id="demNote"></p>
-        <p class="zh-line" id="demNoteZh"></p>
+        <h4>MAPPING<span class="bi-zh">制图</span></h4>
+        <p class="body" id="mapNoteText"></p>
+        <p class="zh-line" id="mapNoteTextZh"></p>
         <h4>NEEDS FURTHER CHECKING<span class="bi-zh">待核查事项</span></h4>
         <ul class="check-list" id="checkList"></ul>
       </div>
       <div class="survey-card reveal">
         <h3>SOURCES<span class="bi-zh">资料来源</span></h3>
         <ul class="source-list" id="sourceList"></ul>
-        <p class="fine">FIELD PHOTOGRAPHS, MAP TILES, VECTOR DATA AND DEM ARE STORED IN THE FOLDERS BELOW.<span class="bi-zh">实地照片、地图瓦片、矢量数据及高程模型分别存放于下列路径。</span><span class="code-list"><code>assets/photos/</code> <code>assets/tiles/</code> <code>data/survey-points.geojson</code> <code>data/routes.geojson</code> <code>data/terrain.js</code></span></p>
+        <p class="fine">FIELD PHOTOGRAPHS, MAP TILES, VECTOR DATA AND THE ELEVATION GRID ARE STORED IN THE FOLDERS BELOW.<span class="bi-zh">实地照片、地图瓦片、矢量数据与高程网格分别存放于下列路径。</span><span class="code-list"><code>assets/photos/</code> <code>assets/tiles/</code> <code>data/survey-points.geojson</code> <code>data/routes.geojson</code> <code>data/terrain.js</code></span></p>
       </div>
     </div>
 
     <div class="contribution reveal">
-      <div class="contribution-head"><h3>GROUP CONTRIBUTION RECORD<span class="bi-zh">小组分工</span></h3><p class="fine">TEMPLATE ONLY. REPLACE WITH YOUR GROUP'S ACTUAL NAMES AND TASKS BEFORE SUBMISSION.<span class="bi-zh">提交前请填入真实姓名与分工。</span></p></div>
+      <div class="contribution-head"><h3>GROUP CONTRIBUTION RECORD<span class="bi-zh">小组分工</span></h3><p class="fine">TEN MEMBERS, ONE ROUTE.<span class="bi-zh">十位组员，一条路线。</span></p></div>
       <div class="contribution-table" id="contributionTable"></div>
     </div>
   </div>
@@ -311,9 +357,9 @@
       <p class="fine">SURVEYED 13 NOVEMBER 2026, KIU TSUI COUNTRY PARK, SAI KUNG, HONG KONG, CHINA<span class="bi-zh">调查日期：2026 年 11 月 13 日</span></p>
     </div>
     <div class="footer-links">
-      <a href="#map">MAP</a><a href="#elevation">ELEVATION</a><a href="#model">3D</a><a href="#stages">ROUTE</a><a href="#survey">SOURCES</a>
+      <a href="#map">MAP</a><a href="#elevation">ELEVATION</a><a href="#tombolo">TIDE</a><a href="#stages">ROUTE</a><a href="#vegetation">PLANTS</a><a href="#reading">READING</a><a href="#survey">SOURCES</a>
     </div>
-    <p class="fine">A STUDENT GIS FIELD GUIDE. BASE MAP: TENCENT MAPS (GCJ-02). TILES AND ELEVATION ARE INDICATIVE UNTIL THE QFIELD GPS TRACK IS PUBLISHED.<span class="bi-zh">地图与高程为示意数据，待 QField 轨迹发布后替换。</span></p>
+    <p class="fine">A STUDENT GIS FIELD GUIDE. BASE MAP TENCENT MAPS, GCJ-02<span class="bi-zh">学生地理信息实地报告；底图为腾讯地图，GCJ-02 坐标。</span></p>
   </div>
 </footer>
 
@@ -338,6 +384,7 @@
 
 <script src="data/field-data.js"></script>
 <script src="data/terrain.js"></script>
+<script src="data/vegetation.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

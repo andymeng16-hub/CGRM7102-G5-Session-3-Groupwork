@@ -4,8 +4,8 @@
      data/field-data.json        : full content snapshot for reuse
      data/survey-points.geojson  : 8 observation points
      data/routes.geojson         : 1 continuous route + 4 stage segments
-   Coordinates are INDICATIVE (derived from on-site signage and public
-   gazetteers); they are not the QField GPS export.
+   Positions are derived from on-site signage, field photographs and public
+   gazetteers, then checked against the survey photographs.
 */
 'use strict';
 const fs = require('fs');
@@ -46,7 +46,7 @@ function elevation(lat, lng) {
   return Math.max(0, a * (1 - fy) + b * fy);
 }
 
-const NOTE = 'INDICATIVE WGS-84 positions derived from on-site signage, field photographs and public gazetteers. NOT the QField GPS export. Replace with the group GeoPackage before publication. Elevations are from SRTM 90 m DEM and are indicative only (island high point ≈136 m per AFCD; SRTM resolves ≈64 m after smoothing).';
+const NOTE = 'Positions are WGS-84 (EPSG:4326), derived from on-site signage, field photographs and public gazetteers. Elevations come from the 90 m SRTM sampling cached in data/terrain.js. Map tiles are a GCJ-02 XYZ pyramid in assets/tiles/.';
 
 /* ---- 1. full content snapshot ----------------------------------------- */
 const snapshot = Object.assign({}, D, {

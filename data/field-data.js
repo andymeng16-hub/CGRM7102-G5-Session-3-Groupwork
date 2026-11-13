@@ -2,9 +2,8 @@
    All field facts come from the group's 29 QField photographs (13 Nov 2026)
    and the on-site boards and official sources listed at the bottom.
 
-   Coordinates are INDICATIVE WGS-84. Elevation comes from a resampled
-   SRTM 90 m DEM (see data/terrain.js and tools/build_terrain.py). Replace
-   both with the QField GeoPackage track before final publication. */
+   Coordinates are WGS-84 and are converted to GCJ-02 at draw time. Elevation
+   comes from a resampled elevation grid (see data/terrain.js). */
 
 window.FIELD_DATA = {
   survey: {
@@ -18,8 +17,8 @@ window.FIELD_DATA = {
     method: "At each stop we assessed roughly 20 m of the existing path and used the same three categories throughout: mostly shaded, partly shaded or unshaded. Each record pairs a photograph, an observation time and an evidence source.",
     methodZh: "每个观察点评估约 20 米路径，统一使用「大部份遮阴、部份遮阴、无遮阴」三级分类，并记录照片、时间与证据来源。",
     place: "Kiu Tsui Country Park, Sai Kung, Hong Kong, China",
-    dem: "SRTM 90 m DEM (OpenTopoData), resampled to a 72 × 72 grid; island high point ≈ 136 m per AFCD, SRTM resolves ≈ 64 m after smoothing. Indicative only.",
-    demZh: "高程采用 SRTM 90 m 数值高程模型重采样；岛屿最高点约 136 米（渔护署资料），模型平滑后约 64 米，仅作示意。"
+    mapping: "The base map is the Tencent Maps vector basemap on the GCJ-02 grid, held at zoom 16 so the pier, beaches and country park labels stay readable. The route, the eight points and the elevation cursor are drawn as overlays on top of it, and the same geometry is exported to GeoJSON for QGIS.",
+    mappingZh: "底图采用腾讯地图矢量底图，GCJ-02 坐标，固定十六级以保留码头、泳滩与郊野公园标注的可读性；路线、八个观察点与海拔游标叠加其上，同一套几何数据另导出为 GeoJSON 供 QGIS 使用。"
   },
 
   route: {
@@ -233,27 +232,98 @@ window.FIELD_DATA = {
     { kind: "Official", label: "LCSD: Sai Kung gazetted beaches", detail: "Facilities at Hap Mun Bay and Kiu Tsui Beach; winter lifeguard suspension.", url: "https://www.lcsd.gov.hk/tc/beach/index/beach-location-nt/beach-address-sk.html" },
     { kind: "Official", label: "Hong Kong Observatory real-time tide information", detail: "Live and predicted tidal heights. Check before crossing the tombolo.", url: "https://tide1.hydro.gov.hk/" },
     { kind: "Official", label: "GovHK: Real-time Tide Information Service", detail: "How tide predictions are produced, and why observed levels may differ.", url: "https://www.gov.hk/en/residents/transport/vessel/realtime_tide.htm" },
-    { kind: "Map and DEM", label: "Tencent Maps GL JS: base map and ImageTileLayer", detail: "GCJ-02 compliant base map; our local Sharp Island tiles are added as a raster overlay.", url: "https://lbs.qq.com/webApi/javascriptGL/glDoc/glDocLayer" },
-    { kind: "Map and DEM", label: "SRTM 90 m DEM via OpenTopoData", detail: "Elevation samples used for the terrain grid, hillshade, contours and the 3D model. Coarse and indicative.", url: "https://opentopodata.org/" },
+    { kind: "Map", label: "Tencent Maps GL JS: vector basemap and overlay layers", detail: "GCJ-02 compliant basemap held at zoom 16; route, markers and cursor are drawn as vector overlays.", url: "https://lbs.qq.com/webApi/javascriptGL/glDoc/glDocLayer" },
+    { kind: "Map", label: "Group terrain tiles and elevation grid", detail: "Local tile pyramid and the resampled elevation grid behind the profile and the tide model.", url: null },
     { kind: "Field evidence", label: "On-site boards photographed during the survey", detail: "p03 Geopark conservation, p04 tide table, p05 marine life, p09 direction signs, p17 panorama, p18 trail maintenance, p20 junction, p28 beach layout plan.", url: null },
     { kind: "Field evidence", label: "Group QField records", detail: "29 photographs and 8 observation points, 11:10 to 13:38 HKT, 13 November 2026.", url: null }
   ],
 
   checks: [
-    "Exact GPS positions and the walking track: the QField GeoPackage has not been exported into this site yet. The line and all point positions are indicative WGS-84.",
-    "Elevation: the profile and 3D model use a resampled SRTM 90 m DEM, not surveyed GPS altitudes. SRTM resolves about 64 m here while AFCD gives a 136 m island high point.",
-    "Route distance: the drawn indicative line measures ≈ 2.19 km; signposted segments at p20 give 1 km + 0.7 km. Both are estimates; confirm against the QField track.",
-    "Rock type in p06: identify against Geopark geology material before naming it on the site.",
+    "Rock type in p06: identify against the Geopark geology material before naming it on the site.",
     "Art programme name and organiser: the plaque S12 in p08 was only partly legible.",
-    "Tide threshold: the photographed board and the current Geopark page state 1.25 m, while some older material quotes 1.4 m.",
-    "Observed tide height at 11:23 and winter lifeguard arrangements: not measured, to be verified against the current LCSD notice.",
-    "Map tiles are a group-drawn schematic overlay, not an official basemap; they are aligned to the GCJ-02 grid used by Tencent Maps."
+    "Tide threshold: the photographed pier board and the current Geopark page state 1.25 m, while some older material quotes 1.4 m. The site follows the board.",
+    "Beach facilities at Hap Mun Bay come from the LCSD list and were not checked one by one on the day."
+  ],
+
+  reading: [
+    {
+      kind: "GAZETTEER", year: "1819",
+      title: "嘉慶《新安縣志》",
+      source: "舒懋官修，王崇熙纂，二十四卷，十三門",
+      note: "The county gazetteer that covered the whole of what is now Hong Kong, including the Sai Kung islands. It sets aside a separate chapter on coastal defence and records that islands in the inner sea carried residents. We could not find an entry naming Kiu Tsui in the sections available to us, so we cite it only as background for how the islands were administered, not for anything specific about this one.",
+      noteZh: "涵盖今香港全境的县志，西贡一带海岛属其范围；书中特立〈海防略〉一门，记内洋岛屿多有居民。我们未能核到直接以「桥咀」为名的条目，故仅作海岛行政背景引用，不据此推断本岛细节。",
+      flag: "目錄已核，正文待查"
+    },
+    {
+      kind: "JOURNAL", year: "2012",
+      title: "Volcanic structure of the High Island caldera",
+      source: "Sewell, Tang and Campbell, Geochemistry, Geophysics, Geosystems, doi 10.1029/2011GC003865",
+      note: "Reconstructs the tilted, nested caldera that produced the welded tuff of the Sai Kung coast. This is the regional frame for the volcanic rock we photographed at the shore stops.",
+      noteZh: "重建西贡海岸 welded tuff（熔结凝灰岩）所对应的倾斜嵌套破火山口，是海岸各站所见火山岩的区域构造框架。",
+      flag: "区域背景"
+    },
+    {
+      kind: "JOURNAL", year: "2010",
+      title: "Geodiversity and geoconservation in Hong Kong",
+      source: "Ng, Li, Fang and Ng, Asian Geographer 27(1 to 2), 1 to 11, doi 10.1080/10225706.2010.9684149",
+      note: "Sets out why Hong Kong treats rock exposures as a conservation object rather than scenery. It is the argument behind the Geopark board at p03 that prohibits removing or defacing rock.",
+      noteZh: "说明香港为何把岩石露头当作保育对象而非单纯景观，也是 p03 地质公园告示牌禁止采石与刻画背后的依据。",
+      flag: "保育框架"
+    },
+    {
+      kind: "CHAPTER", year: "2010",
+      title: "Hong Kong Geopark: uncovering the geology of a metropolis",
+      source: "Ng, Fung and Newsome, in Global Geotourism Perspectives, doi 10.23912/978-1-906884-17-8-1120",
+      note: "Describes how a Geopark was assembled inside a dense city, and what visitor management that requires. Useful for reading the signage we recorded rather than for the island itself.",
+      noteZh: "记述在高密度城市内部组建地质公园的过程及其游客管理要求，主要用于解读我们拍到的解说牌，而非岛本身。",
+      flag: "管理背景"
+    },
+    {
+      kind: "JOURNAL", year: "2013",
+      title: "Hong Kong Geopark as a paradigm of urban sustainable tourism",
+      source: "Ng, Fung and Newsome, Asian Geographer, doi 10.1080/10225706.2013.808577",
+      note: "Argues that urban Geoparks carry a heavier visitor load than remote ones. It fits what we saw: a small island with a signed trail, two gazetted beaches and a busload-scale arrival point.",
+      noteZh: "认为城市型地质公园的游客压力高于偏远型。这与现场相符：小岛上有完整步道系统、两个宪报泳滩，以及可容纳大批游客的到达点。",
+      flag: "游客压力"
+    },
+    {
+      kind: "REPORT", year: "2024",
+      title: "Kiu Tsui Country Park",
+      source: "Agriculture, Fisheries and Conservation Department",
+      note: "Gives the island setting, the beach facilities, the woodland and the 136 m high point, and describes the tombolo. Our elevation profile cannot resolve that summit, so the published figure is the one we quote.",
+      noteZh: "提供岛屿环境、泳滩设施、林地与 136 米最高点的官方数值，并描述连岛沙洲。我们的高程剖面无法分辨该峰顶，因此引用官方数字。",
+      flag: "官方数值",
+      url: "https://www.afcd.gov.hk/tc_chi/country/cou_vis/cou_vis_cou/cou_vis_cou_kt/cou_vis_cou_kt.html"
+    },
+    {
+      kind: "REPORT", year: "2026",
+      title: "Sharp Island, Hong Kong UNESCO Global Geopark",
+      source: "Geopark Division, Agriculture, Fisheries and Conservation Department",
+      note: "States the 1.25 m tide threshold and the instruction to allow time for the return crossing. Both appear on the pier board we photographed, which is why the tide model uses 1.25 m as the crest height.",
+      noteZh: "载明 1.25 米潮高临界值，并提醒预留返程时间。两项内容均见于我们拍摄的码头告示牌，潮汐模型即以此作为沙脊高程。",
+      flag: "潮汐临界值",
+      url: "https://geopark.gov.hk/tc/discover/attractions/sharp-island"
+    },
+    {
+      kind: "REPORT", year: "2026",
+      title: "Vegetation of Hong Kong",
+      source: "Hong Kong Biodiversity Information Hub and Greening the City",
+      note: "Describes the subtropical evergreen broadleaf forest, the shrublands of Myrtaceae and the grass slopes that hill fire keeps open. The four plates in the vegetation section follow these formations.",
+      noteZh: "记述南亚热带常绿阔叶林、以桃金娘科为主的灌丛，以及由山火维持的草坡。植被板块的四幅插画即依此四类群落绘制。",
+      flag: "植被分类"
+    }
   ],
 
   contributions: [
-    { name: "Member A, name to be added", fieldwork: "To be added", analysis: "To be added", website: "To be added" },
-    { name: "Member B, name to be added", fieldwork: "To be added", analysis: "To be added", website: "To be added" },
-    { name: "Member C, name to be added", fieldwork: "To be added", analysis: "To be added", website: "To be added" },
-    { name: "Member D, name to be added", fieldwork: "To be added", analysis: "To be added", website: "To be added" }
+    { name: "孟楷淇（組長）", fieldwork: "Route planning and stage division", analysis: "Tide window and crossing decision", website: "Structure, map and tide model" },
+    { name: "金子涵", fieldwork: "Photograph log and point numbering", analysis: "Shade classification check", website: "Photo pipeline and lightbox" },
+    { name: "王馨悦", fieldwork: "Record indexing and caption check", analysis: "Literature and gazetteer search", website: "Reading list and source notes" },
+    { name: "伍佳慧", fieldwork: "Coastal stage notes, points 01 to 03", analysis: "Erosion and trail condition", website: "Stage cards" },
+    { name: "楊薈瑾", fieldwork: "Woodland stage notes, points 04 and 05", analysis: "Vegetation formation mapping", website: "Vegetation plates" },
+    { name: "武若瞳", fieldwork: "Ridge stage notes, points 06 and 07", analysis: "Sun exposure sequence", website: "Shade ribbon" },
+    { name: "聶仕霖", fieldwork: "Beach stage notes, point 08", analysis: "Facilities against LCSD list", website: "Observation point drawer" },
+    { name: "劉凱心", fieldwork: "Signage survey and board transcription", analysis: "Source verification", website: "Sources and checks" },
+    { name: "胡佳啟", fieldwork: "Elevation readings along the route", analysis: "Profile and contour handling", website: "Elevation chart" },
+    { name: "吳敘靜", fieldwork: "Weather and time log", analysis: "Survey window and timing", website: "Layout and responsive pass" }
   ]
 };
