@@ -1,0 +1,123 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "note": "INDICATIVE WGS-84 positions derived from on-site signage and public gazetteers. NOT the QField GPS export. Replace with the group GeoPackage before publication.",
+  "survey_date": "13 November 2026",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "routeA",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            114.2872,
+            22.3677
+          ],
+          [
+            114.2879,
+            22.3684
+          ],
+          [
+            114.2868,
+            22.367
+          ],
+          [
+            114.2861,
+            22.366
+          ],
+          [
+            114.2871,
+            22.3653
+          ],
+          [
+            114.2881,
+            22.3663
+          ],
+          [
+            114.2872,
+            22.3677
+          ]
+        ]
+      },
+      "properties": {
+        "route": "A",
+        "name": "Coast & Geology",
+        "name_zh": "海岸地质线",
+        "start": "Kiu Tsui Public Pier 桥咀公众码头",
+        "finish": "Same pier, back along the shore",
+        "distance": "≈ 1.0 km return",
+        "recorded_time": "22 min recorded on site",
+        "shade": "3 of 3 stops unshaded",
+        "tidal": "Critical. Crossing only when tidal height is below 1.25 m. On the survey date the board gave an emergence window of 08:00–10:00 only (p04).",
+        "stops": "o1, o2, o3",
+        "evidence": "p02 shows a partly submerged shingle bar at 11:23; p04 shows the 08:00–10:00 emergence window for 13 Nov 2026. Together they explain why this route is tide-dependent and why our group stayed on the main island.",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "routeB",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            114.2879,
+            22.3684
+          ],
+          [
+            114.2888,
+            22.3668
+          ],
+          [
+            114.2896,
+            22.3648
+          ],
+          [
+            114.2895,
+            22.3628
+          ],
+          [
+            114.2908,
+            22.3615
+          ],
+          [
+            114.2918,
+            22.36
+          ],
+          [
+            114.2932,
+            22.3592
+          ],
+          [
+            114.2945,
+            22.358
+          ],
+          [
+            114.2959,
+            22.3569
+          ]
+        ]
+      },
+      "properties": {
+        "route": "B",
+        "name": "Shaded Ridge & Hap Mun Bay",
+        "name_zh": "林荫观景线",
+        "start": "Kiu Tsui Beach 桥咀泳滩",
+        "finish": "Hap Mun Bay Beach 厦门湾泳滩",
+        "distance": "1.7 km one way",
+        "recorded_time": "≈ 1 hr signposted walking",
+        "shade": "2 of 5 stops mostly or partly shaded; viewpoint and beach unshaded",
+        "tidal": "No tidal crossing required — the route stays on the main island.",
+        "stops": "o4, o5, o6, o7, o8",
+        "evidence": "p09–p15 show a closed canopy and dappled shade at 12:38–12:51, while p17 and p21–p25 show an open, unshaded ridge from 12:52. p18 and p19 document erosion and hand-built steps, and p20 supplies the signposted distances and walking times.",
+        "indicative": true
+      }
+    }
+  ]
+}

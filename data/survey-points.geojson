@@ -1,0 +1,237 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "note": "INDICATIVE WGS-84 positions derived from on-site signage and public gazetteers. NOT the QField GPS export. Replace with the group GeoPackage before publication.",
+  "survey_date": "13 November 2026",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "o1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.2876,
+          22.3678
+        ]
+      },
+      "properties": {
+        "code": "01",
+        "name": "Kiu Tsui Pier & Beach",
+        "name_zh": "桥咀码头・桥咀泳滩",
+        "route": "both",
+        "time_hkt": "11:10",
+        "weather": "Overcast, thick cloud",
+        "shade_20m": "unshaded",
+        "attraction": "Sandy beach, stone jetty and a layered mountain skyline across the water.",
+        "concerns": "No shade on the open sand. The cloud at 11:10 had cleared to strong sun by midday, so cloud cover is not reliable sun protection.",
+        "facilities": "Kai-to pier. LCSD lists a kiosk, changing rooms, showers, toilets, BBQ pits and a raft at Kiu Tsui Beach; lifeguard service is suspended from November to March.",
+        "suggestion": "Start here, confirm the last ferry time, and put on sun protection before the cloud breaks.",
+        "photos": "assets/photos/p01.jpg",
+        "evidence_source": "Field photo p01 (11:10) · LCSD Sai Kung beach facilities page",
+        "needs_checking": "The facility list comes from LCSD and was not checked item by item in the field.",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "o2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.2861,
+          22.366
+        ]
+      },
+      "properties": {
+        "code": "02",
+        "name": "The Tombolo",
+        "name_zh": "连岛沙洲",
+        "route": "A",
+        "time_hkt": "11:23–11:25",
+        "weather": "Overcast, brightening",
+        "shade_20m": "unshaded",
+        "attraction": "A natural sand-and-shingle bar that appears at low tide and links Sharp Island to Kiu Tau.",
+        "concerns": "The bar floods at high tide — generally when tidal height is above 1.25 m, as stated on the board. | On 13 Nov 2026 the printed emergence window was only 08:00–10:00, so our 11:23 visit fell outside it. | Wet, uneven cobbles with no shade.",
+        "facilities": "Tombolo Emergence Time board (08:00–18:00) with a QR code for Hong Kong Observatory real-time tide data.",
+        "suggestion": "Treat this as a viewpoint unless both the HKO prediction and the on-site board say crossing is safe, and always leave time to return.",
+        "photos": "assets/photos/p02.jpg, assets/photos/p04.jpg",
+        "evidence_source": "Field photos p02, p04 · HK UNESCO Global Geopark, Sharp Island · Hong Kong Observatory real-time tide service",
+        "needs_checking": "Predicted tide height at the moment of the survey was not measured — only the printed board was recorded.",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "o3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.2871,
+          22.3653
+        ]
+      },
+      "properties": {
+        "code": "03",
+        "name": "Rocky Shore & Conservation Zone",
+        "name_zh": "岩石海岸・保育告示",
+        "route": "A",
+        "time_hkt": "11:24–11:31",
+        "weather": "Cloud breaking",
+        "shade_20m": "unshaded",
+        "attraction": "Cobble beach, a weathered volcanic rock with pale veins (p06), and intertidal habitat.",
+        "concerns": "Rock collecting, graffiti and disturbing wildlife — prohibited on the Geopark board (p03). | Trampling coral and touching or feeding marine life — prohibited on the AFCD banner (p05). | Sharp, slippery cobbles under full sun.",
+        "facilities": "Hong Kong Geopark conservation board, “Respect Marine Life” banner, and a Sharp Island visitor map board.",
+        "suggestion": "Look closely, take photographs, leave everything in place, and wear shoes with grip on wet rock.",
+        "photos": "assets/photos/p03.jpg, assets/photos/p05.jpg, assets/photos/p06.jpg, assets/photos/p07.jpg",
+        "evidence_source": "Field photos p03, p05, p06, p07 · UNESCO HK Global Geopark / AFCD on-site signage",
+        "needs_checking": "The exact rock type in p06 needs confirmation against Geopark geology material.",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "o4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.2895,
+          22.3628
+        ]
+      },
+      "properties": {
+        "code": "04",
+        "name": "Pineapple-bun Art Trail",
+        "name_zh": "菠萝包艺术径",
+        "route": "B",
+        "time_hkt": "12:28–12:52",
+        "weather": "Sunny intervals",
+        "shade_20m": "partly",
+        "attraction": "Public art inspired by the island's pineapple-bun rocks; the plaque is titled “A Grand Pineapple Bun Tour”.",
+        "concerns": "Narrow sandy path beside the artworks, with exposed roots and a loose surface. | Strong sun between the trees after midday.",
+        "facilities": "Interpretation plaque S12.",
+        "suggestion": "Use this as a shade break, keep to the path, and do not climb on the artworks.",
+        "photos": "assets/photos/p08.jpg, assets/photos/p16.jpg, assets/photos/p26.jpg, assets/photos/p27.jpg",
+        "evidence_source": "Field photos p08, p16, p26, p27 · on-site art plaque S12",
+        "needs_checking": "The full name of the art programme and its organiser were only partly legible on the plaque.",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "o5",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.2908,
+          22.3615
+        ]
+      },
+      "properties": {
+        "code": "05",
+        "name": "Shaded Woodland Trail",
+        "name_zh": "林荫山径",
+        "route": "B",
+        "time_hkt": "12:38–12:51",
+        "weather": "Sunny, scattered cumulus",
+        "shade_20m": "mostly",
+        "attraction": "Woodland corridor, framed sea views, and Sai Kung District Council direction signs (Kiu Tsui Beach 500 m; Kiu Tsui Country Park).",
+        "concerns": "Uneven, rooty surface in low light. | Vegetation worn back where visitors have cut corners.",
+        "facilities": "Direction signs at the woodland edge.",
+        "suggestion": "Save this section for the hottest part of the day and watch your footing.",
+        "photos": "assets/photos/p09.jpg, assets/photos/p10.jpg, assets/photos/p11.jpg, assets/photos/p12.jpg, assets/photos/p13.jpg, assets/photos/p14.jpg, assets/photos/p15.jpg",
+        "evidence_source": "Field photos p09–p15 · Sai Kung District Council direction signs",
+        "needs_checking": "",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "o6",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.2918,
+          22.36
+        ]
+      },
+      "properties": {
+        "code": "06",
+        "name": "Kiu Tsui Viewing Point",
+        "name_zh": "桥咀观景台",
+        "route": "B",
+        "time_hkt": "12:52–13:24",
+        "weather": "Sunny",
+        "shade_20m": "unshaded",
+        "attraction": "A labelled panorama at Kiu Tsui Viewing Point, with views down over Hap Mun Bay (p25).",
+        "concerns": "Full sun and wind exposure on the ridge. | Short, steep access on a loose surface.",
+        "facilities": "Panorama interpretation panel.",
+        "suggestion": "Keep the stop short; wear a hat and drink water here.",
+        "photos": "assets/photos/p17.jpg, assets/photos/p21.jpg, assets/photos/p22.jpg, assets/photos/p23.jpg, assets/photos/p24.jpg, assets/photos/p25.jpg",
+        "evidence_source": "Field photos p17, p21–p25 · Kiu Tsui Viewing Point panorama panel",
+        "needs_checking": "",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "o7",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.2932,
+          22.3592
+        ]
+      },
+      "properties": {
+        "code": "07",
+        "name": "Junction & Repaired Steps",
+        "name_zh": "分岔路・手作步道",
+        "route": "B",
+        "time_hkt": "12:55–12:59",
+        "weather": "Sunny",
+        "shade_20m": "partly",
+        "attraction": "Signposted junction and hand-built timber steps.",
+        "concerns": "Visible soil loss and loose sandy tread beside the steps (p19). | Erosion from visitors leaving the path, as described on the AFCD maintenance board (p18).",
+        "facilities": "Junction signpost and “Country Park Trail Maintenance Broadcast” board.",
+        "suggestion": "Stay on the trail and take the steps slowly, especially downhill.",
+        "photos": "assets/photos/p18.jpg, assets/photos/p19.jpg, assets/photos/p20.jpg",
+        "evidence_source": "Field photos p18–p20 · AFCD trail maintenance board · Sai Kung District Council signpost",
+        "needs_checking": "",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "o8",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.2959,
+          22.3569
+        ]
+      },
+      "properties": {
+        "code": "08",
+        "name": "Hap Mun Bay Beach",
+        "name_zh": "厦门湾泳滩",
+        "route": "B",
+        "time_hkt": "13:30–13:38",
+        "weather": "Sunny, scattered cloud",
+        "shade_20m": "unshaded",
+        "attraction": "A sheltered bay, white sand, clear turquoise water and the painted Hap Mun Bay Beach sign.",
+        "concerns": "Open sand with no shade. | Coral and marine life in the shallow water. | No lifeguard service in November — LCSD suspends winter service at this beach.",
+        "facilities": "Beach layout plan and by-laws board. LCSD lists a kiosk, 22 BBQ pits, changing rooms, showers, toilets and a raft.",
+        "suggestion": "Bring your own shade and water, and swim only when lifeguards are on duty.",
+        "photos": "assets/photos/p25.jpg, assets/photos/p28.jpg, assets/photos/p29.jpg",
+        "evidence_source": "Field photos p25, p28, p29 · LCSD Sai Kung beach facilities page",
+        "needs_checking": "Individual facilities were not checked one by one; the list is from LCSD.",
+        "indicative": true
+      }
+    }
+  ]
+}
