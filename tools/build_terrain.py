@@ -28,7 +28,7 @@ CACHE = os.path.join(TOOLS, "dem_cache.json")
 S_LAT, N_LAT = 22.3490, 22.3730
 W_LON, E_LON = 114.2800, 114.3040
 
-# Group-drawn approximate coastline (WGS-84), NW pier -> SE Hap Mun Bay
+# Group-drawn approximate coastline (WGS-84), NW pier to SE Hap Mun Bay
 ISLAND = [
     (22.3698, 114.2875), (22.3694, 114.2908), (22.3680, 114.2938),
     (22.3655, 114.2963), (22.3625, 114.2980), (22.3592, 114.2986),
@@ -46,7 +46,7 @@ ZMAX, ZMIN, TILE = 17, 13, 256
 
 
 def gcj_offset(lng, lat):
-    """WGS-84 -> GCJ-02 (Tencent / national standard)."""
+    """WGS-84 to GCJ-02 (Tencent / national standard)."""
     def tl(x, y):
         r = -100 + 2*x + 3*y + .2*y*y + .1*x*y + .2*math.sqrt(abs(x))
         r += (20*math.sin(6*x*math.pi) + 20*math.sin(2*x*math.pi)) * 2/3
@@ -244,17 +244,19 @@ def render_master():
             d.text((8, py+4), f"{la:.3f}N", fill=(87, 110, 120), font=small)
 
     labels = [
-        (22.3686, 114.2886, "KIU TSUI PIER / 桥咀码头"),
-        (22.3657, 114.2855, "KIU TAU / 桥头"),
-        (22.3672, 114.2922, "VIEWING POINT / 观景台"),
-        (22.3569, 114.2962, "HAP MUN BAY / 厦门湾"),
-        (22.3618, 114.2949, "KIU TSUI COUNTRY PARK"),
+        (22.3686, 114.2886, "KIU TSUI PIER", "桥咀码头"),
+        (22.3657, 114.2855, "KIU TAU", "桥头"),
+        (22.3672, 114.2922, "VIEWING POINT", "观景台"),
+        (22.3569, 114.2962, "HAP MUN BAY", "厦门湾"),
+        (22.3618, 114.2949, "KIU TSUI COUNTRY PARK", "桥咀郊野公园"),
     ]
-    for la, lo, text in labels:
+    zh_font = ImageFont.truetype(uni, 16)
+    for la, lo, en, zh in labels:
         px, py = lon2x(lo+DLNG, ZMAX)-west_px, lat2y(la+DLAT, ZMAX)-north_py
-        d.text((px+3, py+2), text, fill=(255, 255, 255), font=font,
-               stroke_width=3, stroke_fill=(255, 255, 255))
-        d.text((px+3, py+2), text, fill=(48, 66, 62), font=font)
+        for offset, text, fnt in ((0, en, font), (23, zh, zh_font)):
+            d.text((px+3, py+2+offset), text, fill=(255, 255, 255), font=fnt,
+                   stroke_width=3, stroke_fill=(255, 255, 255))
+            d.text((px+3, py+2+offset), text, fill=(48, 66, 62), font=fnt)
 
     # ---- transparent overlay: contour lines + relief shading ----
     ov = np.zeros((mh, mw, 4), dtype="uint8")
@@ -287,7 +289,7 @@ def render_master():
         "gcj": {"dlng": round(DLNG, 7), "dlat": round(DLAT, 7)}
     }
     with open(os.path.join(DATA, "terrain.js"), "w") as f:
-        f.write("/* Indicative terrain grid — see tools/build_terrain.py */\n")
+        f.write("/* Indicative terrain grid: see tools/build_terrain.py */\n")
         f.write("window.TERRAIN = " + json.dumps(terrain, separators=(",", ":")) + ";\n")
 
     return base_im, overlay_im, (x0, y0, x1, y1), (west_px, north_py), (shifted_west_px, shifted_north_py)

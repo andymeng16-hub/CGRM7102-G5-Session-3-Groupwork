@@ -1,4 +1,4 @@
-/* Sharp Island — GIS field guide interactions
+/* Sharp Island: GIS field guide interactions
    - Local terrain tiles (GCJ-02 XYZ pyramid) drawn on a canvas slippy map
    - Tencent Maps GL JS base map with TMap.ImageTileLayer overlay (proxy mode)
    - One interactive route: scrubber, elevation profile, 3D terrain model
@@ -41,7 +41,7 @@
     r += (150*Math.sin(x/12*Math.PI) + 300*Math.sin(x/30*Math.PI))*2/3;
     return r;
   }
-  /* WGS-84 → GCJ-02 (Tencent Maps uses GCJ-02 for Hong Kong, China). */
+  /* WGS-84 to GCJ-02 (Tencent Maps uses GCJ-02 for Hong Kong, China). */
   function wgs2gcj(lng, lat) {
     if (outOfChina(lng, lat)) return { lat: lat, lng: lng };
     var a = 6378245.0, ee = .006693421622965943;
@@ -123,7 +123,7 @@
   /* Stage boundaries come from the chainage printed on each stage card, so the
      profile, the stage chips, the shade readout and the GeoJSON exports agree. */
   D.stages.forEach(function (s, i) {
-    var m = s.range.match(/([\d.]+)\s*[–-]\s*([\d.]+)/);
+    var m = s.range.match(/([\d.]+)\s+to\s+([\d.]+)/);
     var from = m ? Number(m[1]) : i * TOTAL / D.stages.length;
     var to = i === D.stages.length - 1 ? TOTAL : (m ? Number(m[2]) : (i + 1) * TOTAL / D.stages.length);
     s.from = from; s.to = to;
@@ -391,7 +391,7 @@
       updateTencentCursor();
     } catch (err) {
       tmapReady = false;
-      switchBase('survey', '腾讯底图未能初始化，已显示本地地形瓦片。The official basemap could not be loaded; local survey tiles are shown.');
+      switchBase('survey', ['The official basemap could not be loaded. Local survey tiles are shown.', '腾讯底图未能初始化，已显示本地地形瓦片。']);
     }
   }
   function updateTencentCursor() {
@@ -406,11 +406,11 @@
     s.src = 'https://map.qq.com/api/gljs?v=1.exp';
     s.async = true;
     s.onload = function () { setTimeout(initTencent, 80); };
-    s.onerror = function () { switchBase('survey', '地图服务无法连接，已显示本地地形瓦片。The map service is unavailable; local survey tiles are shown.'); };
+    s.onerror = function () { switchBase('survey', ['The map service is unavailable. Local survey tiles are shown.', '地图服务无法连接，已显示本地地形瓦片。']); };
     document.head.appendChild(s);
     setTimeout(function () {
       if (!tmapReady && state.base === 'official') {
-        switchBase('survey', '官方底图在此环境不可用，已切换为本地地形瓦片。The official basemap is unavailable here; local survey tiles are shown.');
+        switchBase('survey', ['The official basemap is unavailable here. Local survey tiles are shown.', '官方底图在此环境不可用，已切换为本地地形瓦片。']);
       }
     }, 7000);
   }
@@ -423,9 +423,9 @@
     $('#tileMap').hidden = which !== 'survey';
     $('#tmap').hidden = which !== 'official';
     var nb = $('#mapNote');
-    if (note) { nb.textContent = note + '  ×'; nb.hidden = false; } else nb.hidden = true;
+    if (note) { nb.innerHTML = note[0] + '<span class="bi-zh">' + note[1] + '</span>'; nb.hidden = false; } else nb.hidden = true;
     if (which === 'official') {
-      if (!proxyReady) { switchBase('survey', '官方底图需要 WorkBuddy 地图代理；当前显示本地地形瓦片。The official basemap needs the WorkBuddy map proxy; local survey tiles are shown.'); return; }
+      if (!proxyReady) { switchBase('survey', ['The official basemap needs the WorkBuddy map proxy. Local survey tiles are shown.', '官方底图需要 WorkBuddy 地图代理，当前显示本地地形瓦片。']); return; }
       loadTencentSDK();
     } else {
       sizeCanvas(); drawTileMap();
@@ -469,7 +469,7 @@
       g.push('<line x1="'+x0+'" y1="'+(PF.h-PF.bottom+30)+'" x2="'+x1+'" y2="'+(PF.h-PF.bottom+30)+
         '" stroke="var(--line-soft)" stroke-width="2"/>');
       g.push('<text class="pf-stage" x="'+((x0+x1)/2)+'" y="'+(PF.h-PF.bottom+51)+
-        '" text-anchor="middle">'+s.id+' · '+s.name.toUpperCase()+'</text>');
+        '" text-anchor="middle">'+s.id+' '+s.name.toUpperCase()+'</text>');
     });
     D.points.forEach(function (p) {
       var x = px(p.dist), y = py(p.elev);
@@ -482,10 +482,10 @@
     updateProfile();
 
     $('#elevStats').innerHTML =
-      '<div><dt>HIGH POINT / 最高点</dt><dd>'+Math.round(MAXE)+'<small>m</small></dd></div>' +
-      '<div><dt>TOTAL ASCENT / 累计爬升</dt><dd>'+Math.round(ASCENT)+'<small>m</small></dd></div>' +
-      '<div><dt>ROUTE LENGTH / 路线长度</dt><dd>'+TOTAL.toFixed(2)+'<small>km</small></dd></div>' +
-      '<div><dt>DEM / 高程模型</dt><dd>SRTM<small>90 m</small></dd></div>';
+      '<div><dt>HIGH POINT<span class="bi-zh">最高点</span></dt><dd>'+Math.round(MAXE)+'<small>m</small></dd></div>' +
+      '<div><dt>TOTAL ASCENT<span class="bi-zh">累计爬升</span></dt><dd>'+Math.round(ASCENT)+'<small>m</small></dd></div>' +
+      '<div><dt>ROUTE LENGTH<span class="bi-zh">路线长度</span></dt><dd>'+TOTAL.toFixed(2)+'<small>km</small></dd></div>' +
+      '<div><dt>DEM<span class="bi-zh">高程模型</span></dt><dd>SRTM<small>90 m</small></dd></div>';
   }
   function updateProfile() {
     var s = sampleAt(state.progress), x = px(s.dist), y = py(s.elev);
@@ -577,7 +577,7 @@
             b = proj3(X1, Y0, heightZ(z01)*w01),
             d = proj3(X1, Y1, heightZ(z11)*w11),
             f = proj3(X0, Y1, heightZ(z10)*w10);
-        /* Lambert hillshade from the DEM gradient — stable while orbiting.
+        /* Lambert hillshade from the DEM gradient, stable while orbiting.
            Light comes from the north-west; south-facing slopes read darker. */
         var gx = (z01-z00)/Math.max(1, i2-i), gy = (z10-z00)/Math.max(1, j2-j);
         var k = .055*state.exaggeration;
@@ -621,7 +621,7 @@
     stroke3(rp.slice(0, upto+1), '#ffffff', 4.5);
 
     /* observation points */
-    /* observation points — fixed dark ink for legibility on the light terrain */
+    /* observation points: fixed dark ink for legibility on the light terrain */
     var ink = '#1d1d1f';
     D.points.forEach(function (p) {
       var w = world(p.lat, p.lng), q = proj3(w.x, w.y, heightZ(p.elev)+.02);
@@ -683,7 +683,7 @@
     $('#readDist').textContent = (state.progress*TOTAL).toFixed(2);
     $('#readElev').textContent = Math.round(s.elev);
     $('#readShade').textContent = shadeName[st.shade].split(' ')[0];
-    $('#nearestPoint').textContent = 'NEAREST · '+np.name.toUpperCase()+' / '+np.zh;
+    $('#nearestPoint').innerHTML = 'NEAREST '+np.name.toUpperCase()+'<span class="bi-zh">'+np.zh+'</span>';
     $$('.stage-chip').forEach(function (b) { b.classList.toggle('active', b.dataset.stage === st.id); });
     $$('.seg-shade').forEach(function (b) { b.classList.toggle('on', b.dataset.point === np.id); });
     updateProfile();
@@ -717,9 +717,9 @@
       return '<button class="stop-card" data-point="'+p.id+'">' +
         '<img src="'+thumb(p.photos[0])+'" alt="Field photograph at '+p.name+'" loading="lazy">' +
         '<span class="sc-body"><span class="sc-num">'+p.code+'</span>' +
-        '<span class="sc-text"><strong>'+p.name+'</strong><span>'+p.zh+' · '+p.time+' · '+Math.round(p.elev)+' m</span></span></span></button>';
+        '<span class="sc-text"><strong>'+p.name+'</strong><span>'+p.zh+', '+p.time+', '+Math.round(p.elev)+' m</span></span></span></button>';
     }).join('');
-    $('#stopsCount').textContent = D.points.length + ' points · 8 个观察点';
+    $('#stopsCount').innerHTML = D.points.length + ' points<span class="bi-zh">8 个观察点</span>';
   }
   function buildStages() {
     $('#stageCards').innerHTML = '<div class="stage-grid">' + D.stages.map(function (s) {
@@ -729,29 +729,29 @@
       }).join('');
       return '<article class="stage-card reveal">' +
         '<div class="stage-photos">'+imgs+'</div>' +
-        '<div class="stage-body"><span class="stage-num">STAGE '+s.code+' / '+s.range+'</span>' +
+        '<div class="stage-body"><span class="stage-num">STAGE '+s.code+', '+s.range.toUpperCase()+'</span>' +
         '<h4>'+s.name+'</h4><p class="stage-zh">'+s.zh+'</p>' +
         '<dl class="stage-facts">' +
-          '<div><dt>TIME / 时间</dt><dd>'+s.time+'</dd></div>' +
-          '<div><dt>ELEVATION / 海拔</dt><dd>'+s.elev+'</dd></div>' +
-          '<div><dt>SHADE / 遮阴</dt><dd>'+shadeName[s.shade]+' / '+shadeZh[s.shade]+'</dd></div>' +
-          '<div><dt>POINTS / 观察点</dt><dd>'+s.points.length+' stops</dd></div>' +
+          '<div><dt>TIME<span class="bi-zh">时间</span></dt><dd>'+s.time+'</dd></div>' +
+          '<div><dt>ELEVATION<span class="bi-zh">海拔</span></dt><dd>'+s.elev+'</dd></div>' +
+          '<div><dt>SHADE<span class="bi-zh">遮阴</span></dt><dd>'+shadeName[s.shade]+'<span class="bi-zh">'+shadeZh[s.shade]+'</span></dd></div>' +
+          '<div><dt>POINTS<span class="bi-zh">观察点</span></dt><dd>'+s.points.length+' stops<span class="bi-zh">'+s.points.length+' 个观察点</span></dd></div>' +
         '</dl>' +
         '<p class="stage-summary">'+s.summary+'</p><p class="stage-summary-zh">'+s.summaryZh+'</p>' +
-        '<div class="stage-care"><b>EXTRA CARE · 注意事项：</b> '+s.care+'</div>' +
+        '<div class="stage-care"><span class="care-label">EXTRA CARE<span class="bi-zh">注意事项</span></span> '+s.care+'</div>' +
         '</div></article>';
     }).join('') + '</div>';
     $('#stageChips').innerHTML = D.stages.map(function (s) {
-      return '<button class="stage-chip" data-stage="'+s.id+'"><b>'+s.code+' '+s.name+'</b>'+s.zh+'</button>';
+      return '<button class="stage-chip" data-stage="'+s.id+'"><b>'+s.code+' '+s.name+'</b><span class="bi-zh">'+s.zh+'</span></button>';
     }).join('');
   }
   function buildRibbon() {
     $('#ribbons').innerHTML = '<div class="ribbon-card">' +
-      '<div class="ribbon-head"><strong>ONE CONTINUOUS ROUTE / 一条连续路线</strong><span>'+D.route.shade+'</span></div>' +
+      '<div class="ribbon-head"><strong>ONE CONTINUOUS ROUTE<span class="bi-zh">一条连续路线</span></strong><span>'+D.route.shade+'<span class="bi-zh">'+D.route.shadeZh+'</span></span></div>' +
       '<div class="ribbon">' + D.points.map(function (p) {
-        return '<div class="seg-shade '+p.shade+'" data-point="'+p.id+'" data-progress="'+p.progress+'" title="'+p.code+' '+p.name+' — '+shadeName[p.shade]+'"><span>'+p.code+'</span></div>';
+        return '<div class="seg-shade '+p.shade+'" data-point="'+p.id+'" data-progress="'+p.progress+'" title="'+p.code+' '+p.name+', '+shadeName[p.shade]+'"><span>'+p.code+'</span></div>';
       }).join('') + '</div>' +
-      '<div class="ribbon-foot"><span>START · '+D.route.startShort+'</span><span>FINISH · '+D.route.finishShort+'</span></div></div>';
+      '<div class="ribbon-foot"><span>START '+D.route.startShort+'<span class="bi-zh">'+D.route.startZh+'</span></span><span>FINISH '+D.route.finishShort+'<span class="bi-zh">'+D.route.finishZh+'</span></span></div></div>';
     $$('.seg-shade').forEach(function (el) {
       el.style.outline = '';
       el.addEventListener('click', function () { setProgress(Number(el.dataset.progress)); openPoint(el.dataset.point); });
@@ -759,20 +759,20 @@
   }
   function buildNotes() {
     var notes = [
-      { img: 'p19', color: 'amber', label: 'TRAIL CONDITION / 山径侵蚀', title: 'STAY ON THE REPAIRED PATH',
-        text: 'The AFCD board at the junction records serious erosion caused by visitors leaving the trail and wearing away vegetation. Hand-built log steps now hold the slope, but loose sandy tread and exposed roots remain.', evidence: 'FIELD EVIDENCE p18 · p19 · p20' },
-      { img: 'p03', color: 'rust', label: 'GEOCONSERVATION / 岩石保育', title: 'LOOK, DON\'T TAKE',
-        text: 'An on-site Geopark board prohibits defacing, damaging or removing any rock, and disturbing wild plants and animals. The weathered volcanic boulders here are brittle and scientifically valuable.', evidence: 'FIELD EVIDENCE p03 · p06 · p07' },
-      { img: 'p05', color: 'green', label: 'INTERTIDAL LIFE / 海岸生态', title: 'HANDS OFF THE SHORE',
-        text: 'The AFCD banner asks visitors not to feed or touch marine life, and not to tread on coral. The shallow water off both beaches is habitat, not a souvenir shelf.', evidence: 'FIELD EVIDENCE p05 · p07 · p28' },
-      { img: 'p13', color: 'blue', label: 'SUN EXPOSURE / 日照', title: 'CLOUD IS NOT SHADE',
-        text: 'At 11:10 the beach was under thick cloud; by 12:47 the ridge was in full sun. Our 20 m shade readings show the coast, viewpoint and beach entirely unshaded.', evidence: 'FIELD EVIDENCE p01 · p09–p15 · p21–p25' }
+      { img: 'p19', color: 'amber', label: 'TRAIL CONDITION', labelZh: '山径侵蚀', title: 'STAY ON THE REPAIRED PATH',
+        text: 'The AFCD board at the junction records serious erosion caused by visitors leaving the trail and wearing away vegetation. Hand-built log steps now hold the slope, but loose sandy tread and exposed roots remain.' },
+      { img: 'p03', color: 'rust', label: 'GEOCONSERVATION', labelZh: '岩石保育', title: 'LOOK, DON\'T TAKE',
+        text: 'An on-site Geopark board prohibits defacing, damaging or removing any rock, and disturbing wild plants and animals. The weathered volcanic boulders here are brittle, and the board asks visitors to leave them in place.' },
+      { img: 'p05', color: 'green', label: 'INTERTIDAL LIFE', labelZh: '海岸生态', title: 'HANDS OFF THE SHORE',
+        text: 'The AFCD banner asks visitors not to feed or touch marine life, and not to tread on coral. The shallow water off both beaches is habitat for coral and other marine life.' },
+      { img: 'p13', color: 'blue', label: 'SUN EXPOSURE', labelZh: '日照', title: 'CLOUD IS NOT SHADE',
+        text: 'At 11:10 the beach was under thick cloud; by 12:47 the ridge was in full sun. Our 20 m shade readings show the coast, viewpoint and beach entirely unshaded.' }
     ];
     $('#notesGrid').innerHTML = notes.map(function (n) {
       return '<article class="note-card reveal" style="--note-color:var(--'+n.color+')">' +
         '<img src="'+photo(n.img)+'" alt="Field evidence: '+n.title+'" loading="lazy" data-photo="'+n.img+'" data-caption="'+n.title+'">' +
-        '<div class="note-body"><span class="mini-label">'+n.label+'</span><h4>'+n.title+'</h4>' +
-        '<p>'+n.text+'</p><p class="note-evidence">'+n.evidence+'</p></div></article>';
+        '<div class="note-body"><span class="mini-label">'+n.label+'<span class="bi-zh">'+n.labelZh+'</span></span><h4>'+n.title+'</h4>' +
+        '<p>'+n.text+'</p></div></article>';
     }).join('');
   }
   function buildAdvice() {
@@ -784,26 +784,28 @@
   function buildSurvey() {
     var s = D.survey;
     var facts = [
-      ['SURVEY DATE / 日期', s.date+' · 2026 年 11 月 13 日'],
-      ['RECORD WINDOW / 时段', s.window+' · 2 h 28 min'],
-      ['WEATHER / 天气', s.weather],
-      ['FIELD RECORDS / 记录', s.photos+' photographs · '+s.points+' points · '+s.photos+' 张照片／'+s.points+' 个观察点'],
-      ['ROUTE / 路线', 'ONE continuous line: '+D.route.start+' → '+D.route.finish],
-      ['SHADE CLASSES / 遮阴分级', 'MOSTLY · PARTLY · UNSHADED / 大部份・部份・无遮阴'],
-      ['BASE MAP / 底图', 'TENCENT MAPS (GCJ-02) + LOCAL TERRAIN TILES'],
-      ['LOCATION / 地点', s.place]
+      ['SURVEY DATE', '日期', s.date, '2026 年 11 月 13 日'],
+      ['RECORD WINDOW', '时段', s.window, '11:10 至 13:38（香港时间），共 2 小时 28 分钟'],
+      ['WEATHER', '天气', s.weather, s.weatherZh],
+      ['FIELD RECORDS', '记录', s.photos+' photographs, '+s.points+' observation points', s.photos+' 张照片，'+s.points+' 个观察点'],
+      ['ROUTE', '路线', 'One continuous line from '+D.route.start+' to '+D.route.finish, '一条连续路线，由'+D.route.startZh+'至'+D.route.finishZh],
+      ['SHADE CLASSES', '遮阴分级', 'Mostly shaded, partly shaded, unshaded', '大部份遮阴，部份遮阴，无遮阴'],
+      ['BASE MAP', '底图', 'Tencent Maps (GCJ-02) and local terrain tiles', '腾讯地图（GCJ-02）与本组地形瓦片'],
+      ['LOCATION', '地点', s.place, '中国香港西贡桥咀郊野公园']
     ];
-    $('#surveyFacts').innerHTML = facts.map(function (f) { return '<div><dt>'+f[0]+'</dt><dd>'+f[1]+'</dd></div>'; }).join('');
+    $('#surveyFacts').innerHTML = facts.map(function (f) {
+      return '<div><dt>'+f[0]+'<span class="bi-zh">'+f[1]+'</span></dt><dd>'+f[2]+'<span class="bi-zh">'+f[3]+'</span></dd></div>';
+    }).join('');
     $('#surveyMethod').textContent = s.method;
     $('#surveyMethodZh').textContent = s.methodZh;
     $('#demNote').textContent = s.dem;
     $('#demNoteZh').textContent = s.demZh;
     $('#sourceList').innerHTML = D.sources.map(function (src) {
-      var title = src.url ? '<a href="'+src.url+'" target="_blank" rel="noopener">'+src.label+' ↗</a>' : '<span class="source-title">'+src.label+'</span>';
+      var title = src.url ? '<a href="'+src.url+'" target="_blank" rel="noopener">'+src.label+'</a>' : '<span class="source-title">'+src.label+'</span>';
       return '<li><span class="source-meta">'+src.kind+'</span>'+title+'<p>'+src.detail+'</p></li>';
     }).join('');
     $('#checkList').innerHTML = D.checks.map(function (c) { return '<li>'+c+'</li>'; }).join('');
-    var head = '<div class="ctr-row head"><div>MEMBER</div><div>FIELDWORK</div><div>ANALYSIS</div><div>WEBSITE</div></div>';
+    var head = '<div class="ctr-row head"><div>MEMBER<span class="bi-zh">组员</span></div><div>FIELDWORK<span class="bi-zh">实地记录</span></div><div>ANALYSIS<span class="bi-zh">分析</span></div><div>WEBSITE<span class="bi-zh">网页</span></div></div>';
     $('#contributionTable').innerHTML = head + D.contributions.map(function (c) {
       return '<div class="ctr-row"><div>'+c.name+'</div>' +
         '<div class="placeholder" data-label="Fieldwork">'+c.fieldwork+'</div>' +
@@ -825,22 +827,22 @@
     $('#drawerContent').innerHTML =
       '<h3>'+p.name+'</h3><p class="d-zh">'+p.zh+'</p>' +
       '<div class="drawer-photo"><img id="dPhoto" src="'+photo(p.photos[0])+'" alt="Field photograph at '+p.name+'" data-idx="0">' +
-        '<span class="d-count" id="dCount">1 / '+p.photos.length+'</span>' +
+        '<span class="d-count" id="dCount">1 of '+p.photos.length+'</span>' +
         (p.photos.length > 1 ? '<button class="d-nav prev" data-dir="-1" aria-label="Previous photo">‹</button><button class="d-nav next" data-dir="1" aria-label="Next photo">›</button>' : '') +
       '</div>' +
-      '<div class="chips"><span class="chip stage">STAGE '+(stage?stage.code:'—')+'</span>' +
-        '<span class="chip shade-'+p.shade+'">'+shadeName[p.shade]+' / '+shadeZh[p.shade]+'</span>' +
-        '<span class="chip">'+p.time+' HKT</span><span class="chip">'+Math.round(p.elev)+' M ASL · 示意海拔</span>' +
+      '<div class="chips"><span class="chip stage">STAGE '+(stage?stage.code:'')+'</span>' +
+        '<span class="chip shade-'+p.shade+'">'+shadeName[p.shade]+'<span class="bi-zh">'+shadeZh[p.shade]+'</span></span>' +
+        '<span class="chip">'+p.time+' HKT</span><span class="chip">'+Math.round(p.elev)+' M ASL<span class="bi-zh">示意海拔</span></span>' +
         '<span class="chip">'+p.dist.toFixed(2)+' KM</span><span class="chip">'+p.weather+'</span></div>' +
       '<p class="d-desc">'+p.description+'</p><p class="d-desc-zh">'+p.descriptionZh+'</p>' +
       '<dl class="d-list">' +
-        '<div><dt>WHAT YOU CAN SEE / 景观</dt><dd>'+p.attraction+'</dd></div>' +
-        '<div><dt>VISIBLE ENVIRONMENTAL CONCERNS / 环境关注</dt><dd><ul>'+p.concerns.map(function (c) { return '<li>'+c+'</li>'; }).join('')+'</ul></dd></div>' +
-        '<div><dt>FACILITIES / 设施</dt><dd>'+p.facilities+'</dd></div>' +
-        '<div><dt>PRACTICAL SUGGESTION / 实用建议</dt><dd>'+p.tip+'</dd></div></dl>' +
-      '<div class="d-evidence"><p><strong>EVIDENCE SOURCE ·</strong> '+p.sources+'</p><div class="d-thumbs">'+thumbs+'</div></div>' +
-      (p.check ? '<div class="d-check"><strong>NEEDS FURTHER CHECKING ·</strong> '+p.check+'</div>' : '');
-    $('#drawerKicker').textContent = 'OBSERVATION POINT '+p.code+' / 观察点 · '+p.time;
+        '<div><dt>WHAT YOU CAN SEE<span class="bi-zh">景观</span></dt><dd>'+p.attraction+'</dd></div>' +
+        '<div><dt>VISIBLE ENVIRONMENTAL CONCERNS<span class="bi-zh">环境关注</span></dt><dd><ul>'+p.concerns.map(function (c) { return '<li>'+c+'</li>'; }).join('')+'</ul></dd></div>' +
+        '<div><dt>FACILITIES<span class="bi-zh">设施</span></dt><dd>'+p.facilities+'</dd></div>' +
+        '<div><dt>PRACTICAL SUGGESTION<span class="bi-zh">实用建议</span></dt><dd>'+p.tip+'</dd></div></dl>' +
+      '<div class="d-evidence"><p><span class="d-label">EVIDENCE SOURCE<span class="bi-zh">证据来源</span></span> '+p.sources+'</p><div class="d-thumbs">'+thumbs+'</div></div>' +
+      (p.check ? '<div class="d-check"><span class="d-label">NEEDS FURTHER CHECKING<span class="bi-zh">待核查</span></span> '+p.check+'</div>' : '');
+    $('#drawerKicker').innerHTML = 'OBSERVATION POINT '+p.code+'<span class="bi-zh">观察点 '+p.time+'</span>';
     $('#scrim').hidden = false; $('#drawer').hidden = false;
     document.body.classList.add('no-scroll');
     requestAnimationFrame(function () { $('#scrim').classList.add('show'); $('#drawer').classList.add('show'); });
@@ -851,7 +853,7 @@
     state.drawerIdx = (state.drawerIdx + dir + n) % n;
     var img = $('#dPhoto');
     img.src = photo(p.photos[state.drawerIdx]); img.dataset.idx = state.drawerIdx;
-    $('#dCount').textContent = (state.drawerIdx+1)+' / '+n;
+    $('#dCount').textContent = (state.drawerIdx+1)+' of '+n;
   }
   function closeDrawer() {
     $('#scrim').classList.remove('show'); $('#drawer').classList.remove('show');
@@ -861,19 +863,19 @@
   function openLightbox(ids, idx, caption) {
     state.lbPhotos = ids; state.lbIdx = idx || 0;
     $('#lightbox').hidden = false; document.body.classList.add('no-scroll');
-    updateLightbox(caption || 'GROUP FIELD PHOTOGRAPH · 13 NOV 2026');
+    updateLightbox(caption || 'GROUP FIELD PHOTOGRAPH, 13 NOV 2026');
   }
   function updateLightbox(caption) {
     $('#lbImage').src = photo(state.lbPhotos[state.lbIdx]);
     $('#lbImage').alt = 'Field photograph '+state.lbPhotos[state.lbIdx];
-    $('#lbCaption').textContent = (caption || 'GROUP FIELD PHOTOGRAPH')+' · '+state.lbPhotos[state.lbIdx];
-    $('#lbCount').textContent = (state.lbIdx+1)+' / '+state.lbPhotos.length;
+    $('#lbCaption').textContent = (caption || 'GROUP FIELD PHOTOGRAPH')+', '+state.lbPhotos[state.lbIdx];
+    $('#lbCount').textContent = (state.lbIdx+1)+' of '+state.lbPhotos.length;
     $('#lbPrev').hidden = $('#lbNext').hidden = state.lbPhotos.length < 2;
   }
   function moveLightbox(dir) {
     if (state.lbPhotos.length < 2) return;
     state.lbIdx = (state.lbIdx+dir+state.lbPhotos.length)%state.lbPhotos.length;
-    updateLightbox($('#lbCaption').textContent.split(' · p')[0]);
+    updateLightbox($('#lbCaption').textContent.split(', p')[0]);
   }
   function closeLightbox() {
     $('#lightbox').hidden = true;

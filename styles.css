@@ -1,5 +1,5 @@
 /* ============================================================
-   Sharp Island — GIS field guide
+   Sharp Island: GIS field guide
    Apple editorial minimalism, light display type, uppercase
    headings, bilingual captions, 8pt grid, hairline rules.
    ============================================================ */
@@ -101,6 +101,35 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 .zh-inline { text-transform: none; letter-spacing: .04em; font-weight: 400; color: var(--faint); font-size: .95em; }
 .zh-sub { display: block; text-transform: none; letter-spacing: .06em; font-weight: 400; font-size: clamp(.9rem, 1.5vw, 1.12rem); color: var(--muted); margin-top: 16px; }
 .zh-line { font-size: 14px; line-height: 1.78; color: var(--muted); margin-top: 12px; max-width: 660px; text-wrap: pretty; }
+
+/* Bilingual copy: English on one line, Chinese on the next. No slashes,
+   middle dots, dashes or arrows are used as separators in visible text. */
+.bi-zh { display: block; text-transform: none; letter-spacing: .03em; font-weight: 400;
+  font-size: .86em; line-height: 1.55; color: var(--muted); margin-top: 3px; }
+.eyebrow .bi-zh, .fine .bi-zh, .side-fine .bi-zh, .mini-label .bi-zh,
+.hero-stats .bi-zh, .profile-foot .bi-zh, .scrub-ends .bi-zh,
+.scrub-readout .bi-zh, .layer-list .bi-zh, .stops-head .bi-zh,
+.ribbon-head .bi-zh, .ribbon-foot .bi-zh { color: var(--faint); }
+h3 .bi-zh { font-size: .5em; letter-spacing: .06em; color: var(--muted); }
+h4 .bi-zh { font-size: 11px; letter-spacing: .04em; color: var(--muted); }
+.profile-foot .bi-zh, .side-fine .bi-zh, .layer-list .bi-zh,
+.scrub-readout .bi-zh { font-size: 9px; }
+.note-body .mini-label .bi-zh { color: inherit; }
+.btn { flex-direction: column; gap: 1px; padding: 6px 22px; }
+.btn .bi-zh { font-size: 10px; letter-spacing: .04em; opacity: .78; color: inherit; margin-top: 0; }
+.switch-text { display: inline-flex; flex-direction: column; align-items: flex-start; }
+.layer-name { flex: 1; }
+.legend-name { display: inline-flex; flex-direction: column; }
+.care-label, .d-label { display: block; font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+.care-label { color: inherit; }
+.d-label { color: var(--ink); }
+.code-list { display: block; margin-top: 8px; line-height: 2.1; }
+.compass .bi-zh { font-size: 9px; line-height: 1.1; color: var(--muted); letter-spacing: 0; margin-top: 1px; }
+.drawer-kicker .bi-zh { font-size: 11px; letter-spacing: .04em; color: var(--muted); }
+.mini-label { display: block; }
+.chip { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.chip .bi-zh { font-size: 10px; color: inherit; opacity: .78; margin-top: 0; }
 i { font-style: normal; color: var(--faint); font-size: .82em; margin-left: 4px; }
 .body { color: var(--muted); font-size: 1rem; line-height: 1.68; text-wrap: pretty; }
 .body-lg { font-size: clamp(1.05rem, 1.7vw, 1.28rem); line-height: 1.58; color: var(--ink); margin: 0 0 12px; text-wrap: pretty; }

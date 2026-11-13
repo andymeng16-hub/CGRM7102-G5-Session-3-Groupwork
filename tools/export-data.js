@@ -1,9 +1,9 @@
 /* Regenerate the reusable data exports from data/field-data.js + data/terrain.js.
    Run from the project root:  node tools/export-data.js
    Outputs (WGS-84, EPSG:4326):
-     data/field-data.json        — full content snapshot for reuse
-     data/survey-points.geojson  — 8 observation points
-     data/routes.geojson         — 1 continuous route + 4 stage segments
+     data/field-data.json        : full content snapshot for reuse
+     data/survey-points.geojson  : 8 observation points
+     data/routes.geojson         : 1 continuous route + 4 stage segments
    Coordinates are INDICATIVE (derived from on-site signage and public
    gazetteers); they are not the QField GPS export.
 */
@@ -53,7 +53,7 @@ const snapshot = Object.assign({}, D, {
   _meta: {
     generated_from: 'data/field-data.js via tools/export-data.js',
     crs: 'EPSG:4326 (WGS-84) for observation points and route path',
-    map_tiles: 'GCJ-02 XYZ pyramid, z13–z17, in assets/tiles/',
+    map_tiles: 'GCJ-02 XYZ pyramid, z13 to z17, in assets/tiles/',
     note: NOTE
   }
 });
@@ -108,7 +108,7 @@ out('data/survey-points.geojson', {
 });
 
 /* ---- 3. one route + four stage segments -------------------------------- */
-/* Split the line at the chainage printed on each stage card (e.g. "0.55–1.05 km").
+/* Split the line at the chainage printed on each stage card (e.g. "0.60 to 1.05 km").
    Interpolating the endpoints keeps the four segments continuous and avoids a
    degenerate two-vertex line for the single-point ridge stage. */
 function pointAt(dist) {
@@ -139,11 +139,14 @@ const features = [{
     name: D.route.name,
     name_zh: D.route.zh,
     start: D.route.start,
+    start_zh: D.route.startZh,
     finish: D.route.finish,
+    finish_zh: D.route.finishZh,
     distance: D.route.distance,
     length_km_indicative: Number(TOTAL.toFixed(3)),
     recorded_time: D.route.time,
     shade: D.route.shade,
+    shade_zh: D.route.shadeZh,
     tidal: D.route.tide,
     facilities: D.route.facilities,
     stages: D.stages.map(s => s.id).join(', '),
@@ -154,7 +157,7 @@ const features = [{
 }];
 
 D.stages.forEach((s, si) => {
-  const m = s.range.match(/([\d.]+)\s*[–-]\s*([\d.]+)/);
+  const m = s.range.match(/([\d.]+)\s+to\s+([\d.]+)/);
   const d0 = m ? Number(m[1]) : si * TOTAL / D.stages.length;
   const d1 = si === D.stages.length - 1 ? TOTAL : (m ? Number(m[2]) : (si + 1) * TOTAL / D.stages.length);
   const seg = segmentAt(d0, d1);
@@ -193,4 +196,4 @@ out('data/routes.geojson', {
   features
 });
 
-console.log('route length (indicative):', TOTAL.toFixed(3), 'km ·', pointFeatures.length, 'points ·', D.stages.length, 'stages');
+console.log('route length (indicative):', TOTAL.toFixed(3), 'km,', pointFeatures.length, 'points,', D.stages.length, 'stages');
