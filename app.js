@@ -1562,4 +1562,9 @@
   setTide(0.95, true);
   if (proxyReady) loadTencentSDK();
   else useFallback('The basemap needs the WorkBuddy map proxy. Local survey tiles are shown.', '官方底图需要 WorkBuddy 地图代理，当前显示本地地形瓦片。');
+
+  /* The page is whole. index.html watches for this flag and puts up a notice
+     if it never arrives, which is what happens when the file is opened on
+     its own without the data and assets beside it. */
+  window.__siBooted = true;
 })();

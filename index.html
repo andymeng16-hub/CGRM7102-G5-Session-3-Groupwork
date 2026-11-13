@@ -14,6 +14,79 @@
   };
 </script>
 <script src="data/zh-hant.js"></script>
+<!-- If this file is opened on its own, without the data, assets and styles
+     that sit beside it, the browser would show a bare document with nothing
+     but broken images. Say what is missing instead. The notice carries its
+     own styling so it still reads when styles.css is the missing file. -->
+<style id="bootNoticeStyle">
+  #bootNotice { position: fixed; inset: 0; z-index: 9999; background: #fbfbfd;
+    color: #1d1d1f; box-sizing: border-box; overflow: auto; padding: 40px 24px;
+    font: 400 16px/1.65 -apple-system, BlinkMacSystemFont, "PingFang SC",
+      "Hiragino Sans GB", "Helvetica Neue", Arial, sans-serif; }
+  #bootNotice .bn { max-width: 640px; margin: 0 auto; }
+  #bootNotice h1 { font-size: 25px; font-weight: 600; letter-spacing: .01em;
+    margin: 0 0 16px; }
+  #bootNotice p { margin: 0 0 14px; color: #424245; }
+  #bootNotice b { color: #1d1d1f; font-weight: 600; }
+  #bootNotice code { background: #eeeef0; border-radius: 5px; padding: 2px 7px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; }
+  #bootNotice pre { background: #f2f2f5; border: 1px solid #e3e3e8;
+    border-radius: 10px; padding: 13px 15px; margin: 0 0 14px; overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; }
+  #bootNotice hr { border: 0; border-top: 1px solid #e3e3e8; margin: 26px 0; }
+  #bootNotice .zh { color: #424245; }
+</style>
+<script>
+/* The application marks itself as running once it has finished building the
+   page. A quarter of a second after load, anything that has not reported in
+   is missing, and the notice takes over the screen. */
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    /* A missing stylesheet still appears in document.styleSheets, so the
+       test is whether its rules actually reached the page. */
+    var cssPresent = false;
+    try {
+      var nav = document.querySelector('.nav');
+      var sw = document.querySelector('.lang-switch');
+      if (nav && getComputedStyle(nav).position === 'sticky') cssPresent = true;
+      if (sw && getComputedStyle(sw).borderRadius === '980px') cssPresent = true;
+    } catch (e) {}
+    if (window.__siBooted && cssPresent) return;
+
+    var body;
+    if (!window.__siBooted) {
+      body =
+        '<h1>This page needs the rest of the folder</h1>' +
+        '<p><b>One file is not enough.</b> <code>index.html</code> reads the survey data ' +
+        'from <code>data/</code>, the photographs and map tiles from <code>assets/</code>, ' +
+        'the layout from <code>styles.css</code> and the behaviour from <code>app.js</code>. ' +
+        'All of them sit in the same folder as this file.</p>' +
+        '<p><b>Nothing needs to be installed.</b> Open <code>index.html</code> from the ' +
+        'downloaded repository folder and it works, or serve that folder over HTTP:</p>' +
+        '<pre>python3 -m http.server 8000</pre>' +
+        '<p>then open <code>http://localhost:8000</code>. The whole guide is this folder: ' +
+        '<code>data/</code>, <code>assets/</code>, <code>styles.css</code>, <code>app.js</code>.</p>' +
+        '<hr>' +
+        '<p class="zh"><b>此页面需要整个文件夹。</b><code>index.html</code> 要读取同级的 ' +
+        '<code>data/</code>（调查数据）、<code>assets/</code>（照片与地图瓦片）、' +
+        '<code>styles.css</code>（样式）与 <code>app.js</code>（交互）。请在下载好的仓库文件夹里打开它。</p>' +
+        '<p class="zh"><b>不需要安装任何依赖。</b>也可以在文件夹内执行 ' +
+        '<code>python3 -m http.server 8000</code>，再访问 <code>http://localhost:8000</code>。</p>';
+    } else {
+      body =
+        '<h1>styles.css is missing</h1>' +
+        '<p>The page is running, but the stylesheet beside it could not be found, ' +
+        'so the guide is showing without its layout. Copy <code>styles.css</code> into ' +
+        'this folder and reload.</p>' +
+        '<hr>' +
+        '<p class="zh"><b>缺少 styles.css</b>，页面可以运行但没有版式。' +
+        '请把 <code>styles.css</code> 复制到本文件夹后重新载入。</p>';
+    }
+    document.documentElement.lang = 'en';
+    document.body.innerHTML = '<div id="bootNotice"><div class="bn">' + body + '</div></div>';
+  }, 250);
+});
+</script>
 </head>
 <body id="top">
 
