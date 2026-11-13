@@ -2,7 +2,10 @@
   "survey": {
     "date": "13 November 2026",
     "dateShort": "13 Nov 2026",
+    "dateZh": "2026 年 11 月 13 日",
+    "dateShortZh": "2026 年 11 月 13 日",
     "window": "11:10 to 13:38 HKT",
+    "windowZh": "香港时间 11:10 至 13:38",
     "weather": "Overcast with thick cloud at 11:10 (p01); brightening to sunny intervals with scattered cumulus from about 12:47 (p13 to p25).",
     "weatherZh": "上午 11:10 密云，约 12:47 转晴间多云。",
     "photos": 29,
@@ -10,6 +13,7 @@
     "method": "At each stop we assessed roughly 20 m of the existing path and used the same three categories throughout: mostly shaded, partly shaded or unshaded. Each record pairs a photograph, an observation time and an evidence source.",
     "methodZh": "每个观察点评估约 20 米路径，统一使用「大部份遮阴、部份遮阴、无遮阴」三级分类，并记录照片、时间与证据来源。",
     "place": "Kiu Tsui Country Park, Sai Kung, Hong Kong, China",
+    "placeZh": "中国香港西贡桥咀郊野公园",
     "mapping": "The base map is the Tencent Maps vector basemap on the GCJ-02 grid, held at zoom 16 so the pier, beaches and country park labels stay readable. The route, the eight points and the elevation cursor are drawn as overlays on top of it, and the same geometry is exported to GeoJSON for QGIS.",
     "mappingZh": "底图采用腾讯地图矢量底图，GCJ-02 坐标，固定十六级以保留码头、泳滩与郊野公园标注的可读性；路线、八个观察点与海拔游标叠加其上，同一套几何数据另导出为 GeoJSON 供 QGIS 使用。"
   },
@@ -22,16 +26,26 @@
     "finishZh": "厦门湾泳滩",
     "startShort": "KIU TSUI PIER",
     "finishShort": "HAP MUN BAY",
+    "startShortZh": "桥咀码头",
+    "finishShortZh": "厦门湾",
     "distance": "≈ 2.19 km (indicative)",
+    "distanceZh": "约 2.19 公里（示意）",
     "distanceNote": "The drawn indicative line measures 2.19 km. Signposted segments at the junction give 1 km towards Kiu Tsui and 0.7 km towards Hap Mun Bay (p20). The full loop back to the pier still needs measuring from the QField track.",
+    "distanceNoteZh": "所绘示意的路线长度为 2.19 公里。分岔路牌标示往桥咀 1 公里、往厦门湾 0.7 公里（p20）。返回码头的完整环线仍需由 QField 轨迹实测。",
     "time": "2 h 28 min on site",
+    "timeZh": "现场 2 小时 28 分钟",
     "timeNote": "11:10 to 13:38 HKT, including stops for photographs and notes. The signposted walking time for the two halves is ¾ hr and ¼ hr (p20).",
+    "timeNoteZh": "香港时间 11:10 至 13:38，含拍照与记录的停留。路牌标示两段步行时间分别为 ¾ 小时与 ¼ 小时（p20）。",
     "shade": "3 of 8 stops shaded; coast, viewpoint and beach unshaded",
     "shadeZh": "8 个观察点中 3 个有遮阴，海岸、观景台及泳滩均无遮阴。",
     "tide": "The tombolo section is only passable when tidal height is below 1.25 m. On 13 Nov 2026 the on-site board gave an emergence window of 08:00 to 10:00 only (p04).",
+    "tideZh": "连岛沙洲路段只在潮高低于 1.25 米时可通行。2026 年 11 月 13 日现场告示牌给出的露出时段只有上午 8 时至 10 时（p04）。",
     "facilities": "Kai-to pier, two gazetted beaches, tide table, Geopark and AFCD boards, direction signs, viewing-point panorama, LCSD beach plan.",
+    "facilitiesZh": "街渡码头、两个宪报泳滩、潮汐表、地质公园与渔农自然护理署告示牌、指示牌、观景台全景图、康文署泳滩平面图。",
     "care": "Check the tide, stay on the repaired trail, wear shoes with grip, carry water and sun protection, and do not collect rocks or disturb marine life.",
+    "careZh": "查看潮汐、沿维修后的步道行走、穿防滑鞋、带足饮水与防晒用品，不要采集岩石或干扰海洋生物。",
     "evidence": "p02 and p04 show a sandbar we could not cross at 11:23; p09 to p15 show a shaded woodland climb; p17 and p21 to p25 show an exposed ridge; p18 and p19 document erosion; p20 supplies the signposted distances and times.",
+    "evidenceZh": "p02 与 p04 显示 11:23 时我们无法穿越的沙石堤；p09 至 p15 显示有遮阴的林地上坡段；p17 与 p21 至 p25 显示曝露的山脊；p18 与 p19 记录侵蚀情况；p20 提供路牌标示的距离与时间。",
     "path": [
       [
         22.3677,
@@ -161,6 +175,7 @@
       "summary": "The exposed western shore: pier, beach, a partly submerged shingle bar and a cobble beach lined with conservation signs.",
       "summaryZh": "西岸无遮阴路段：码头、泳滩、半淹的沙石堤与布满保育告示的卵石滩。",
       "care": "Tide-critical. Check the HKO prediction and the on-site board; never cross outside the safe window.",
+      "careZh": "受潮汐影响。查阅天文台预报与现场告示牌，切勿在安全时段以外穿越。",
       "photos": [
         "p01",
         "p02",
@@ -184,6 +199,7 @@
       "summary": "A closed canopy with dappled light and framed sea views, the coolest section of the survey, with ceramic pineapple-bun artworks beside the path.",
       "summaryZh": "树冠闭合、光影斑驳的上坡段，是全天最阴凉的一段；路边有菠萝包石造型的陶瓷艺术作品。",
       "care": "Uneven roots in low light; keep to the marked line.",
+      "careZh": "光线昏暗，路面树根起伏；沿标示路线行走。",
       "photos": [
         "p09",
         "p13",
@@ -205,6 +221,7 @@
       "summary": "The high point of the traverse: an open scrub ridge with a labelled panorama panel and a view down over Hap Mun Bay.",
       "summaryZh": "全程最高处：开阔灌丛山脊，设有全景解说牌，可俯瞰厦门湾。",
       "care": "Full sun and wind. Keep the stop short and drink water here.",
+      "careZh": "全程曝晒且多风。停留时间宜短，并在此补水。",
       "photos": [
         "p17",
         "p21",
@@ -227,6 +244,7 @@
       "summary": "Hand-built log steps over eroded sandy tread, a signposted junction, then the crescent of pale sand at Hap Mun Bay Beach.",
       "summaryZh": "经手作木级穿越侵蚀坡面，过分岔路牌后下行至厦门湾的月牙形白沙滩。",
       "care": "Descend slowly on loose steps; no lifeguard service in November.",
+      "careZh": "在松散木级上下行时放慢脚步；十一月没有救生员当值。",
       "photos": [
         "p18",
         "p20",
@@ -244,22 +262,31 @@
       "zh": "桥咀码头与桥咀泳滩",
       "time": "11:10",
       "weather": "Overcast, thick cloud",
+      "weatherZh": "密云，云层厚重",
       "shade": "unshaded",
       "lat": 22.3679,
       "lng": 114.2876,
       "description": "Our first record. A broad pale-sand beach beside a low stone jetty, with a thick cloud layer over the Sai Kung hills. No tree cover across the 20 m of open sand we assessed.",
       "descriptionZh": "首笔记录：石砌码头旁的宽阔沙滩，上午云层厚重；评估的 20 米开阔沙面完全没有树荫。",
       "attraction": "Sandy beach, stone jetty and a layered mountain skyline across the water.",
+      "attractionZh": "沙滩、石砌码头，以及对岸层叠的山脊天际线。",
       "concerns": [
         "No shade on the open sand. The cloud at 11:10 had cleared to strong sun by midday, so cloud cover is not reliable sun protection."
       ],
+      "concernsZh": [
+        "开阔沙面没有遮阴。11:10 的云层到中午已经散去并转为烈日，多云不能当作可靠的防晒。"
+      ],
       "facilities": "Kai-to pier. LCSD lists a kiosk, changing rooms, showers, toilets, BBQ pits and a raft; lifeguard service is suspended from November to March.",
+      "facilitiesZh": "街渡码头。康文署列出小卖部、更衣室、淋浴间、洗手间、烧烤炉与浮台；十一月至三月不提供救生员服务。",
       "tip": "Start here, confirm the last ferry time, and put on sun protection before the cloud breaks.",
+      "tipZh": "从这里出发，先确认末班船时间，并在云层散去之前做好防晒。",
       "photos": [
         "p01"
       ],
       "sources": "Field photo p01 (11:10), LCSD Sai Kung beach facilities page",
-      "check": "The facility list comes from LCSD and was not checked item by item in the field."
+      "sourcesZh": "实地照片 p01（11:10）、康文署西贡泳滩设施网页",
+      "check": "The facility list comes from LCSD and was not checked item by item in the field.",
+      "checkZh": "设施清单来自康文署，现场没有逐项核对。"
     },
     {
       "id": "o2",
@@ -269,25 +296,36 @@
       "zh": "连岛沙洲",
       "time": "11:23 to 11:25",
       "weather": "Overcast, brightening",
+      "weatherZh": "密云渐亮",
       "shade": "unshaded",
       "lat": 22.366,
       "lng": 114.2861,
       "description": "A low shingle ridge runs towards the wooded islet of Kiu Tau. At 11:23 only part of the bar stood above water; the rest was covered. The on-site tide board explains why.",
       "descriptionZh": "低矮的沙石堤伸向桥头岛；11:23 时只有部分露出水面，其余已被潮水淹没。",
       "attraction": "A natural sand-and-shingle bar that appears at low tide and links Sharp Island to Kiu Tau.",
+      "attractionZh": "一条天然沙石堤，低潮时露出，把桥咀洲与桥头连起来。",
       "concerns": [
         "The bar floods at high tide, generally when tidal height is above 1.25 m, as stated on the board.",
         "On 13 Nov 2026 the printed emergence window was only 08:00 to 10:00, so our 11:23 visit fell outside it.",
         "Wet, uneven cobbles with no shade."
       ],
+      "concernsZh": [
+        "如告示牌所载，潮高超过 1.25 米时沙洲便会没入水中。",
+        "2026 年 11 月 13 日告示牌印出的露出时段只有上午 8 时至 10 时，我们 11:23 到访时已过时。",
+        "湿滑不平的卵石，且毫无遮阴。"
+      ],
       "facilities": "Tombolo Emergence Time board (08:00 to 18:00) with a QR code for Hong Kong Observatory real-time tide data.",
+      "facilitiesZh": "连岛沙洲露出海面时间表（上午 8 时至下午 6 时），旁附香港天文台实时潮汐数据的二维码。",
       "tip": "Treat this as a viewpoint unless both the HKO prediction and the on-site board say crossing is safe, and always leave time to return.",
+      "tipZh": "除非天文台预报与现场告示牌都确认可以安全通过，否则只把这里当作观景点，并务必预留返程时间。",
       "photos": [
         "p02",
         "p04"
       ],
       "sources": "Field photos p02, p04, HK UNESCO Global Geopark, Hong Kong Observatory real-time tide service",
-      "check": "Predicted tide height at the moment of the survey was not measured. Only the printed board was recorded."
+      "sourcesZh": "实地照片 p02、p04，香港联合国教科文组织世界地质公园，香港天文台实时潮汐服务",
+      "check": "Predicted tide height at the moment of the survey was not measured. Only the printed board was recorded.",
+      "checkZh": "调查当时的预报潮高没有实测，仅记录了告示牌上的印出数值。"
     },
     {
       "id": "o3",
@@ -297,19 +335,28 @@
       "zh": "岩石海岸与保育告示",
       "time": "11:24 to 11:31",
       "weather": "Cloud breaking",
+      "weatherZh": "云层渐散",
       "shade": "unshaded",
       "lat": 22.3653,
       "lng": 114.2871,
       "description": "Rounded volcanic cobbles cover the shore. Three on-site notices set out the rules: do not deface or remove rocks, do not disturb wildlife, and respect marine life.",
       "descriptionZh": "浑圆的火山岩卵石布满海岸；三块现场告示分别禁止破坏或带走岩石、骚扰野生动物及干扰海洋生物。",
       "attraction": "Cobble beach, a weathered volcanic rock with pale veins (p06), and intertidal habitat.",
+      "attractionZh": "卵石滩、一块带浅色矿脉的风化火山岩（p06），以及潮间带生境。",
       "concerns": [
         "Rock collecting, graffiti and disturbing wildlife are prohibited on the Geopark board (p03).",
         "Trampling coral and touching or feeding marine life are prohibited on the AFCD banner (p05).",
         "Sharp, slippery cobbles under full sun."
       ],
+      "concernsZh": [
+        "地质公园告示牌（p03）禁止采集岩石、涂鸦与骚扰野生动物。",
+        "渔农署横幅（p05）禁止践踏珊瑚及触摸或喂饲海洋生物。",
+        "烈日下卵石尖锐而湿滑。"
+      ],
       "facilities": "Hong Kong Geopark conservation board, a Respect Marine Life banner, and a Sharp Island visitor map board.",
+      "facilitiesZh": "香港地质公园保育告示牌、「尊重海洋生命」横幅，以及桥咀洲游览图告示牌。",
       "tip": "Look closely, take photographs, leave everything in place, and wear shoes with grip on wet rock.",
+      "tipZh": "仔细观察、拍照留念，不取走任何东西，并在湿滑岩面上穿防滑鞋。",
       "photos": [
         "p03",
         "p05",
@@ -317,7 +364,9 @@
         "p07"
       ],
       "sources": "Field photos p03, p05, p06, p07, UNESCO HK Global Geopark and AFCD on-site signage",
-      "check": "The exact rock type in p06 needs confirmation against Geopark geology material."
+      "sourcesZh": "实地照片 p03、p05、p06、p07，香港联合国教科文组织世界地质公园与渔农署现场告示",
+      "check": "The exact rock type in p06 needs confirmation against Geopark geology material.",
+      "checkZh": "p06 中的岩石种类，须对照地质公园的地质资料确认后，才可在现场指称。"
     },
     {
       "id": "o4",
@@ -327,18 +376,26 @@
       "zh": "菠萝包艺术径",
       "time": "12:28 to 12:52",
       "weather": "Sunny intervals",
+      "weatherZh": "晴间多云",
       "shade": "partly",
       "lat": 22.3648,
       "lng": 114.2895,
       "description": "Small ceramic pineapple bun characters sit on tree stumps beside a sandy path, with an interpretation plaque marked S12. Dappled light from the surrounding trees covers about half of the 20 m section.",
       "descriptionZh": "树桩上的陶瓷「菠萝包」作品立于沙径旁，解说牌编号 S12；树影约覆盖评估路段的半数。",
       "attraction": "Public art inspired by the island's pineapple-bun rocks; the plaque is titled \"A Grand Pineapple Bun Tour\".",
+      "attractionZh": "以岛上菠萝包石为灵感的公共艺术；解说牌题为「一个宏大的菠萝包之旅」。",
       "concerns": [
         "Narrow sandy path beside the artworks, with exposed roots and a loose surface.",
         "Strong sun between the trees after midday."
       ],
+      "concernsZh": [
+        "作品旁是狭窄沙径，路肩裸露树根，表面松散。",
+        "午间过后树隙之间阳光强烈。"
+      ],
       "facilities": "Interpretation plaque S12.",
+      "facilitiesZh": "解说牌 S12。",
       "tip": "Use this as a shade break, keep to the path, and do not climb on the artworks.",
+      "tipZh": "把这里当作遮阴休息点，沿路径行走，不要攀爬作品。",
       "photos": [
         "p08",
         "p16",
@@ -346,7 +403,9 @@
         "p27"
       ],
       "sources": "Field photos p08, p16, p26, p27, on-site art plaque S12",
-      "check": "The full name of the art programme and its organiser were only partly legible on the plaque."
+      "sourcesZh": "实地照片 p08、p16、p26、p27，现场艺术解说牌 S12",
+      "check": "The full name of the art programme and its organiser were only partly legible on the plaque.",
+      "checkZh": "解说牌上只可辨出艺术计划名称与主办单位的一部分。"
     },
     {
       "id": "o5",
@@ -356,18 +415,26 @@
       "zh": "林荫山径",
       "time": "12:38 to 12:51",
       "weather": "Sunny, scattered cumulus",
+      "weatherZh": "晴，间有积云",
       "shade": "mostly",
       "lat": 22.3652,
       "lng": 114.291,
       "description": "The cross-island path runs under a closed canopy with sea glimpses through gaps in the trees. Across the 20 m we assessed, tree shade covered most of the surface, the coolest section of the survey.",
       "descriptionZh": "山径在闭合树冠下穿行，树隙间可见海面；评估的 20 米路段大部份有遮阴，是全天最凉爽的一段。",
       "attraction": "Woodland corridor, framed sea views, and Sai Kung District Council direction signs (Kiu Tsui Beach 500 m; Kiu Tsui Country Park).",
+      "attractionZh": "林间通道、取景式的海景，以及西贡区议会的指示牌（桥咀泳滩 500 米；桥咀郊野公园）。",
       "concerns": [
         "Uneven, rooty surface in low light.",
         "Vegetation worn back where visitors have cut corners."
       ],
+      "concernsZh": [
+        "光线昏暗，路面起伏且多树根。",
+        "游客抄捷径之处，植被已被踩踏退缩。"
+      ],
       "facilities": "Direction signs at the woodland edge.",
+      "facilitiesZh": "林缘处的指示牌。",
       "tip": "Save this section for the hottest part of the day and watch your footing.",
+      "tipZh": "把这一段留给一天中最热的时候，并留意脚下。",
       "photos": [
         "p09",
         "p10",
@@ -378,7 +445,9 @@
         "p15"
       ],
       "sources": "Field photos p09 to p15, Sai Kung District Council direction signs",
-      "check": null
+      "sourcesZh": "实地照片 p09 至 p15，西贡区议会指示牌",
+      "check": null,
+      "checkZh": null
     },
     {
       "id": "o6",
@@ -388,18 +457,26 @@
       "zh": "桥咀观景台",
       "time": "12:52 to 13:24",
       "weather": "Sunny",
+      "weatherZh": "晴",
       "shade": "unshaded",
       "lat": 22.3658,
       "lng": 114.292,
       "description": "A green panorama panel labels the islands and bays across the water. The ridge around it is open scrub with no shade for at least 20 m in any direction.",
       "descriptionZh": "绿色全景解说牌标注对岸岛屿与海湾；山脊为开阔灌丛，四周至少 20 米内无任何遮阴。",
       "attraction": "A labelled panorama at Kiu Tsui Viewing Point, with views down over Hap Mun Bay (p25).",
+      "attractionZh": "桥咀观景台的标注全景图，可俯瞰厦门湾（p25）。",
       "concerns": [
         "Full sun and wind exposure on the ridge.",
         "Short, steep access on a loose surface."
       ],
+      "concernsZh": [
+        "山脊上曝晒且多风。",
+        "上山的捷径短而陡，路面松散。"
+      ],
       "facilities": "Panorama interpretation panel.",
+      "facilitiesZh": "全景解说牌。",
       "tip": "Keep the stop short; wear a hat and drink water here.",
+      "tipZh": "停留时间不宜过长，戴上帽子并在此补水。",
       "photos": [
         "p17",
         "p21",
@@ -409,7 +486,9 @@
         "p25"
       ],
       "sources": "Field photos p17, p21 to p25, Kiu Tsui Viewing Point panorama panel",
-      "check": null
+      "sourcesZh": "实地照片 p17、p21 至 p25，桥咀观景台全景解说牌",
+      "check": null,
+      "checkZh": null
     },
     {
       "id": "o7",
@@ -419,25 +498,35 @@
       "zh": "分岔路与手作步道",
       "time": "12:55 to 12:59",
       "weather": "Sunny",
+      "weatherZh": "晴",
       "shade": "partly",
       "lat": 22.362,
       "lng": 114.2935,
       "description": "A wooden signpost gives Kiu Tsui 1 km in ¾ hr and Hap Mun Bay 0.7 km in ¼ hr. Nearby, an AFCD board explains serious trail erosion caused by off-path trampling and the hand-built log steps used to repair it.",
       "descriptionZh": "木路牌标示桥咀 1 公里（约 ¾ 小时）、厦门湾 0.7 公里（约 ¼ 小时）；旁有渔护署解说牌说明游客抄捷径造成的严重水土流失与手作木级修复。",
       "attraction": "Signposted junction and hand-built timber steps.",
+      "attractionZh": "设有指示牌的分岔路口与手作木级。",
       "concerns": [
         "Visible soil loss and loose sandy tread beside the steps (p19).",
         "Erosion from visitors leaving the path, as described on the AFCD maintenance board (p18)."
       ],
+      "concernsZh": [
+        "木级旁可见土壤流失与松散沙面（p19）。",
+        "渔农署维修告示牌（p18）所述，游客走离路径造成的水土流失。"
+      ],
       "facilities": "Junction signpost and Country Park Trail Maintenance Broadcast board.",
+      "facilitiesZh": "分岔路木牌与郊野公园山径维修广播告示牌。",
       "tip": "Stay on the trail and take the steps slowly, especially downhill.",
+      "tipZh": "留在步道上，木级慢慢走，下坡时尤其要小心。",
       "photos": [
         "p18",
         "p19",
         "p20"
       ],
       "sources": "Field photos p18 to p20, AFCD trail maintenance board, Sai Kung District Council signpost",
-      "check": null
+      "sourcesZh": "实地照片 p18 至 p20，渔农署山径维修告示牌，西贡区议会路牌",
+      "check": null,
+      "checkZh": null
     },
     {
       "id": "o8",
@@ -447,113 +536,157 @@
       "zh": "厦门湾泳滩",
       "time": "13:30 to 13:38",
       "weather": "Sunny, scattered cloud",
+      "weatherZh": "晴，间有薄云",
       "shade": "unshaded",
       "lat": 22.3569,
       "lng": 114.2959,
       "description": "The final record: a crescent of pale sand and clear shallow water, seen from the viewpoint at 13:24 and reached at 13:30. The LCSD beach layout plan and by-laws board stand at the entrance.",
       "descriptionZh": "最后一笔记录：13:24 自观景台俯瞰、13:30 抵达的月牙形白沙滩；入口处有康文署泳滩平面图与规例告示。",
       "attraction": "A sheltered bay, white sand, clear turquoise water and the painted Hap Mun Bay Beach sign.",
+      "attractionZh": "一个避风的海湾、细白沙滩、清澈的碧蓝海水，以及彩绘的厦门湾泳滩招牌。",
       "concerns": [
         "Open sand with no shade.",
         "Coral and marine life in the shallow water.",
         "No lifeguard service in November, LCSD suspends winter service at this beach."
       ],
+      "concernsZh": [
+        "开阔沙面毫无遮阴。",
+        "浅水处有珊瑚与海洋生物。",
+        "十一月没有救生员当值，康文署在此泳滩暂停冬季服务。"
+      ],
       "facilities": "Beach layout plan and by-laws board. LCSD lists a kiosk, 22 BBQ pits, changing rooms, showers, toilets and a raft.",
+      "facilitiesZh": "泳滩平面图与规章告示牌。康文署列出小卖部、22 个烧烤炉、更衣室、淋浴间、洗手间与浮台。",
       "tip": "Bring your own shade and water, and swim only when lifeguards are on duty.",
+      "tipZh": "自备遮阳物与饮用水，只在救生员当值时下水。",
       "photos": [
         "p25",
         "p28",
         "p29"
       ],
       "sources": "Field photos p25, p28, p29, LCSD Sai Kung beach facilities page",
-      "check": "Individual facilities were not checked one by one; the list is from LCSD."
+      "sourcesZh": "实地照片 p25、p28、p29，康文署西贡泳滩设施网页",
+      "check": "Individual facilities were not checked one by one; the list is from LCSD.",
+      "checkZh": "各项设施未逐项核实，清单来自康文署。"
     }
   ],
   "advice": [
     {
       "title": "Check the tide before the sandbar",
       "zh": "先看潮汐，再走近沙洲",
-      "body": "The tombolo is submerged when tidal height is above about 1.25 m. Use the Hong Kong Observatory real-time tide service and the on-site board together, and leave enough time to come back. On 13 Nov 2026 the emergence window was only 08:00 to 10:00."
+      "body": "The tombolo is submerged when tidal height is above about 1.25 m. Use the Hong Kong Observatory real-time tide service and the on-site board together, and leave enough time to come back. On 13 Nov 2026 the emergence window was only 08:00 to 10:00.",
+      "bodyZh": "潮高超过约 1.25 米时，连岛沙洲便会没入水中。请把香港天文台实时潮汐服务与现场告示牌对照使用，并预留足够的返程时间。2026 年 11 月 13 日的露出时段只有上午 8 时至 10 时。"
     },
     {
       "title": "Bring sun protection whatever the sky looks like",
       "zh": "阴天也要防晒",
-      "body": "Our 11:10 photo is overcast; by 12:47 the same walk was in full sun with scattered cumulus. Bring water, food and sun protection, as the Geopark advises for this route."
+      "body": "Our 11:10 photo is overcast; by 12:47 the same walk was in full sun with scattered cumulus. Bring water, food and sun protection, as the Geopark advises for this route.",
+      "bodyZh": "我们 11:10 拍下的照片还是密云，到 12:47 同一条路已经晒在太阳底下，间有积云。正如地质公园对这条路线所建议的，请带足饮水、食物并做好防晒。"
     },
     {
       "title": "No lifeguard service in November",
       "zh": "十一月没有救生员当值",
-      "body": "LCSD suspends lifeguard service at both Kiu Tsui Beach and Hap Mun Bay Beach from November to March. Swim only when and where lifeguards are on duty."
+      "body": "LCSD suspends lifeguard service at both Kiu Tsui Beach and Hap Mun Bay Beach from November to March. Swim only when and where lifeguards are on duty.",
+      "bodyZh": "康文署由十一月至三月，在桥咀泳滩与厦门湾泳滩都暂停救生员服务。只在救生员当值的时间与地点下水。"
     },
     {
       "title": "Stay on the repaired trail",
       "zh": "沿维修步道行走",
-      "body": "The AFCD maintenance board records serious erosion from off-path trampling. Keep to the log steps and the marked path, especially on the descent to Hap Mun Bay."
+      "body": "The AFCD maintenance board records serious erosion from off-path trampling. Keep to the log steps and the marked path, especially on the descent to Hap Mun Bay.",
+      "bodyZh": "渔农署维修告示牌记录了走离路径踩踏造成的严重水土流失。请沿木级与标示路径行走，下行至厦门湾时尤其如此。"
     },
     {
       "title": "Look, don't take",
       "zh": "只观察，不带走",
-      "body": "Do not deface, damage or remove any rock, and do not disturb wildlife. Do not touch, feed or tread on marine life and coral. Take all litter home."
+      "body": "Do not deface, damage or remove any rock, and do not disturb wildlife. Do not touch, feed or tread on marine life and coral. Take all litter home.",
+      "bodyZh": "不要涂刻、损毁或带走任何岩石，也不要骚扰野生动物。不要触摸、喂饲或踩踏海洋生物与珊瑚。请把垃圾全部带走。"
     },
     {
       "title": "Confirm the last kai-to",
       "zh": "确认街渡尾班船",
-      "body": "Sharp Island has no road access. Agree the return pier, the last sailing and the fare with the operator before you start, since the two beaches use different piers."
+      "body": "Sharp Island has no road access. Agree the return pier, the last sailing and the fare with the operator before you start, since the two beaches use different piers.",
+      "bodyZh": "桥咀洲没有陆路交通。出发前先与承办者确认回程码头、尾班船与票价，因为两个泳滩使用不同的码头。"
     }
   ],
   "sources": [
     {
       "kind": "Official",
+      "kindZh": "官方资料",
       "label": "HK UNESCO Global Geopark: Sharp Island",
+      "labelZh": "香港联合国教科文组织世界地质公园：桥咀洲",
       "detail": "1.25 m tide threshold, return-time warning, and water, food and sun protection advice.",
+      "detailZh": "1.25 米潮高临界值、返程时间提醒，以及饮水、食物与防晒建议。",
       "url": "https://geopark.gov.hk/tc/discover/attractions/sharp-island"
     },
     {
       "kind": "Official",
+      "kindZh": "官方资料",
       "label": "AFCD: Kiu Tsui Country Park",
+      "labelZh": "渔农自然护理署：桥咀郊野公园",
       "detail": "Island setting, beach facilities, woodland, 136 m high point and the tombolo.",
+      "detailZh": "岛屿环境、泳滩设施、林地、136 米最高点与连岛沙洲。",
       "url": "https://www.afcd.gov.hk/tc_chi/country/cou_vis/cou_vis_cou/cou_vis_cou_kt/cou_vis_cou_kt.html"
     },
     {
       "kind": "Official",
+      "kindZh": "官方资料",
       "label": "LCSD: Sai Kung gazetted beaches",
+      "labelZh": "康文署：西贡宪报泳滩",
       "detail": "Facilities at Hap Mun Bay and Kiu Tsui Beach; winter lifeguard suspension.",
+      "detailZh": "厦门湾与桥咀泳滩的设施，以及冬季暂停救生员服务。",
       "url": "https://www.lcsd.gov.hk/tc/beach/index/beach-location-nt/beach-address-sk.html"
     },
     {
       "kind": "Official",
+      "kindZh": "官方资料",
       "label": "Hong Kong Observatory real-time tide information",
+      "labelZh": "香港天文台实时潮汐资料",
       "detail": "Live and predicted tidal heights. Check before crossing the tombolo.",
+      "detailZh": "实时与预报潮高。穿越沙洲前请先查阅。",
       "url": "https://tide1.hydro.gov.hk/"
     },
     {
       "kind": "Official",
+      "kindZh": "官方资料",
       "label": "GovHK: Real-time Tide Information Service",
+      "labelZh": "政府一站通：实时潮汐信息服务",
       "detail": "How tide predictions are produced, and why observed levels may differ.",
+      "detailZh": "潮汐预报的产生方式，以及实测水位为何可能与预报不同。",
       "url": "https://www.gov.hk/en/residents/transport/vessel/realtime_tide.htm"
     },
     {
       "kind": "Map",
+      "kindZh": "地图",
       "label": "Tencent Maps GL JS: vector basemap and overlay layers",
+      "labelZh": "腾讯地图 GL JS：矢量底图与叠加图层",
       "detail": "GCJ-02 compliant basemap held at zoom 16; route, markers and cursor are drawn as vector overlays.",
+      "detailZh": "GCJ-02 底图固定在十六级；路线、标记与游标以矢量叠加层绘制。",
       "url": "https://lbs.qq.com/webApi/javascriptGL/glDoc/glDocLayer"
     },
     {
       "kind": "Map",
+      "kindZh": "地图",
       "label": "Group terrain tiles and elevation grid",
+      "labelZh": "本组地形瓦片与高程网格",
       "detail": "Local tile pyramid and the resampled elevation grid behind the profile and the tide model.",
+      "detailZh": "本地瓦片金字塔，以及剖面与潮汐模型所用的重采样高程网格。",
       "url": null
     },
     {
       "kind": "Field evidence",
+      "kindZh": "实地证据",
       "label": "On-site boards photographed during the survey",
+      "labelZh": "调查期间拍摄的现场告示牌",
       "detail": "p03 Geopark conservation, p04 tide table, p05 marine life, p09 direction signs, p17 panorama, p18 trail maintenance, p20 junction, p28 beach layout plan.",
+      "detailZh": "p03 地质公园保育、p04 潮汐表、p05 海洋生物、p09 指示牌、p17 全景图、p18 步道维修、p20 分岔路、p28 泳滩平面图。",
       "url": null
     },
     {
       "kind": "Field evidence",
+      "kindZh": "实地证据",
       "label": "Group QField records",
+      "labelZh": "本组 QField 记录",
       "detail": "29 photographs and 8 observation points, 11:10 to 13:38 HKT, 13 November 2026.",
+      "detailZh": "29 张照片与 8 个观察点，香港时间 11:10 至 13:38，2026 年 11 月 13 日。",
       "url": null
     }
   ],
@@ -563,142 +696,212 @@
     "Tide threshold: the photographed pier board and the current Geopark page state 1.25 m, while some older material quotes 1.4 m. The site follows the board.",
     "Beach facilities at Hap Mun Bay come from the LCSD list and were not checked one by one on the day."
   ],
+  "checksZh": [
+    "p06 中的岩石种类：对照地质公园的地质资料确认后，才可在现场指称。",
+    "艺术计划名称与主办单位：p08 中的 S12 解说牌只有部分字迹可辨。",
+    "潮高临界值：我们拍摄的码头告示牌与现行地质公园网页都写 1.25 米，部分较早资料则写 1.4 米。本站以告示牌为准。",
+    "厦门湾泳滩的设施来自康文署清单，当天未逐项核对。"
+  ],
   "reading": [
     {
       "kind": "GAZETTEER",
+      "kindZh": "方志",
       "year": "1819",
-      "title": "嘉慶《新安縣志》",
-      "source": "舒懋官修，王崇熙纂，二十四卷，十三門",
+      "title": "Xin'an County Gazetteer, Jiaqing era",
+      "titleZh": "嘉庆《新安县志》",
+      "source": "Compiled by Shu Maoguan, edited by Wang Chongxi, 24 juan, 13 sections",
+      "sourceZh": "舒懋官修，王崇熙纂，二十四卷，十三门",
       "note": "The county gazetteer that covered the whole of what is now Hong Kong, including the Sai Kung islands. It sets aside a separate chapter on coastal defence and records that islands in the inner sea carried residents. We could not find an entry naming Kiu Tsui in the sections available to us, so we cite it only as background for how the islands were administered, not for anything specific about this one.",
       "noteZh": "涵盖今香港全境的县志，西贡一带海岛属其范围；书中特立〈海防略〉一门，记内洋岛屿多有居民。我们未能核到直接以「桥咀」为名的条目，故仅作海岛行政背景引用，不据此推断本岛细节。",
-      "flag": "目錄已核，正文待查"
+      "flag": "Index checked, main text still to be read",
+      "flagZh": "目录已核，正文待查"
     },
     {
       "kind": "JOURNAL",
+      "kindZh": "期刊",
       "year": "2012",
       "title": "Volcanic structure of the High Island caldera",
+      "titleZh": "西贡高岛破火口的火山构造",
       "source": "Sewell, Tang and Campbell, Geochemistry, Geophysics, Geosystems, doi 10.1029/2011GC003865",
+      "sourceZh": "Sewell、Tang 与 Campbell 撰，载《Geochemistry, Geophysics, Geosystems》，doi 10.1029/2011GC003865",
       "note": "Reconstructs the tilted, nested caldera that produced the welded tuff of the Sai Kung coast. This is the regional frame for the volcanic rock we photographed at the shore stops.",
-      "noteZh": "重建西贡海岸 welded tuff（熔结凝灰岩）所对应的倾斜嵌套破火山口，是海岸各站所见火山岩的区域构造框架。",
-      "flag": "区域背景"
+      "noteZh": "重建西贡海岸熔结凝灰岩（welded tuff）所对应的倾斜嵌套破火山口，是海岸各站所见火山岩的区域构造框架。",
+      "flag": "区域背景",
+      "flagZh": "区域背景"
     },
     {
       "kind": "JOURNAL",
+      "kindZh": "期刊",
       "year": "2010",
       "title": "Geodiversity and geoconservation in Hong Kong",
+      "titleZh": "香港的地质多样性与地质保育",
       "source": "Ng, Li, Fang and Ng, Asian Geographer 27(1 to 2), 1 to 11, doi 10.1080/10225706.2010.9684149",
+      "sourceZh": "Ng、Li、Fang 与 Ng 撰，载《Asian Geographer》27 卷 1 至 2 期，1 至 11 页，doi 10.1080/10225706.2010.9684149",
       "note": "Sets out why Hong Kong treats rock exposures as a conservation object rather than scenery. It is the argument behind the Geopark board at p03 that prohibits removing or defacing rock.",
       "noteZh": "说明香港为何把岩石露头当作保育对象而非单纯景观，也是 p03 地质公园告示牌禁止采石与刻画背后的依据。",
-      "flag": "保育框架"
+      "flag": "保育框架",
+      "flagZh": "保育框架"
     },
     {
       "kind": "CHAPTER",
+      "kindZh": "论著",
       "year": "2010",
       "title": "Hong Kong Geopark: uncovering the geology of a metropolis",
+      "titleZh": "香港地质公园：揭示大都会的地质",
       "source": "Ng, Fung and Newsome, in Global Geotourism Perspectives, doi 10.23912/978-1-906884-17-8-1120",
+      "sourceZh": "Ng、Fung 与 Newsome 撰，收于《Global Geotourism Perspectives》，doi 10.23912/978-1-906884-17-8-1120",
       "note": "Describes how a Geopark was assembled inside a dense city, and what visitor management that requires. Useful for reading the signage we recorded rather than for the island itself.",
       "noteZh": "记述在高密度城市内部组建地质公园的过程及其游客管理要求，主要用于解读我们拍到的解说牌，而非岛本身。",
-      "flag": "管理背景"
+      "flag": "管理背景",
+      "flagZh": "管理背景"
     },
     {
       "kind": "JOURNAL",
+      "kindZh": "期刊",
       "year": "2013",
       "title": "Hong Kong Geopark as a paradigm of urban sustainable tourism",
+      "titleZh": "香港地质公园：城市可持续旅游的范式",
       "source": "Ng, Fung and Newsome, Asian Geographer, doi 10.1080/10225706.2013.808577",
+      "sourceZh": "Ng、Fung 与 Newsome 撰，载《Asian Geographer》，doi 10.1080/10225706.2013.808577",
       "note": "Argues that urban Geoparks carry a heavier visitor load than remote ones. It fits what we saw: a small island with a signed trail, two gazetted beaches and a busload-scale arrival point.",
       "noteZh": "认为城市型地质公园的游客压力高于偏远型。这与现场相符：小岛上有完整步道系统、两个宪报泳滩，以及可容纳大批游客的到达点。",
-      "flag": "游客压力"
+      "flag": "游客压力",
+      "flagZh": "游客压力"
     },
     {
       "kind": "REPORT",
+      "kindZh": "报告",
       "year": "2024",
       "title": "Kiu Tsui Country Park",
+      "titleZh": "桥咀郊野公园",
       "source": "Agriculture, Fisheries and Conservation Department",
+      "sourceZh": "渔农自然护理署",
       "note": "Gives the island setting, the beach facilities, the woodland and the 136 m high point, and describes the tombolo. Our elevation profile cannot resolve that summit, so the published figure is the one we quote.",
       "noteZh": "提供岛屿环境、泳滩设施、林地与 136 米最高点的官方数值，并描述连岛沙洲。我们的高程剖面无法分辨该峰顶，因此引用官方数字。",
       "flag": "官方数值",
+      "flagZh": "官方数值",
       "url": "https://www.afcd.gov.hk/tc_chi/country/cou_vis/cou_vis_cou/cou_vis_cou_kt/cou_vis_cou_kt.html"
     },
     {
       "kind": "REPORT",
+      "kindZh": "报告",
       "year": "2026",
       "title": "Sharp Island, Hong Kong UNESCO Global Geopark",
+      "titleZh": "桥咀洲，香港联合国教科文组织世界地质公园",
       "source": "Geopark Division, Agriculture, Fisheries and Conservation Department",
+      "sourceZh": "渔农自然护理署地质公园组",
       "note": "States the 1.25 m tide threshold and the instruction to allow time for the return crossing. Both appear on the pier board we photographed, which is why the tide model uses 1.25 m as the crest height.",
       "noteZh": "载明 1.25 米潮高临界值，并提醒预留返程时间。两项内容均见于我们拍摄的码头告示牌，潮汐模型即以此作为沙脊高程。",
       "flag": "潮汐临界值",
+      "flagZh": "潮汐临界值",
       "url": "https://geopark.gov.hk/tc/discover/attractions/sharp-island"
     },
     {
       "kind": "REPORT",
+      "kindZh": "报告",
       "year": "2026",
       "title": "Vegetation of Hong Kong",
+      "titleZh": "香港的植被",
       "source": "Hong Kong Biodiversity Information Hub and Greening the City",
+      "sourceZh": "香港生物多样性资讯中心与《Greening the City》",
       "note": "Describes the subtropical evergreen broadleaf forest, the shrublands of Myrtaceae and the grass slopes that hill fire keeps open. The four plates in the vegetation section follow these formations.",
       "noteZh": "记述南亚热带常绿阔叶林、以桃金娘科为主的灌丛，以及由山火维持的草坡。植被板块的四幅插画即依此四类群落绘制。",
-      "flag": "植被分类"
+      "flag": "植被分类",
+      "flagZh": "植被分类"
     }
   ],
   "contributions": [
     {
-      "name": "孟楷淇（組長）",
+      "name": "孟楷淇",
+      "role": "组长",
+      "roleEn": "Team lead",
       "fieldwork": "Route planning and stage division",
+      "fieldworkZh": "路线规划与分段划分",
       "analysis": "Tide window and crossing decision",
-      "website": "Structure, map and tide model"
+      "analysisZh": "潮汐时段与能否过沙洲的判断",
+      "website": "Structure, map and tide model",
+      "websiteZh": "版面结构、地图与潮汐模型"
     },
     {
       "name": "金子涵",
       "fieldwork": "Photograph log and point numbering",
+      "fieldworkZh": "照片记录与观察点编号",
       "analysis": "Shade classification check",
-      "website": "Photo pipeline and lightbox"
+      "analysisZh": "遮阴分级复核",
+      "website": "Photo pipeline and lightbox",
+      "websiteZh": "照片流程与灯箱"
     },
     {
       "name": "王馨悦",
       "fieldwork": "Record indexing and caption check",
+      "fieldworkZh": "记录编号与图注校对",
       "analysis": "Literature and gazetteer search",
-      "website": "Reading list and source notes"
+      "analysisZh": "文献与方志检索",
+      "website": "Reading list and source notes",
+      "websiteZh": "阅读清单与资料注记"
     },
     {
       "name": "伍佳慧",
       "fieldwork": "Coastal stage notes, points 01 to 03",
+      "fieldworkZh": "海岸段笔记，观察点 01 至 03",
       "analysis": "Erosion and trail condition",
-      "website": "Stage cards"
+      "analysisZh": "侵蚀与步道状况",
+      "website": "Stage cards",
+      "websiteZh": "分段卡片"
     },
     {
-      "name": "楊薈瑾",
+      "name": "杨荟瑾",
       "fieldwork": "Woodland stage notes, points 04 and 05",
+      "fieldworkZh": "林地段笔记，观察点 04 与 05",
       "analysis": "Vegetation formation mapping",
-      "website": "Vegetation plates"
+      "analysisZh": "植被群落分布",
+      "website": "Vegetation plates",
+      "websiteZh": "植被插画"
     },
     {
       "name": "武若瞳",
       "fieldwork": "Ridge stage notes, points 06 and 07",
+      "fieldworkZh": "山脊段笔记，观察点 06 与 07",
       "analysis": "Sun exposure sequence",
-      "website": "Shade ribbon"
+      "analysisZh": "日照序列",
+      "website": "Shade ribbon",
+      "websiteZh": "遮阴色带"
     },
     {
-      "name": "聶仕霖",
+      "name": "聂仕霖",
       "fieldwork": "Beach stage notes, point 08",
+      "fieldworkZh": "泳滩段笔记，观察点 08",
       "analysis": "Facilities against LCSD list",
-      "website": "Observation point drawer"
+      "analysisZh": "设施与康文署清单核对",
+      "website": "Observation point drawer",
+      "websiteZh": "观察点抽屉"
     },
     {
-      "name": "劉凱心",
+      "name": "刘凯心",
       "fieldwork": "Signage survey and board transcription",
+      "fieldworkZh": "指示牌调查与告示牌转录",
       "analysis": "Source verification",
-      "website": "Sources and checks"
+      "analysisZh": "资料来源核实",
+      "website": "Sources and checks",
+      "websiteZh": "资料来源与待核查事项"
     },
     {
-      "name": "胡佳啟",
+      "name": "胡佳启",
       "fieldwork": "Elevation readings along the route",
+      "fieldworkZh": "沿路线的高程读数",
       "analysis": "Profile and contour handling",
-      "website": "Elevation chart"
+      "analysisZh": "剖面与等高线处理",
+      "website": "Elevation chart",
+      "websiteZh": "海拔图表"
     },
     {
-      "name": "吳敘靜",
+      "name": "吴叙静",
       "fieldwork": "Weather and time log",
+      "fieldworkZh": "天气与时间记录",
       "analysis": "Survey window and timing",
-      "website": "Layout and responsive pass"
+      "analysisZh": "调查时段与时序",
+      "website": "Layout and responsive pass",
+      "websiteZh": "版面与响应式调整"
     }
   ],
   "_meta": {

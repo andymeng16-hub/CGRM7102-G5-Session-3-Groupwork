@@ -17,7 +17,86 @@
   var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
   var shadeName = { mostly: 'MOSTLY SHADED', partly: 'PARTLY SHADED', unshaded: 'UNSHADED' };
   var shadeZh = { mostly: '大部份遮阴', partly: '部份遮阴', unshaded: '无遮阴' };
+  var shadeShort = { mostly: 'MOSTLY', partly: 'PARTLY', unshaded: 'UNSHADED' };
+  var shadeShortZh = { mostly: '大部份遮阴', partly: '部份遮阴', unshaded: '无遮阴' };
   var css = function (name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); };
+
+  /* ------------------------------------------------------------------ */
+  /* Language                                                             */
+  /* ------------------------------------------------------------------ */
+  /* English and Simplified Chinese sit side by side in the markup. The
+     Traditional version is derived from the Simplified source at run time
+     through the table in data/zh-hant.js, so the two Chinese versions can
+     never drift apart. One attribute on the root element decides which half
+     of every pair the reader sees. */
+  var ZH = window.ZH_HANT || { toHant: function (s) { return s; } };
+  var LANGS = ['en', 'zh-hans', 'zh-hant'];
+
+  /* Each button names the version it moves to. A Chinese button is written in
+     the orthography of the version on screen, and every button carries a
+     tooltip in the language on screen. */
+  var LANG_BTN_LABEL = {
+    'zh-hans': '简中',
+    'zh-hant': '繁中',
+    'en': 'EN'
+  };
+  var LANG_BTN_TIP = {
+    'zh-hans': '切换到简体中文',
+    'zh-hant': '切换到繁体中文',
+    'en': '切换到英文'
+  };
+  var LANG_BTN_TIP_EN = {
+    'zh-hans': 'Switch to Simplified Chinese',
+    'zh-hant': 'Switch to Traditional Chinese',
+    'en': 'Switch to English'
+  };
+
+  /* Both halves of one label, as markup. */
+  function bi(en, hans) {
+    return '<span class="t-en">' + en + '</span><span class="t-hans">' + hans + '</span>';
+  }
+  /* One string in the reader's language, for canvas and SVG text. */
+  function tr(en, hans) {
+    if (state.lang === 'en') return en;
+    return state.lang === 'zh-hant' ? ZH.toHant(hans) : hans;
+  }
+  function hantTree(node) {
+    if (node.nodeType === 3) { node.nodeValue = ZH.toHant(node.nodeValue); return; }
+    if (node.nodeType !== 1) return;
+    for (var i = 0; i < node.childNodes.length; i++) hantTree(node.childNodes[i]);
+  }
+  /* Every Simplified block gets a Traditional twin cloned beside it. */
+  function expandHant(root) {
+    if (!root) return;
+    var src = $$('.t-hans', root);
+    for (var i = 0; i < src.length; i++) {
+      var el = src[i];
+      if (el.getAttribute('data-hant') === '1') continue;
+      var clone = el.cloneNode(true);
+      clone.classList.remove('t-hans');
+      clone.classList.add('t-hant');
+      clone.setAttribute('data-hant', '1');
+      hantTree(clone);
+      el.setAttribute('data-hant', '1');
+      el.parentNode.insertBefore(clone, el.nextSibling);
+    }
+  }
+  /* Write markup, then give it its Traditional twin. */
+  function setHTML(sel, html) {
+    var el = typeof sel === 'string' ? $(sel) : sel;
+    if (!el) return;
+    el.innerHTML = html;
+    expandHant(el);
+  }
+  /* Ranges and heights are written in English units in the data file. */
+  function metricZh(str) {
+    return str.replace(/ to /g, ' 至 ').replace(/km/g, '公里').replace(/ m$/, ' 米');
+  }
+  /* A time window reads 11:10 to 11:32 in the data and 11:10 至 11:32 in
+     Chinese. */
+  function timeZh(str) {
+    return str.replace(/ to /g, ' 至 ');
+  }
 
   var proxyReady = !!(window._TMapSecurityConfig &&
     window._TMapSecurityConfig.serviceHost &&
@@ -151,7 +230,8 @@
     progress: 0, playing: false,
     zoom: 15.4, center: null,
     tide: 0.95, tidePlaying: false, tideT: 0,
-    point: null, drawerIdx: 0, lbPhotos: [], lbIdx: 0
+    point: null, drawerIdx: 0, lbPhotos: [], lbIdx: 0,
+    lang: 'en', lbCaption: '', lbCaptionZh: ''
   };
   var c = gcj(22.3625, 114.2915);
   state.center = { lat: c.lat, lng: c.lng };
@@ -413,7 +493,7 @@
     canvas.hidden = false;
     sizeCanvas(); drawTileMap();
     var nb = $('#mapNote');
-    if (en) { nb.innerHTML = en + '<span class="bi-zh">' + zh + '</span>'; nb.hidden = false; }
+    if (en) { setHTML(nb, bi(en, zh)); nb.hidden = false; }
   }
 
   function loadTencentSDK() {
@@ -444,12 +524,12 @@
       '<stop offset="0%" stop-color="#0066cc" stop-opacity=".28"/><stop offset="100%" stop-color="#0066cc" stop-opacity="0"/></linearGradient></defs>');
     for (var e = 0; e <= Math.max(60, Math.ceil(MAXE/20)*20); e += 20) {
       g.push('<line class="pf-grid" x1="'+PF.left+'" y1="'+py(e)+'" x2="'+(PF.w-PF.right)+'" y2="'+py(e)+'"/>');
-      g.push('<text class="pf-axis" x="'+(PF.left-9)+'" y="'+(py(e)+3)+'" text-anchor="end">'+e+' m</text>');
+      g.push('<text class="pf-axis" x="'+(PF.left-9)+'" y="'+(py(e)+3)+'" text-anchor="end">'+tr(e+' m', e+' 米')+'</text>');
     }
     for (var km = 0; km <= TOTAL+.001; km += .5) {
       var x = px(km);
       g.push('<line class="pf-grid" x1="'+x+'" y1="'+PF.top+'" x2="'+x+'" y2="'+(PF.h-PF.bottom)+'"/>');
-      g.push('<text class="pf-axis" x="'+x+'" y="'+(PF.h-PF.bottom+18)+'" text-anchor="middle">'+km.toFixed(1)+' km</text>');
+      g.push('<text class="pf-axis" x="'+x+'" y="'+(PF.h-PF.bottom+18)+'" text-anchor="middle">'+tr(km.toFixed(1)+' km', km.toFixed(1)+' 公里')+'</text>');
     }
     var area = 'M '+px(0)+' '+(PF.h-PF.bottom);
     var line = '';
@@ -467,7 +547,7 @@
       g.push('<line x1="'+x0+'" y1="'+(PF.h-PF.bottom+30)+'" x2="'+x1+'" y2="'+(PF.h-PF.bottom+30)+
         '" stroke="var(--line-soft)" stroke-width="2"/>');
       g.push('<text class="pf-stage" x="'+((x0+x1)/2)+'" y="'+(PF.h-PF.bottom+51)+
-        '" text-anchor="middle">'+s.id+' '+s.name.toUpperCase()+'</text>');
+        '" text-anchor="middle">'+tr(s.id+' '+s.name.toUpperCase(), s.id+' '+s.zh)+'</text>');
     });
     D.points.forEach(function (p) {
       var x = px(p.dist), y = py(p.elev);
@@ -479,11 +559,11 @@
     $('#profileChart').innerHTML = g.join('');
     updateProfile();
 
-    $('#elevStats').innerHTML =
-      '<div><dt>HIGH POINT<span class="bi-zh">最高点</span></dt><dd>'+Math.round(MAXE)+'<small>m</small></dd></div>' +
-      '<div><dt>TOTAL ASCENT<span class="bi-zh">累计爬升</span></dt><dd>'+Math.round(ASCENT)+'<small>m</small></dd></div>' +
-      '<div><dt>ROUTE LENGTH<span class="bi-zh">路线长度</span></dt><dd>'+TOTAL.toFixed(2)+'<small>km</small></dd></div>' +
-      '<div><dt>SADDLE CREST<span class="bi-zh">沙洲鞍部</span></dt><dd>1.25<small>m</small></dd></div>';
+    setHTML('#elevStats',
+      '<div><dt>'+bi('HIGH POINT', '最高点')+'</dt><dd>'+Math.round(MAXE)+'<small>'+tr('m', '米')+'</small></dd></div>' +
+      '<div><dt>'+bi('TOTAL ASCENT', '累计爬升')+'</dt><dd>'+Math.round(ASCENT)+'<small>'+tr('m', '米')+'</small></dd></div>' +
+      '<div><dt>'+bi('ROUTE LENGTH', '路线长度')+'</dt><dd>'+TOTAL.toFixed(2)+'<small>'+tr('km', '公里')+'</small></dd></div>' +
+      '<div><dt>'+bi('SADDLE CREST', '沙洲鞍部')+'</dt><dd>1.25<small>'+tr('m', '米')+'</small></dd></div>');
   }
   function updateProfile() {
     var s = sampleAt(state.progress), x = px(s.dist), y = py(s.elev);
@@ -854,16 +934,17 @@
     ];
     labels.forEach(function (L) {
       var p = tbProj(L.x, L.y);
+      var main = tr(L.t, L.z), sub = tr(L.z, L.t);
       tbCtx.textAlign = 'center';
       tbCtx.lineJoin = 'round';
       tbCtx.font = '600 11px -apple-system, "PingFang SC", sans-serif';
       tbCtx.lineWidth = 4; tbCtx.strokeStyle = 'rgba(255,255,255,.90)';
-      tbCtx.strokeText(L.t, p.x, p.y);
-      tbCtx.fillStyle = '#1d1d1f'; tbCtx.fillText(L.t, p.x, p.y);
+      tbCtx.strokeText(main, p.x, p.y);
+      tbCtx.fillStyle = '#1d1d1f'; tbCtx.fillText(main, p.x, p.y);
       tbCtx.font = '400 10px -apple-system, "PingFang SC", sans-serif';
       tbCtx.lineWidth = 3.5;
-      tbCtx.strokeText(L.z, p.x, p.y + 13);
-      tbCtx.fillStyle = '#3a3a3c'; tbCtx.fillText(L.z, p.x, p.y + 13);
+      tbCtx.strokeText(sub, p.x, p.y + 13);
+      tbCtx.fillStyle = '#3a3a3c'; tbCtx.fillText(sub, p.x, p.y + 13);
     });
   }
 
@@ -898,11 +979,11 @@
     g.push('<path class="sx-line" d="'+line+'"/>');
     g.push('<line id="sxLevel" class="sx-level" x1="'+SX.l+'" y1="'+sxY(0.95)+'" x2="'+(SX.w-SX.r)+'" y2="'+sxY(0.95)+'"/>');
     g.push('<text id="sxLevelLabel" class="sx-level-label" x="'+(SX.w-SX.r)+'" y="'+(sxY(0.95)-7)+'" text-anchor="end">0.95 M</text>');
-    g.push('<text class="sx-thresh-label" x="'+SX.l+'" y="'+(sxY(1.25)-7)+'">1.25 M THRESHOLD</text>');
-    g.push('<text class="sx-crest" x="'+sxX(barDrift(SX_Y)).toFixed(1)+'" y="'+(sxY(1.25)-26)+'" text-anchor="middle">BAR CREST</text>');
-    g.push('<text class="sx-end" x="'+SX.l+'" y="'+(SX.h-16)+'">SEA</text>');
-    g.push('<text class="sx-end" x="'+(SX.w-SX.r)+'" y="'+(SX.h-16)+'" text-anchor="end">SEA</text>');
-    g.push('<text class="sx-axis" x="'+((SX.l+SX.w-SX.r)/2)+'" y="'+(SX.h-16)+'" text-anchor="middle">'+(SX_X1-SX_X0)+' M ACROSS THE CHANNEL</text>');
+    g.push('<text class="sx-thresh-label" x="'+SX.l+'" y="'+(sxY(1.25)-7)+'">'+tr('1.25 M THRESHOLD', '1.25 米临界值')+'</text>');
+    g.push('<text class="sx-crest" x="'+sxX(barDrift(SX_Y)).toFixed(1)+'" y="'+(sxY(1.25)-26)+'" text-anchor="middle">'+tr('BAR CREST', '沙脊')+'</text>');
+    g.push('<text class="sx-end" x="'+SX.l+'" y="'+(SX.h-16)+'">'+tr('SEA', '海面')+'</text>');
+    g.push('<text class="sx-end" x="'+(SX.w-SX.r)+'" y="'+(SX.h-16)+'" text-anchor="end">'+tr('SEA', '海面')+'</text>');
+    g.push('<text class="sx-axis" x="'+((SX.l+SX.w-SX.r)/2)+'" y="'+(SX.h-16)+'" text-anchor="middle">'+tr((SX_X1-SX_X0)+' M ACROSS THE CHANNEL', (SX_X1-SX_X0)+' 米水道宽')+'</text>');
     $('#tideSection').innerHTML = g.join('');
   }
 
@@ -941,7 +1022,7 @@
     var lv = $('#tmLevel'); if (lv) lv.textContent = state.tide.toFixed(2);
     var se = $('#tmState');
     if (se) {
-      se.innerHTML = st.en + '<span class="bi-zh">' + st.zh + '</span>';
+      setHTML(se, bi(st.en, st.zh));
       se.className = 'tm-state ' + (state.tide > 1.35 ? 'is-sub' : (state.tide > 1.15 ? 'is-marg' : 'is-walk'));
     }
     if (!silent) { var sl = $('#tideSlider'); if (sl) sl.value = Math.round(state.tide * 100); }
@@ -952,7 +1033,7 @@
   function toggleTide() {
     state.tidePlaying = !state.tidePlaying;
     var b = $('#tidePlay');
-    b.innerHTML = state.tidePlaying ? 'PAUSE<span>暂停</span>' : 'RUN THE TIDE<span>推演潮汐</span>';
+    setHTML(b, state.tidePlaying ? bi('PAUSE', '暂停') : bi('RUN THE TIDE', '推演潮汐'));
     if (state.tidePlaying) {
       state.tideT = Math.asin(clamp((state.tide - 1.4) / 1.05, -1, 1));
       tideLast = 0;
@@ -979,8 +1060,8 @@
     $('#routeScrub').style.setProperty('--p', (state.progress*100).toFixed(1)+'%');
     $('#readDist').textContent = (state.progress*TOTAL).toFixed(2);
     $('#readElev').textContent = Math.round(s.elev);
-    $('#readShade').textContent = shadeName[st.shade].split(' ')[0];
-    $('#nearestPoint').innerHTML = 'NEAREST '+np.name.toUpperCase()+'<span class="bi-zh">'+np.zh+'</span>';
+    $('#readShade').textContent = tr(shadeShort[st.shade], shadeShortZh[st.shade]);
+    setHTML('#nearestPoint', bi('NEAREST '+np.name.toUpperCase(), '最近观察点 '+np.zh));
     $$('.stage-chip').forEach(function (b) { b.classList.toggle('active', b.dataset.stage === st.id); });
     $$('.seg-shade').forEach(function (b) { b.classList.toggle('on', b.dataset.point === np.id); });
     updateProfile();
@@ -1009,132 +1090,159 @@
   /* Content builders                                                      */
   /* ------------------------------------------------------------------ */
   function buildStops() {
-    $('#stopsRail').innerHTML = D.points.map(function (p) {
+    setHTML('#stopsRail', D.points.map(function (p) {
       return '<button class="stop-card" data-point="'+p.id+'">' +
-        '<img src="'+thumb(p.photos[0])+'" alt="Field photograph at '+p.name+'" loading="lazy">' +
+        '<img src="'+thumb(p.photos[0])+'" alt="'+tr('Field photograph at ', '观察点实地照片 ') + p.name + '" loading="lazy">' +
         '<span class="sc-body"><span class="sc-num">'+p.code+'</span>' +
-        '<span class="sc-text"><strong>'+p.name+'</strong><span>'+p.zh+', '+p.time+', '+Math.round(p.elev)+' m</span></span></span></button>';
-    }).join('');
-    $('#stopsCount').innerHTML = D.points.length + ' points<span class="bi-zh">8 个观察点</span>';
+        '<span class="sc-text"><strong>'+bi(p.name, p.zh)+'</strong>' +
+        '<span>'+bi(p.time + ', ' + Math.round(p.elev) + ' m', timeZh(p.time) + '，' + Math.round(p.elev) + ' 米')+'</span></span></span></button>';
+    }).join(''));
+    setHTML('#stopsCount', bi(D.points.length + ' points', D.points.length + ' 个观察点'));
   }
   function buildStages() {
-    $('#stageCards').innerHTML = '<div class="stage-grid">' + D.stages.map(function (s) {
+    setHTML('#stageCards', '<div class="stage-grid">' + D.stages.map(function (s) {
       var imgs = s.photos.slice(0,3).map(function (id, k) {
-        return '<button data-photos="'+s.photos.join(',')+'" data-idx="'+k+'" aria-label="Open photograph '+id+'">' +
-          '<img src="'+thumb(id)+'" alt="Field photograph '+id+' at '+s.name+'" loading="lazy"></button>';
+        return '<button data-photos="'+s.photos.join(',')+'" data-idx="'+k+'" aria-label="'+tr('Open photograph ', '查看照片 ') + id + '">' +
+          '<img src="'+thumb(id)+'" alt="'+tr('Field photograph ', '实地照片 ') + id + '" loading="lazy"></button>';
       }).join('');
+      var stageNum = tr('STAGE ' + s.code + ', ' + s.range.toUpperCase(),
+                        '第 ' + s.code + ' 段，' + metricZh(s.range));
       return '<article class="stage-card reveal">' +
         '<div class="stage-photos">'+imgs+'</div>' +
-        '<div class="stage-body"><span class="stage-num">STAGE '+s.code+', '+s.range.toUpperCase()+'</span>' +
-        '<h4>'+s.name+'</h4><p class="stage-zh">'+s.zh+'</p>' +
+        '<div class="stage-body"><span class="stage-num">'+stageNum+'</span>' +
+        '<h4>'+bi(s.name, s.zh)+'</h4>' +
         '<dl class="stage-facts">' +
-          '<div><dt>TIME<span class="bi-zh">时间</span></dt><dd>'+s.time+'</dd></div>' +
-          '<div><dt>ELEVATION<span class="bi-zh">海拔</span></dt><dd>'+s.elev+'</dd></div>' +
-          '<div><dt>SHADE<span class="bi-zh">遮阴</span></dt><dd>'+shadeName[s.shade]+'<span class="bi-zh">'+shadeZh[s.shade]+'</span></dd></div>' +
-          '<div><dt>POINTS<span class="bi-zh">观察点</span></dt><dd>'+s.points.length+' stops<span class="bi-zh">'+s.points.length+' 个观察点</span></dd></div>' +
+          '<div><dt>'+bi('TIME', '时间')+'</dt><dd>'+bi(s.time, timeZh(s.time))+'</dd></div>' +
+          '<div><dt>'+bi('ELEVATION', '海拔')+'</dt><dd>'+bi(s.elev, metricZh(s.elev))+'</dd></div>' +
+          '<div><dt>'+bi('SHADE', '遮阴')+'</dt><dd>'+bi(shadeName[s.shade], shadeZh[s.shade])+'</dd></div>' +
+          '<div><dt>'+bi('POINTS', '观察点')+'</dt><dd>'+bi(s.points.length + ' stops', s.points.length + ' 个观察点')+'</dd></div>' +
         '</dl>' +
-        '<p class="stage-summary">'+s.summary+'</p><p class="stage-summary-zh">'+s.summaryZh+'</p>' +
-        '<div class="stage-care"><span class="care-label">EXTRA CARE<span class="bi-zh">注意事项</span></span> '+s.care+'</div>' +
+        '<p class="stage-summary">'+bi(s.summary, s.summaryZh)+'</p>' +
+        '<div class="stage-care"><span class="care-label">'+bi('EXTRA CARE', '注意事项')+'</span> '+bi(s.care, s.careZh)+'</div>' +
         '</div></article>';
-    }).join('') + '</div>';
-    $('#stageChips').innerHTML = D.stages.map(function (s) {
-      return '<button class="stage-chip" data-stage="'+s.id+'"><b>'+s.code+' '+s.name+'</b><span class="bi-zh">'+s.zh+'</span></button>';
-    }).join('');
+    }).join('') + '</div>');
+    setHTML('#stageChips', D.stages.map(function (s) {
+      return '<button class="stage-chip" data-stage="'+s.id+'"><b>'+bi(s.code + ' ' + s.name, s.code + ' ' + s.zh)+'</b></button>';
+    }).join(''));
   }
   function buildRibbon() {
-    $('#ribbons').innerHTML = '<div class="ribbon-card">' +
-      '<div class="ribbon-head"><strong>ONE CONTINUOUS ROUTE<span class="bi-zh">一条连续路线</span></strong><span>'+D.route.shade+'<span class="bi-zh">'+D.route.shadeZh+'</span></span></div>' +
+    setHTML('#ribbons', '<div class="ribbon-card">' +
+      '<div class="ribbon-head"><strong>'+bi('ONE CONTINUOUS ROUTE', '一条连续路线')+'</strong><span>'+bi(D.route.shade, D.route.shadeZh)+'</span></div>' +
       '<div class="ribbon">' + D.points.map(function (p) {
-        return '<div class="seg-shade '+p.shade+'" data-point="'+p.id+'" data-progress="'+p.progress+'" title="'+p.code+' '+p.name+', '+shadeName[p.shade]+'"><span>'+p.code+'</span></div>';
+        return '<div class="seg-shade '+p.shade+'" data-point="'+p.id+'" data-progress="'+p.progress+'" title="'+tr(p.code+' '+p.name+', '+shadeName[p.shade], p.code+' '+p.zh+'，'+shadeZh[p.shade])+'"><span>'+p.code+'</span></div>';
       }).join('') + '</div>' +
-      '<div class="ribbon-foot"><span>START '+D.route.startShort+'<span class="bi-zh">'+D.route.startZh+'</span></span><span>FINISH '+D.route.finishShort+'<span class="bi-zh">'+D.route.finishZh+'</span></span></div></div>';
+      '<div class="ribbon-foot"><span>'+bi('START ' + D.route.startShort, '起点 ' + D.route.startShortZh)+'</span>' +
+      '<span>'+bi('FINISH ' + D.route.finishShort, '终点 ' + D.route.finishShortZh)+'</span></div></div>');
     $$('.seg-shade').forEach(function (el) {
       el.addEventListener('click', function () { setProgress(Number(el.dataset.progress)); openPoint(el.dataset.point); });
     });
   }
   function buildNotes() {
     var notes = [
-      { img: 'p19', color: 'amber', label: 'TRAIL CONDITION', labelZh: '山径侵蚀', title: 'STAY ON THE REPAIRED PATH',
-        text: 'The AFCD board at the junction records serious erosion caused by visitors leaving the trail and wearing away vegetation. Hand-built log steps now hold the slope, but loose sandy tread and exposed roots remain.' },
-      { img: 'p03', color: 'rust', label: 'GEOCONSERVATION', labelZh: '岩石保育', title: 'LOOK, DON\'T TAKE',
-        text: 'An on-site Geopark board prohibits defacing, damaging or removing any rock, and disturbing wild plants and animals. The weathered volcanic boulders here are brittle, and the board asks visitors to leave them in place.' },
-      { img: 'p05', color: 'green', label: 'INTERTIDAL LIFE', labelZh: '海岸生态', title: 'HANDS OFF THE SHORE',
-        text: 'The AFCD banner asks visitors not to feed or touch marine life, and not to tread on coral. The shallow water off both beaches is habitat for coral and other marine life.' },
-      { img: 'p13', color: 'blue', label: 'SUN EXPOSURE', labelZh: '日照', title: 'CLOUD IS NOT SHADE',
-        text: 'At 11:10 the beach was under thick cloud; by 12:47 the ridge was in full sun. Our 20 m shade readings show the coast, viewpoint and beach entirely unshaded.' }
+      { img: 'p19', color: 'amber', label: 'TRAIL CONDITION', labelZh: '山径侵蚀',
+        title: 'STAY ON THE REPAIRED PATH', titleZh: '请沿维修步道行走',
+        text: 'The AFCD board at the junction records serious erosion caused by visitors leaving the trail and wearing away vegetation. Hand-built log steps now hold the slope, but loose sandy tread and exposed roots remain.',
+        textZh: '分岔路旁的渔农自然护理署告示牌记录了严重的侵蚀，成因是游客离开步道并踩踏植被。人工铺设的圆木台阶目前稳住了坡面，但松散的沙质路面与外露树根仍然存在。' },
+      { img: 'p03', color: 'rust', label: 'GEOCONSERVATION', labelZh: '岩石保育',
+        title: 'LOOK, DON\'T TAKE', titleZh: '只看不取',
+        text: 'An on-site Geopark board prohibits defacing, damaging or removing any rock, and disturbing wild plants and animals. The weathered volcanic boulders here are brittle, and the board asks visitors to leave them in place.',
+        textZh: '现场的「世界地质公园」告示牌禁止涂污、破坏或取走任何岩石，也禁止干扰野生植物与动物。此处风化的火山巨岩质地脆裂，告示牌请游客原地观赏。' },
+      { img: 'p05', color: 'green', label: 'INTERTIDAL LIFE', labelZh: '海岸生态',
+        title: 'HANDS OFF THE SHORE', titleZh: '请勿触碰海岸',
+        text: 'The AFCD banner asks visitors not to feed or touch marine life, and not to tread on coral. The shallow water off both beaches is habitat for coral and other marine life.',
+        textZh: '渔农自然护理署的横幅提醒游客不要喂食或触摸海洋生物，也不要踩踏珊瑚。两处泳滩外的浅水正是珊瑚与其他海洋生物的栖息地。' },
+      { img: 'p13', color: 'blue', label: 'SUN EXPOSURE', labelZh: '日照',
+        title: 'CLOUD IS NOT SHADE', titleZh: '多云不等于遮阴',
+        text: 'At 11:10 the beach was under thick cloud; by 12:47 the ridge was in full sun. Our 20 m shade readings show the coast, viewpoint and beach entirely unshaded.',
+        textZh: '11:10 时海滩上空云层厚重，12:47 时山脊已沐浴在烈日之下。我们的 20 米遮阴记录显示，海岸、观景台与泳滩全程无遮阴。' }
     ];
-    $('#notesGrid').innerHTML = notes.map(function (n) {
+    setHTML('#notesGrid', notes.map(function (n) {
       return '<article class="note-card reveal" style="--note-color:var(--'+n.color+')">' +
-        '<img src="'+photo(n.img)+'" alt="Field evidence: '+n.title+'" loading="lazy" data-photo="'+n.img+'" data-caption="'+n.title+'">' +
-        '<div class="note-body"><span class="mini-label">'+n.label+'<span class="bi-zh">'+n.labelZh+'</span></span><h4>'+n.title+'</h4>' +
-        '<p>'+n.text+'</p></div></article>';
-    }).join('');
+        '<img src="'+photo(n.img)+'" alt="'+tr('Field evidence: ', '实地证据：') + n.title + '" loading="lazy" data-photo="'+n.img+'" data-caption="'+n.title+'" data-caption-zh="'+n.titleZh+'">' +
+        '<div class="note-body"><span class="mini-label">'+bi(n.label, n.labelZh)+'</span><h4>'+bi(n.title, n.titleZh)+'</h4>' +
+        '<p>'+bi(n.text, n.textZh)+'</p></div></article>';
+    }).join(''));
   }
   function buildVegetation() {
-    $('#vegGrid').innerHTML = V.map(function (v) {
+    setHTML('#vegGrid', V.map(function (v) {
+      /* Species names are a plain list rather than a pair of blocks, so the
+         Traditional version is converted here instead of by the markup. */
+      var species;
+      if (state.lang === 'en') species = v.speciesEn || v.species;
+      else if (state.lang === 'zh-hant') species = v.species.map(function (x) { return ZH.toHant(x); });
+      else species = v.species;
       return '<article class="veg-card reveal">' +
         '<div class="veg-art">' + v.art + '</div>' +
         '<div class="veg-body">' +
-          '<div class="veg-top"><span class="veg-code">'+v.code+'</span><span class="veg-form">'+v.form+'</span></div>' +
-          '<h4>'+v.name+'</h4><p class="veg-zh">'+v.zh+'</p>' +
-          '<p class="veg-blurb">'+v.blurb+'</p>' +
-          '<p class="veg-blurb-zh">'+v.blurbZh+'</p>' +
-          '<ul class="veg-species">' + v.species.map(function (s) { return '<li>'+s+'</li>'; }).join('') + '</ul>' +
-          '<p class="veg-where">'+v.where+'<span class="bi-zh">'+v.whereZh+'</span></p>' +
+          '<div class="veg-top"><span class="veg-code">'+v.code+'</span><span class="veg-form">'+bi(v.form, v.formZh)+'</span></div>' +
+          '<h4>'+bi(v.name, v.zh)+'</h4>' +
+          '<p class="veg-blurb">'+bi(v.blurb, v.blurbZh)+'</p>' +
+          '<ul class="veg-species">' + species.map(function (s) { return '<li>'+s+'</li>'; }).join('') + '</ul>' +
+          '<p class="veg-where">'+bi(v.where, v.whereZh)+'</p>' +
         '</div></article>';
-    }).join('');
+    }).join(''));
   }
   function buildReading() {
-    $('#readList').innerHTML = D.reading.map(function (r) {
-      var title = r.url ? '<a href="'+r.url+'" target="_blank" rel="noopener">'+r.title+'</a>' : r.title;
+    setHTML('#readList', D.reading.map(function (r) {
+      var en = r.url ? '<a href="'+r.url+'" target="_blank" rel="noopener">'+r.title+'</a>' : r.title;
+      var zh = r.url ? '<a href="'+r.url+'" target="_blank" rel="noopener">'+r.titleZh+'</a>' : r.titleZh;
       return '<article class="read-row reveal">' +
-        '<div class="read-meta"><span class="read-kind">'+r.kind+'</span><span class="read-year">'+r.year+'</span></div>' +
-        '<div class="read-body"><h4>'+title+'</h4>' +
-          '<p class="read-source">'+r.source+'</p>' +
-          '<p class="read-note">'+r.note+'</p>' +
-          '<p class="read-note-zh">'+r.noteZh+'</p>' +
-          (r.flag ? '<span class="read-flag">'+r.flag+'</span>' : '') +
+        '<div class="read-meta"><span class="read-kind">'+bi(r.kind, r.kindZh)+'</span><span class="read-year">'+r.year+'</span></div>' +
+        '<div class="read-body"><h4>'+bi(en, zh)+'</h4>' +
+          '<p class="read-source">'+bi(r.source, r.sourceZh)+'</p>' +
+          '<p class="read-note">'+bi(r.note, r.noteZh)+'</p>' +
+          (r.flag ? '<span class="read-flag">'+bi(r.flag, r.flagZh)+'</span>' : '') +
         '</div></article>';
-    }).join('');
+    }).join(''));
   }
   function buildAdvice() {
-    $('#adviceList').innerHTML = D.advice.map(function (a, i) {
-      return '<li><span class="adv-num">0'+(i+1)+'</span><div><h4>'+a.title+'</h4>' +
-        '<p class="adv-zh">'+a.zh+'</p><p>'+a.body+'</p></div></li>';
-    }).join('');
+    setHTML('#adviceList', D.advice.map(function (a, i) {
+      return '<li><span class="adv-num">0'+(i+1)+'</span><div><h4>'+bi(a.title, a.zh)+'</h4>' +
+        '<p>'+bi(a.body, a.bodyZh)+'</p></div></li>';
+    }).join(''));
   }
   function buildSurvey() {
     var s = D.survey;
     var facts = [
-      ['SURVEY DATE', '日期', s.date, '2026 年 11 月 13 日'],
-      ['RECORD WINDOW', '时段', s.window, '11:10 至 13:38（香港时间），共 2 小时 28 分钟'],
+      ['SURVEY DATE', '日期', s.date, s.dateZh],
+      ['RECORD WINDOW', '时段', s.window, s.windowZh + '，共 2 小时 28 分钟'],
       ['WEATHER', '天气', s.weather, s.weatherZh],
       ['FIELD RECORDS', '记录', s.photos+' photographs, '+s.points+' observation points', s.photos+' 张照片，'+s.points+' 个观察点'],
       ['ROUTE', '路线', 'One continuous line from '+D.route.start+' to '+D.route.finish, '一条连续路线，由'+D.route.startZh+'至'+D.route.finishZh],
       ['SHADE CLASSES', '遮阴分级', 'Mostly shaded, partly shaded, unshaded', '大部份遮阴，部份遮阴，无遮阴'],
       ['BASE MAP', '底图', 'Tencent Maps vector basemap, GCJ-02', '腾讯地图矢量底图，GCJ-02'],
-      ['LOCATION', '地点', s.place, '中国香港西贡桥咀郊野公园']
+      ['LOCATION', '地点', s.place, s.placeZh]
     ];
-    $('#surveyFacts').innerHTML = facts.map(function (f) {
-      return '<div><dt>'+f[0]+'<span class="bi-zh">'+f[1]+'</span></dt><dd>'+f[2]+'<span class="bi-zh">'+f[3]+'</span></dd></div>';
-    }).join('');
-    $('#surveyMethod').textContent = s.method;
-    $('#surveyMethodZh').textContent = s.methodZh;
-    $('#mapNoteText').textContent = s.mapping;
-    $('#mapNoteTextZh').textContent = s.mappingZh;
-    $('#sourceList').innerHTML = D.sources.map(function (src) {
-      var title = src.url ? '<a href="'+src.url+'" target="_blank" rel="noopener">'+src.label+'</a>' : '<span class="source-title">'+src.label+'</span>';
-      return '<li><span class="source-meta">'+src.kind+'</span>'+title+'<p>'+src.detail+'</p></li>';
-    }).join('');
-    $('#checkList').innerHTML = D.checks.map(function (c) { return '<li>'+c+'</li>'; }).join('');
-    var head = '<div class="ctr-row head"><div>MEMBER<span class="bi-zh">组员</span></div><div>FIELDWORK<span class="bi-zh">实地记录</span></div><div>ANALYSIS<span class="bi-zh">分析</span></div><div>WEBSITE<span class="bi-zh">网页</span></div></div>';
-    $('#contributionTable').innerHTML = head + D.contributions.map(function (c) {
-      return '<div class="ctr-row"><div class="ctr-name">'+c.name+'</div>' +
-        '<div data-label="Fieldwork">'+c.fieldwork+'</div>' +
-        '<div data-label="Analysis">'+c.analysis+'</div>' +
-        '<div data-label="Website">'+c.website+'</div></div>';
-    }).join('');
-    $('#heroDate').textContent = s.dateShort.toUpperCase();
+    setHTML('#surveyFacts', facts.map(function (f) {
+      return '<div><dt>'+bi(f[0], f[1])+'</dt><dd>'+bi(f[2], f[3])+'</dd></div>';
+    }).join(''));
+    setHTML('#surveyMethod', bi(s.method, s.methodZh));
+    setHTML('#mapNoteText', bi(s.mapping, s.mappingZh));
+    setHTML('#sourceList', D.sources.map(function (src) {
+      var en = src.url ? '<a href="'+src.url+'" target="_blank" rel="noopener">'+src.label+'</a>' : '<span class="source-title">'+src.label+'</span>';
+      var zh = src.url ? '<a href="'+src.url+'" target="_blank" rel="noopener">'+src.labelZh+'</a>' : '<span class="source-title">'+src.labelZh+'</span>';
+      return '<li><span class="source-meta">'+bi(src.kind, src.kindZh)+'</span>'+bi(en, zh)+'<p>'+bi(src.detail, src.detailZh)+'</p></li>';
+    }).join(''));
+    setHTML('#checkList', D.checks.map(function (c, i) {
+      return '<li>'+bi(c, D.checksZh[i] || c)+'</li>';
+    }).join(''));
+    var head = '<div class="ctr-row head"><div>'+bi('MEMBER', '组员')+'</div><div>'+bi('FIELDWORK', '实地记录')+'</div>' +
+      '<div>'+bi('ANALYSIS', '分析')+'</div><div>'+bi('WEBSITE', '网页')+'</div></div>';
+    setHTML('#contributionTable', head + D.contributions.map(function (c) {
+      /* A member's name stays in Chinese script in every version, so both
+         slots hold the same string; the Traditional twin is derived from the
+         Simplified one like every other Chinese block. */
+      return '<div class="ctr-row"><div class="ctr-name">'+bi(c.name, c.name)+
+        (c.role ? '<span class="ctr-role">'+bi(c.roleEn, c.role)+'</span>' : '')+'</div>' +
+        '<div data-label="Fieldwork">'+bi(c.fieldwork, c.fieldworkZh)+'</div>' +
+        '<div data-label="Analysis">'+bi(c.analysis, c.analysisZh)+'</div>' +
+        '<div data-label="Website">'+bi(c.website, c.websiteZh)+'</div></div>';
+    }).join(''));
+    $$('.js-date-en').forEach(function (el) { el.textContent = s.dateShort.toUpperCase(); });
+    $$('.js-date-zh').forEach(function (el) {
+      /* the same slot exists in the Simplified source and in its Traditional twin */
+      el.textContent = el.closest('.t-hant') ? ZH.toHant(s.dateShortZh) : s.dateShortZh;
+    });
   }
 
   /* ------------------------------------------------------------------ */
@@ -1146,25 +1254,27 @@
     state.point = p; state.drawerIdx = 0;
     var stage = D.stages.filter(function (s) { return s.id === p.stage; })[0];
     var thumbs = p.photos.map(function (pid, i) { return '<img src="'+thumb(pid)+'" alt="Field photograph '+pid+'" data-idx="'+i+'" loading="lazy">'; }).join('');
-    $('#drawerContent').innerHTML =
-      '<h3>'+p.name+'</h3><p class="d-zh">'+p.zh+'</p>' +
-      '<div class="drawer-photo"><img id="dPhoto" src="'+photo(p.photos[0])+'" alt="Field photograph at '+p.name+'" data-idx="0">' +
-        '<span class="d-count" id="dCount">1 of '+p.photos.length+'</span>' +
-        (p.photos.length > 1 ? '<button class="d-nav prev" data-dir="-1" aria-label="Previous photo">‹</button><button class="d-nav next" data-dir="1" aria-label="Next photo">›</button>' : '') +
+    setHTML('#drawerContent',
+      '<h3>'+bi(p.name, p.zh)+'</h3>' +
+      '<div class="drawer-photo"><img id="dPhoto" src="'+photo(p.photos[0])+'" alt="'+tr('Field photograph at ', '观察点实地照片 ') + p.name + '" data-idx="0">' +
+        '<span class="d-count" id="dCount">'+tr('1 of '+p.photos.length, '第 1 张，共 '+p.photos.length+' 张')+'</span>' +
+        (p.photos.length > 1 ? '<button class="d-nav prev" data-dir="-1" aria-label="'+tr('Previous photo', '上一张照片')+'">‹</button><button class="d-nav next" data-dir="1" aria-label="'+tr('Next photo', '下一张照片')+'">›</button>' : '') +
       '</div>' +
-      '<div class="chips"><span class="chip stage">STAGE '+(stage?stage.code:'')+'</span>' +
-        '<span class="chip shade-'+p.shade+'">'+shadeName[p.shade]+'<span class="bi-zh">'+shadeZh[p.shade]+'</span></span>' +
-        '<span class="chip">'+p.time+' HKT</span><span class="chip">'+Math.round(p.elev)+' M ASL<span class="bi-zh">海拔</span></span>' +
-        '<span class="chip">'+p.dist.toFixed(2)+' KM</span><span class="chip">'+p.weather+'</span></div>' +
-      '<p class="d-desc">'+p.description+'</p><p class="d-desc-zh">'+p.descriptionZh+'</p>' +
+      '<div class="chips"><span class="chip stage">'+bi('STAGE ' + (stage?stage.code:''), '第 ' + (stage?stage.code:'') + ' 段')+'</span>' +
+        '<span class="chip shade-'+p.shade+'">'+bi(shadeName[p.shade], shadeZh[p.shade])+'</span>' +
+        '<span class="chip">'+bi(p.time+' HKT', timeZh(p.time)+' 香港时间')+'</span>' +
+        '<span class="chip">'+bi(Math.round(p.elev)+' M ASL', '海拔 '+Math.round(p.elev)+' 米')+'</span>' +
+        '<span class="chip">'+bi(p.dist.toFixed(2)+' KM', p.dist.toFixed(2)+' 公里')+'</span>' +
+        '<span class="chip">'+bi(p.weather, p.weatherZh)+'</span></div>' +
+      '<p class="d-desc">'+bi(p.description, p.descriptionZh)+'</p>' +
       '<dl class="d-list">' +
-        '<div><dt>WHAT YOU CAN SEE<span class="bi-zh">景观</span></dt><dd>'+p.attraction+'</dd></div>' +
-        '<div><dt>VISIBLE ENVIRONMENTAL CONCERNS<span class="bi-zh">环境关注</span></dt><dd><ul>'+p.concerns.map(function (c) { return '<li>'+c+'</li>'; }).join('')+'</ul></dd></div>' +
-        '<div><dt>FACILITIES<span class="bi-zh">设施</span></dt><dd>'+p.facilities+'</dd></div>' +
-        '<div><dt>PRACTICAL SUGGESTION<span class="bi-zh">实用建议</span></dt><dd>'+p.tip+'</dd></div></dl>' +
-      '<div class="d-evidence"><p><span class="d-label">EVIDENCE SOURCE<span class="bi-zh">证据来源</span></span> '+p.sources+'</p><div class="d-thumbs">'+thumbs+'</div></div>' +
-      (p.check ? '<div class="d-check"><span class="d-label">NEEDS FURTHER CHECKING<span class="bi-zh">待核查</span></span> '+p.check+'</div>' : '');
-    $('#drawerKicker').innerHTML = 'OBSERVATION POINT '+p.code+'<span class="bi-zh">观察点 '+p.time+'</span>';
+        '<div><dt>'+bi('WHAT YOU CAN SEE', '景观')+'</dt><dd>'+bi(p.attraction, p.attractionZh)+'</dd></div>' +
+        '<div><dt>'+bi('VISIBLE ENVIRONMENTAL CONCERNS', '环境关注')+'</dt><dd><ul>'+p.concerns.map(function (c, i) { return '<li>'+bi(c, p.concernsZh[i] || c)+'</li>'; }).join('')+'</ul></dd></div>' +
+        '<div><dt>'+bi('FACILITIES', '设施')+'</dt><dd>'+bi(p.facilities, p.facilitiesZh)+'</dd></div>' +
+        '<div><dt>'+bi('PRACTICAL SUGGESTION', '实用建议')+'</dt><dd>'+bi(p.tip, p.tipZh)+'</dd></div></dl>' +
+      '<div class="d-evidence"><p><span class="d-label">'+bi('EVIDENCE SOURCE', '证据来源')+'</span> '+bi(p.sources, p.sourcesZh)+'</p><div class="d-thumbs">'+thumbs+'</div></div>' +
+      (p.check ? '<div class="d-check"><span class="d-label">'+bi('NEEDS FURTHER CHECKING', '待核查')+'</span> '+bi(p.check, p.checkZh || p.check)+'</div>' : ''));
+    setHTML('#drawerKicker', bi('OBSERVATION POINT ' + p.code, '观察点 ' + p.code + '　' + timeZh(p.time)));
     $('#scrim').hidden = false; $('#drawer').hidden = false;
     document.body.classList.add('no-scroll');
     requestAnimationFrame(function () { $('#scrim').classList.add('show'); $('#drawer').classList.add('show'); });
@@ -1175,33 +1285,118 @@
     state.drawerIdx = (state.drawerIdx + dir + n) % n;
     var img = $('#dPhoto');
     img.src = photo(p.photos[state.drawerIdx]); img.dataset.idx = state.drawerIdx;
-    $('#dCount').textContent = (state.drawerIdx+1)+' of '+n;
+    $('#dCount').textContent = tr((state.drawerIdx+1)+' of '+n, '第 '+(state.drawerIdx+1)+' 张，共 '+n+' 张');
   }
   function closeDrawer() {
     $('#scrim').classList.remove('show'); $('#drawer').classList.remove('show');
     document.body.classList.remove('no-scroll');
     setTimeout(function () { $('#scrim').hidden = true; $('#drawer').hidden = true; state.point = null; }, 460);
   }
-  function openLightbox(ids, idx, caption) {
+  function openLightbox(ids, idx, caption, captionZh) {
     state.lbPhotos = ids; state.lbIdx = idx || 0;
+    state.lbCaption = caption || 'GROUP FIELD PHOTOGRAPH';
+    state.lbCaptionZh = captionZh || '本组实地照片';
     $('#lightbox').hidden = false; document.body.classList.add('no-scroll');
-    updateLightbox(caption || 'GROUP FIELD PHOTOGRAPH, 13 NOV 2026');
+    updateLightbox();
   }
-  function updateLightbox(caption) {
+  function updateLightbox() {
     $('#lbImage').src = photo(state.lbPhotos[state.lbIdx]);
-    $('#lbImage').alt = 'Field photograph '+state.lbPhotos[state.lbIdx];
-    $('#lbCaption').textContent = (caption || 'GROUP FIELD PHOTOGRAPH')+', '+state.lbPhotos[state.lbIdx];
-    $('#lbCount').textContent = (state.lbIdx+1)+' of '+state.lbPhotos.length;
+    $('#lbImage').alt = tr('Field photograph ', '实地照片 ') + state.lbPhotos[state.lbIdx];
+    $('#lbCaption').textContent = tr(state.lbCaption, state.lbCaptionZh) + ', ' + state.lbPhotos[state.lbIdx];
+    $('#lbCount').textContent = tr((state.lbIdx+1)+' of '+state.lbPhotos.length,
+      '第 '+(state.lbIdx+1)+' 张，共 '+state.lbPhotos.length+' 张');
     $('#lbPrev').hidden = $('#lbNext').hidden = state.lbPhotos.length < 2;
   }
   function moveLightbox(dir) {
     if (state.lbPhotos.length < 2) return;
     state.lbIdx = (state.lbIdx+dir+state.lbPhotos.length)%state.lbPhotos.length;
-    updateLightbox($('#lbCaption').textContent.split(', p')[0]);
+    updateLightbox();
   }
   function closeLightbox() {
     $('#lightbox').hidden = true;
     if (!state.point) document.body.classList.remove('no-scroll');
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Language switching                                                   */
+  /* ------------------------------------------------------------------ */
+  function setLang(lang) {
+    if (LANGS.indexOf(lang) < 0) lang = 'en';
+    state.lang = lang;
+    document.documentElement.dataset.lang = lang;
+    document.documentElement.lang = lang === 'en' ? 'en' : (lang === 'zh-hant' ? 'zh-Hant-HK' : 'zh-Hans');
+    try { localStorage.setItem('si-lang', lang); } catch (e) {}
+    applyLangButtons(lang);
+    relocalize();
+  }
+
+  /* The three buttons carry the state of the switch and name the version
+     each one moves to. */
+  function applyLangButtons(lang) {
+    $$('.lang-btn').forEach(function (b) {
+      var on = b.dataset.lang === lang;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      /* The button names the version it moves to, so it reads in that
+         version's own orthography: 简中 becomes 簡中 on the Traditional page. */
+      var label = LANG_BTN_LABEL[b.dataset.lang];
+      b.textContent = lang === 'zh-hant' ? ZH.toHant(label) : label;
+      b.setAttribute('lang', b.dataset.lang === 'zh-hant' ? 'zh-Hant-HK' : (b.dataset.lang === 'zh-hans' ? 'zh-Hans' : 'en'));
+      var tip = lang === 'en' ? LANG_BTN_TIP_EN[b.dataset.lang] : LANG_BTN_TIP[b.dataset.lang];
+      b.setAttribute('title', lang === 'zh-hant' ? ZH.toHant(tip) : tip);
+    });
+  }
+
+  /* Labels that a screen reader reads, and the two picture captions that the
+     markup holds in one attribute, follow the chosen language too. Split out
+     from relocalize() so a page opened straight at one language (a shared
+     link with ?lang=) is localised before anything is drawn. */
+  function relocalizeMeta() {
+    document.title = tr('SHARP ISLAND: ONE ROUTE, ONE ISLAND', '桥咀洲：一条路线，一座岛');
+    $('.nav').setAttribute('aria-label', tr('Main navigation', '主导航'));
+    $('#langSwitch').setAttribute('aria-label', tr('Language', '语言版本'));
+    $('#themeToggle').setAttribute('aria-label', tr('Switch appearance', '切换外观'));
+    $('#themeToggle').setAttribute('title', tr('Switch appearance', '切换外观'));
+    $('#zoomIn').setAttribute('aria-label', tr('Zoom in', '放大'));
+    $('#zoomOut').setAttribute('aria-label', tr('Zoom out', '缩小'));
+    $('#zoomReset').setAttribute('aria-label', tr('Reset view', '重置视图'));
+    $('#playBtn').setAttribute('aria-label', tr('Play route animation', '播放路线动画'));
+    $('#routeScrub').setAttribute('aria-label', tr('Route progress', '路线进度'));
+    $('#tideSlider').setAttribute('aria-label', tr('Tide height in centimetres', '潮高，以厘米计'));
+    $('#drawerClose').setAttribute('aria-label', tr('Close detail', '关闭详情'));
+    $('#lbClose').setAttribute('aria-label', tr('Close photograph', '关闭照片'));
+    $('#lbPrev').setAttribute('aria-label', tr('Previous photograph', '上一张照片'));
+    $('#lbNext').setAttribute('aria-label', tr('Next photograph', '下一张照片'));
+    $('#drawer').setAttribute('aria-label', tr('Observation point detail', '观察点详情'));
+    $('#lightbox').setAttribute('aria-label', tr('Photograph viewer', '照片浏览器'));
+    $('#tileMap').setAttribute('aria-label', tr('Interactive tiled map of the Sharp Island route', '桥咀洲路线互动地图'));
+    $('#tmap').setAttribute('aria-label', tr('Tencent Maps base map with the Sharp Island route', '腾讯地图底图与桥咀洲路线'));
+    $('#tideModel').setAttribute('aria-label', tr('Shaded relief map of the Sharp Island tombolo, flooded to the selected tide height', '连岛沙洲晕渲图，按选定潮高淹没'));
+    $('#profileChart').setAttribute('aria-label', tr('Elevation profile of the Sharp Island route', '桥咀洲路线海拔剖面'));
+    $('#tideSection').setAttribute('aria-label', tr('Cross section along the tombolo showing the saddle and the water level', '连岛沙洲横剖面，显示鞍部与水位'));
+    $('#stopsRail').setAttribute('aria-label', tr('Observation points', '观察点'));
+    $$('img[data-alt-zh]').forEach(function (img) {
+      if (!img.getAttribute('data-alt-en')) img.setAttribute('data-alt-en', img.getAttribute('alt') || '');
+      img.alt = tr(img.getAttribute('data-alt-en'), img.getAttribute('data-alt-zh'));
+    });
+  }
+
+  function relocalize() {
+    relocalizeMeta();
+    buildStops();
+    buildStages();
+    buildRibbon();
+    buildNotes();
+    buildVegetation();
+    buildReading();
+    buildAdvice();
+    buildSurvey();
+    buildProfile();
+    buildSection();
+    if (mapFallback) drawTileMap();
+    drawTombolo();
+    setProgress(state.progress);
+    setTide(state.tide, true);
   }
 
   /* ------------------------------------------------------------------ */
@@ -1236,11 +1431,11 @@
     });
     $('#stageCards').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-photos]');
-      if (b) openLightbox(b.dataset.photos.split(','), Number(b.dataset.idx), 'STAGE FIELD PHOTOGRAPH');
+      if (b) openLightbox(b.dataset.photos.split(','), Number(b.dataset.idx), 'STAGE FIELD PHOTOGRAPH', '分段实地照片');
     });
     $('#notesGrid').addEventListener('click', function (e) {
       var im = e.target.closest('img[data-photo]');
-      if (im) openLightbox([im.dataset.photo], 0, im.dataset.caption);
+      if (im) openLightbox([im.dataset.photo], 0, im.dataset.caption, im.dataset.captionZh || im.dataset.caption);
     });
 
     $('#tideSlider').addEventListener('input', function (e) {
@@ -1255,7 +1450,7 @@
       var nav = e.target.closest('.d-nav');
       if (nav) { moveDrawerPhoto(Number(nav.dataset.dir)); return; }
       var im = e.target.closest('img');
-      if (im && state.point) openLightbox(state.point.photos, Number(im.dataset.idx || 0), state.point.name);
+      if (im && state.point) openLightbox(state.point.photos, Number(im.dataset.idx || 0), state.point.name, state.point.zh);
     });
     $('#lbClose').addEventListener('click', closeLightbox);
     $('#lbPrev').addEventListener('click', function () { moveLightbox(-1); });
@@ -1273,6 +1468,11 @@
         else if (e.key === 'ArrowLeft') moveDrawerPhoto(-1);
         else if (e.key === 'ArrowRight') moveDrawerPhoto(1);
       }
+    });
+
+    $('#langSwitch').addEventListener('click', function (e) {
+      var b = e.target.closest('.lang-btn');
+      if (b) setLang(b.dataset.lang);
     });
 
     try {
@@ -1328,6 +1528,22 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* The visitor's last choice of language is remembered; English is the
+     default. The Traditional twin of every Chinese block is generated once
+     here, before anything is drawn. */
+  try {
+    var savedLang = localStorage.getItem('si-lang');
+    if (savedLang && LANGS.indexOf(savedLang) >= 0) state.lang = savedLang;
+  } catch (e) {}
+  /* A link may name the language outright, so one version can be sent on. */
+  var urlLang = (location.search.match(/[?&]lang=(zh-hans|zh-hant|en)(&|$)/) || [])[1];
+  if (urlLang) state.lang = urlLang;
+  document.documentElement.dataset.lang = state.lang;
+  document.documentElement.lang = state.lang === 'en' ? 'en' : (state.lang === 'zh-hant' ? 'zh-Hant-HK' : 'zh-Hans');
+  applyLangButtons(state.lang);
+  expandHant(document.body);
+  relocalizeMeta();
+
   buildStops();
   buildStages();
   buildRibbon();

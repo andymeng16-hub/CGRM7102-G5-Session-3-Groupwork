@@ -218,36 +218,44 @@
       id: 'v1', art: art.woodland, code: '01',
       name: 'EVERGREEN BROADLEAF WOODLAND', zh: '常绿阔叶林',
       form: 'Closed canopy, 8 to 12 m',
+      formZh: '闭合树冠，高 8 至 12 米',
       blurb: 'A closed canopy with a dark, humid understorey and a litter layer that holds moisture through the dry season. On Sharp Island it survives best in the sheltered valley between the pier and the ridge, which is why the second stage of the walk is the cool one.',
       blurbZh: '闭合树冠，林下阴暗潮湿，枯枝落叶层在旱季保住水分。这一群落在码头与山脊之间的避风谷地保存最好，也是全程最阴凉的一段。',
       species: ['榕树', '黄桐', '山蒲桃', '五月茶', '九节', '土沉香', '樟树'],
+      speciesEn: ['Ficus', 'Mallotus japonicus', 'Syzygium', 'Antidesma', 'Psychotria', 'Cinnamomum', 'Cinnamomum camphora'],
       where: 'STAGE 02, 0.60 to 1.05 km', whereZh: '第二段，0.60 至 1.05 公里'
     },
     {
       id: 'v2', art: art.shrubland, code: '02',
       name: 'SHRUBLAND', zh: '灌丛',
       form: 'Wind-pruned, usually under 2 m',
+      formZh: '经风修剪，通常不到 2 米',
       blurb: 'Low, dense and shaped by wind. It holds the thin soil on the upper slopes and only establishes where fire has stayed away for several years. Bare rock shows through where the cover breaks.',
       blurbZh: '低矮、密集、被风修剪。它固定上坡的薄土，只在数年无火之处才能定植；覆盖一旦断裂，裸岩便露出来。',
       species: ['岗松', '桃金娘', '大头茶'],
+      speciesEn: ['Baeckea', 'Rhodomyrtus tomentosa', 'Gordonia axillaris'],
       where: 'STAGE 03, 1.05 to 1.30 km', whereZh: '第三段，1.05 至 1.30 公里'
     },
     {
       id: 'v3', art: art.grassland, code: '03',
       name: 'GRASSLAND', zh: '草坡',
       form: 'Fire-maintained, sunlit, free-draining',
+      formZh: '靠山火维持，日照充足，排水良好',
       blurb: 'Grass holds the ridge because fire keeps returning. Hong Kong accounts put roughly a decade without fire before grass gives way to shrub, so the open view from the viewpoint is a recent condition, not a permanent one.',
       blurbZh: '草坡能守住山脊，是因为山火反复回来。香港的记载认为，草地要让位给灌丛约需十年无火，因此观景台的开阔视野是近期状态，并非常态。',
       species: ['刺芒野古草', '青香茅', '芒萁', '纤毛鸭咀草'],
+      speciesEn: ['Aristida setacea', 'Cymbopogon', 'Dicranopteris', 'Ischaemum'],
       where: 'STAGE 04, 1.30 to 2.19 km', whereZh: '第四段，1.30 至 2.19 公里'
     },
     {
       id: 'v4', art: art.strand, code: '04',
       name: 'COASTAL STRAND', zh: '海岸带',
       form: 'Salt spray, wind and moving sand',
+      formZh: '盐雾、强风与流动的沙',
       blurb: 'Salt spray, wind and sand that moves underfoot. Plants here creep rather than stand, root where the stem touches ground, and keep their leaves low enough to stay out of the wind. This is the formation you walk past before the climb.',
       blurbZh: '盐雾、强风与脚下流动的沙。这里的植物多匍匐而不直立，茎节触地即生根，叶片贴地以避开风。上山之前经过的正是这一群落。',
       species: ['匍匐藤本', '低矮海岸灌木', '盐生草本'],
+      speciesEn: ['Creeping vine', 'Low coastal shrub', 'Salt-tolerant herb'],
       where: 'STAGE 01, 0.00 to 0.60 km', whereZh: '第一段，0.00 至 0.60 公里'
     }
   ];
