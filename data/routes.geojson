@@ -1,17 +1,18 @@
 {
   "type": "FeatureCollection",
+  "name": "sharp_island_single_route",
   "crs": {
     "type": "name",
     "properties": {
       "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
     }
   },
-  "note": "INDICATIVE WGS-84 positions derived from on-site signage and public gazetteers. NOT the QField GPS export. Replace with the group GeoPackage before publication.",
+  "note": "INDICATIVE WGS-84 positions derived from on-site signage, field photographs and public gazetteers. NOT the QField GPS export. Replace with the group GeoPackage before publication. Elevations are from SRTM 90 m DEM and are indicative only (island high point ≈136 m per AFCD; SRTM resolves ≈64 m after smoothing). Contains ONE continuous route (kind=route) plus its 4 stage segments (kind=stage) for QGIS symbology.",
   "survey_date": "13 November 2026",
   "features": [
     {
       "type": "Feature",
-      "id": "routeA",
+      "id": "route-full",
       "geometry": {
         "type": "LineString",
         "coordinates": [
@@ -20,83 +21,104 @@
             22.3677
           ],
           [
+            114.2876,
+            22.3681
+          ],
+          [
             114.2879,
             22.3684
           ],
           [
+            114.2874,
+            22.3676
+          ],
+          [
             114.2868,
-            22.367
+            22.3668
           ],
           [
             114.2861,
             22.366
           ],
           [
+            114.2866,
+            22.3656
+          ],
+          [
             114.2871,
             22.3653
           ],
           [
-            114.2881,
-            22.3663
+            114.2878,
+            22.365
           ],
           [
-            114.2872,
-            22.3677
-          ]
-        ]
-      },
-      "properties": {
-        "route": "A",
-        "name": "Coast & Geology",
-        "name_zh": "海岸地质线",
-        "start": "Kiu Tsui Public Pier 桥咀公众码头",
-        "finish": "Same pier, back along the shore",
-        "distance": "≈ 1.0 km return",
-        "recorded_time": "22 min recorded on site",
-        "shade": "3 of 3 stops unshaded",
-        "tidal": "Critical. Crossing only when tidal height is below 1.25 m. On the survey date the board gave an emergence window of 08:00–10:00 only (p04).",
-        "stops": "o1, o2, o3",
-        "evidence": "p02 shows a partly submerged shingle bar at 11:23; p04 shows the 08:00–10:00 emergence window for 13 Nov 2026. Together they explain why this route is tide-dependent and why our group stayed on the main island.",
-        "indicative": true
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "routeB",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            114.2879,
-            22.3684
-          ],
-          [
-            114.2888,
-            22.3668
-          ],
-          [
-            114.2896,
-            22.3648
+            114.2885,
+            22.3649
           ],
           [
             114.2895,
+            22.3648
+          ],
+          [
+            114.2902,
+            22.3649
+          ],
+          [
+            114.291,
+            22.3652
+          ],
+          [
+            114.2916,
+            22.3655
+          ],
+          [
+            114.292,
+            22.3658
+          ],
+          [
+            114.2926,
+            22.3652
+          ],
+          [
+            114.2931,
+            22.3645
+          ],
+          [
+            114.2934,
+            22.3636
+          ],
+          [
+            114.2936,
             22.3628
           ],
           [
-            114.2908,
-            22.3615
+            114.2935,
+            22.362
           ],
           [
-            114.2918,
-            22.36
+            114.2938,
+            22.3612
           ],
           [
-            114.2932,
-            22.3592
+            114.2943,
+            22.3604
           ],
           [
-            114.2945,
+            114.2948,
+            22.3596
+          ],
+          [
+            114.2952,
+            22.3588
+          ],
+          [
+            114.2955,
             22.358
+          ],
+          [
+            114.2957,
+            22.3574
           ],
           [
             114.2959,
@@ -105,17 +127,269 @@
         ]
       },
       "properties": {
-        "route": "B",
-        "name": "Shaded Ridge & Hap Mun Bay",
-        "name_zh": "林荫观景线",
-        "start": "Kiu Tsui Beach 桥咀泳滩",
+        "kind": "route",
+        "route": "A",
+        "name": "Sharp Island Traverse",
+        "name_zh": "桥咀洲纵走 · 一条路线",
+        "start": "Kiu Tsui Public Pier 桥咀公众码头",
         "finish": "Hap Mun Bay Beach 厦门湾泳滩",
-        "distance": "1.7 km one way",
-        "recorded_time": "≈ 1 hr signposted walking",
-        "shade": "2 of 5 stops mostly or partly shaded; viewpoint and beach unshaded",
-        "tidal": "No tidal crossing required — the route stays on the main island.",
-        "stops": "o4, o5, o6, o7, o8",
-        "evidence": "p09–p15 show a closed canopy and dappled shade at 12:38–12:51, while p17 and p21–p25 show an open, unshaded ridge from 12:52. p18 and p19 document erosion and hand-built steps, and p20 supplies the signposted distances and walking times.",
+        "distance": "≈ 2.19 km (indicative)",
+        "length_km_indicative": 2.192,
+        "recorded_time": "2 h 28 min on site",
+        "shade": "3 of 8 stops shaded; coast, viewpoint and beach unshaded",
+        "tidal": "The tombolo section is only passable when tidal height is below 1.25 m. On 13 Nov 2026 the on-site board gave an emergence window of 08:00–10:00 only (p04).",
+        "facilities": "Kai-to pier, two gazetted beaches, tide table, Geopark / AFCD boards, direction signs, viewing-point panorama, LCSD beach plan.",
+        "stages": "S1, S2, S3, S4",
+        "stops": "o1, o2, o3, o4, o5, o6, o7, o8",
+        "evidence": "p02 and p04 show a sandbar we could not cross at 11:23; p09–p15 show a shaded woodland climb; p17 and p21–p25 show an exposed ridge; p18/p19 document erosion; p20 supplies the signposted distances and times.",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "stage-S1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            114.2872,
+            22.3677
+          ],
+          [
+            114.2876,
+            22.3681
+          ],
+          [
+            114.2879,
+            22.3684
+          ],
+          [
+            114.2874,
+            22.3676
+          ],
+          [
+            114.2868,
+            22.3668
+          ],
+          [
+            114.2861,
+            22.366
+          ],
+          [
+            114.2866,
+            22.3656
+          ],
+          [
+            114.2871,
+            22.3653
+          ],
+          [
+            114.2874465500798,
+            22.365151478537225
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "stage",
+        "route": "A",
+        "stage": "S1",
+        "code": "01",
+        "name": "Coast & Tombolo",
+        "name_zh": "海岸与连岛沙洲",
+        "chainage": "0.00–0.60 km",
+        "chainage_km_from": 0,
+        "chainage_km_to": 0.6,
+        "time_hkt": "11:10–11:32",
+        "shade_20m": "unshaded",
+        "elevation_band": "0–8 m",
+        "stops": "o1, o2, o3",
+        "summary": "The exposed western shore: pier, beach, a partly submerged shingle bar and a cobble beach lined with conservation signs.",
+        "summary_zh": "西岸无遮阴路段：码头、泳滩、半淹的沙石堤与布满保育告示的卵石滩。",
+        "extra_care": "Tide-critical. Check the HKO prediction and the on-site board; never cross outside the safe window.",
+        "photos": "assets/photos/p01.jpg, assets/photos/p02.jpg, assets/photos/p04.jpg, assets/photos/p07.jpg",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "stage-S2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            114.2874465500798,
+            22.365151478537225
+          ],
+          [
+            114.2878,
+            22.365
+          ],
+          [
+            114.2885,
+            22.3649
+          ],
+          [
+            114.2895,
+            22.3648
+          ],
+          [
+            114.2902,
+            22.3649
+          ],
+          [
+            114.291,
+            22.3652
+          ],
+          [
+            114.2916,
+            22.3655
+          ],
+          [
+            114.29161458318545,
+            22.36551093738909
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "stage",
+        "route": "A",
+        "stage": "S2",
+        "code": "02",
+        "name": "Woodland Ascent",
+        "name_zh": "林荫上山段",
+        "chainage": "0.60–1.05 km",
+        "chainage_km_from": 0.6,
+        "chainage_km_to": 1.05,
+        "time_hkt": "12:28–12:51",
+        "shade_20m": "mostly",
+        "elevation_band": "8–55 m",
+        "stops": "o4, o5",
+        "summary": "A closed canopy with dappled light and framed sea views — the coolest section of the survey, with ceramic pineapple-bun artworks beside the path.",
+        "summary_zh": "树冠闭合、光影斑驳的上坡段，是全天最阴凉的一段；路边有菠萝包石造型的陶瓷艺术作品。",
+        "extra_care": "Uneven roots in low light; keep to the marked line.",
+        "photos": "assets/photos/p09.jpg, assets/photos/p13.jpg, assets/photos/p16.jpg",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "stage-S3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            114.29161458318545,
+            22.36551093738909
+          ],
+          [
+            114.292,
+            22.3658
+          ],
+          [
+            114.2926,
+            22.3652
+          ],
+          [
+            114.2931,
+            22.3645
+          ],
+          [
+            114.29314243961733,
+            22.364372681148012
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "stage",
+        "route": "A",
+        "stage": "S3",
+        "code": "03",
+        "name": "Ridge Viewpoint",
+        "name_zh": "山脊观景台",
+        "chainage": "1.05–1.30 km",
+        "chainage_km_from": 1.05,
+        "chainage_km_to": 1.3,
+        "time_hkt": "12:52–13:24",
+        "shade_20m": "unshaded",
+        "elevation_band": "55–64 m",
+        "stops": "o6",
+        "summary": "The high point of the traverse: an open scrub ridge with a labelled panorama panel and a view down over Hap Mun Bay.",
+        "summary_zh": "全程最高处：开阔灌丛山脊，设有全景解说牌，可俯瞰厦门湾。",
+        "extra_care": "Full sun and wind. Keep the stop short and drink water here.",
+        "photos": "assets/photos/p17.jpg, assets/photos/p21.jpg, assets/photos/p25.jpg",
+        "indicative": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "stage-S4",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            114.29314243961733,
+            22.364372681148012
+          ],
+          [
+            114.2934,
+            22.3636
+          ],
+          [
+            114.2936,
+            22.3628
+          ],
+          [
+            114.2935,
+            22.362
+          ],
+          [
+            114.2938,
+            22.3612
+          ],
+          [
+            114.2943,
+            22.3604
+          ],
+          [
+            114.2948,
+            22.3596
+          ],
+          [
+            114.2952,
+            22.3588
+          ],
+          [
+            114.2955,
+            22.358
+          ],
+          [
+            114.2957,
+            22.3574
+          ],
+          [
+            114.2959,
+            22.3569
+          ]
+        ]
+      },
+      "properties": {
+        "kind": "stage",
+        "route": "A",
+        "stage": "S4",
+        "code": "04",
+        "name": "Descent to the Bay",
+        "name_zh": "下行至厦门湾",
+        "chainage": "1.30–2.19 km",
+        "chainage_km_from": 1.3,
+        "chainage_km_to": 2.192,
+        "time_hkt": "12:55–13:38",
+        "shade_20m": "partly",
+        "elevation_band": "64–0 m",
+        "stops": "o7, o8",
+        "summary": "Hand-built log steps over eroded sandy tread, a signposted junction, then the crescent of pale sand at Hap Mun Bay Beach.",
+        "summary_zh": "经手作木级穿越侵蚀坡面，过分岔路牌后下行至厦门湾的月牙形白沙滩。",
+        "extra_care": "Descend slowly on loose steps; no lifeguard service in November.",
+        "photos": "assets/photos/p18.jpg, assets/photos/p20.jpg, assets/photos/p28.jpg, assets/photos/p29.jpg",
         "indicative": true
       }
     }

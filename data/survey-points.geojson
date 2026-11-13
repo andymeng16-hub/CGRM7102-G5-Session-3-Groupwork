@@ -1,12 +1,13 @@
 {
   "type": "FeatureCollection",
+  "name": "sharp_island_observation_points",
   "crs": {
     "type": "name",
     "properties": {
       "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
     }
   },
-  "note": "INDICATIVE WGS-84 positions derived from on-site signage and public gazetteers. NOT the QField GPS export. Replace with the group GeoPackage before publication.",
+  "note": "INDICATIVE WGS-84 positions derived from on-site signage, field photographs and public gazetteers. NOT the QField GPS export. Replace with the group GeoPackage before publication. Elevations are from SRTM 90 m DEM and are indicative only (island high point ≈136 m per AFCD; SRTM resolves ≈64 m after smoothing).",
   "survey_date": "13 November 2026",
   "features": [
     {
@@ -16,20 +17,24 @@
         "type": "Point",
         "coordinates": [
           114.2876,
-          22.3678
+          22.3679
         ]
       },
       "properties": {
         "code": "01",
         "name": "Kiu Tsui Pier & Beach",
         "name_zh": "桥咀码头・桥咀泳滩",
-        "route": "both",
+        "stage": "S1",
         "time_hkt": "11:10",
         "weather": "Overcast, thick cloud",
         "shade_20m": "unshaded",
+        "elev_m_dem": 0,
+        "chainage_km": 0.061,
         "attraction": "Sandy beach, stone jetty and a layered mountain skyline across the water.",
+        "description": "Our first record. A broad pale-sand beach beside a low stone jetty, with a thick cloud layer over the Sai Kung hills. No tree cover across the 20 m of open sand we assessed.",
+        "description_zh": "首笔记录：石砌码头旁的宽阔沙滩，上午云层厚重；评估的 20 米开阔沙面完全没有树荫。",
         "concerns": "No shade on the open sand. The cloud at 11:10 had cleared to strong sun by midday, so cloud cover is not reliable sun protection.",
-        "facilities": "Kai-to pier. LCSD lists a kiosk, changing rooms, showers, toilets, BBQ pits and a raft at Kiu Tsui Beach; lifeguard service is suspended from November to March.",
+        "facilities": "Kai-to pier. LCSD lists a kiosk, changing rooms, showers, toilets, BBQ pits and a raft; lifeguard service is suspended from November to March.",
         "suggestion": "Start here, confirm the last ferry time, and put on sun protection before the cloud breaks.",
         "photos": "assets/photos/p01.jpg",
         "evidence_source": "Field photo p01 (11:10) · LCSD Sai Kung beach facilities page",
@@ -51,16 +56,20 @@
         "code": "02",
         "name": "The Tombolo",
         "name_zh": "连岛沙洲",
-        "route": "A",
+        "stage": "S1",
         "time_hkt": "11:23–11:25",
         "weather": "Overcast, brightening",
         "shade_20m": "unshaded",
+        "elev_m_dem": 0,
+        "chainage_km": 0.431,
         "attraction": "A natural sand-and-shingle bar that appears at low tide and links Sharp Island to Kiu Tau.",
+        "description": "A low shingle ridge runs towards the wooded islet of Kiu Tau. At 11:23 only part of the bar stood above water; the rest was covered. The on-site tide board explains why.",
+        "description_zh": "低矮的沙石堤伸向桥头岛；11:23 时只有部分露出水面，其余已被潮水淹没。",
         "concerns": "The bar floods at high tide — generally when tidal height is above 1.25 m, as stated on the board. | On 13 Nov 2026 the printed emergence window was only 08:00–10:00, so our 11:23 visit fell outside it. | Wet, uneven cobbles with no shade.",
         "facilities": "Tombolo Emergence Time board (08:00–18:00) with a QR code for Hong Kong Observatory real-time tide data.",
         "suggestion": "Treat this as a viewpoint unless both the HKO prediction and the on-site board say crossing is safe, and always leave time to return.",
         "photos": "assets/photos/p02.jpg, assets/photos/p04.jpg",
-        "evidence_source": "Field photos p02, p04 · HK UNESCO Global Geopark, Sharp Island · Hong Kong Observatory real-time tide service",
+        "evidence_source": "Field photos p02, p04 · HK UNESCO Global Geopark · Hong Kong Observatory real-time tide service",
         "needs_checking": "Predicted tide height at the moment of the survey was not measured — only the printed board was recorded.",
         "indicative": true
       }
@@ -79,11 +88,15 @@
         "code": "03",
         "name": "Rocky Shore & Conservation Zone",
         "name_zh": "岩石海岸・保育告示",
-        "route": "A",
+        "stage": "S1",
         "time_hkt": "11:24–11:31",
         "weather": "Cloud breaking",
         "shade_20m": "unshaded",
+        "elev_m_dem": 0,
+        "chainage_km": 0.561,
         "attraction": "Cobble beach, a weathered volcanic rock with pale veins (p06), and intertidal habitat.",
+        "description": "Rounded volcanic cobbles cover the shore. Three on-site notices set out the rules: do not deface or remove rocks, do not disturb wildlife, and respect marine life.",
+        "description_zh": "浑圆的火山岩卵石布满海岸；三块现场告示分别禁止破坏或带走岩石、骚扰野生动物及干扰海洋生物。",
         "concerns": "Rock collecting, graffiti and disturbing wildlife — prohibited on the Geopark board (p03). | Trampling coral and touching or feeding marine life — prohibited on the AFCD banner (p05). | Sharp, slippery cobbles under full sun.",
         "facilities": "Hong Kong Geopark conservation board, “Respect Marine Life” banner, and a Sharp Island visitor map board.",
         "suggestion": "Look closely, take photographs, leave everything in place, and wear shoes with grip on wet rock.",
@@ -100,18 +113,22 @@
         "type": "Point",
         "coordinates": [
           114.2895,
-          22.3628
+          22.3648
         ]
       },
       "properties": {
         "code": "04",
         "name": "Pineapple-bun Art Trail",
         "name_zh": "菠萝包艺术径",
-        "route": "B",
+        "stage": "S2",
         "time_hkt": "12:28–12:52",
         "weather": "Sunny intervals",
         "shade_20m": "partly",
+        "elev_m_dem": 2,
+        "chainage_km": 0.816,
         "attraction": "Public art inspired by the island's pineapple-bun rocks; the plaque is titled “A Grand Pineapple Bun Tour”.",
+        "description": "Small ceramic “pineapple bun” characters sit on tree stumps beside a sandy path, with an interpretation plaque marked S12. Dappled light from the surrounding trees covers about half of the 20 m section.",
+        "description_zh": "树桩上的陶瓷「菠萝包」作品立于沙径旁，解说牌编号 S12；树影约覆盖评估路段的半数。",
         "concerns": "Narrow sandy path beside the artworks, with exposed roots and a loose surface. | Strong sun between the trees after midday.",
         "facilities": "Interpretation plaque S12.",
         "suggestion": "Use this as a shade break, keep to the path, and do not climb on the artworks.",
@@ -127,19 +144,23 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.2908,
-          22.3615
+          114.291,
+          22.3652
         ]
       },
       "properties": {
         "code": "05",
         "name": "Shaded Woodland Trail",
         "name_zh": "林荫山径",
-        "route": "B",
+        "stage": "S2",
         "time_hkt": "12:38–12:51",
         "weather": "Sunny, scattered cumulus",
         "shade_20m": "mostly",
+        "elev_m_dem": 24,
+        "chainage_km": 0.978,
         "attraction": "Woodland corridor, framed sea views, and Sai Kung District Council direction signs (Kiu Tsui Beach 500 m; Kiu Tsui Country Park).",
+        "description": "The cross-island path runs under a closed canopy with sea glimpses through gaps in the trees. Across the 20 m we assessed, tree shade covered most of the surface — the coolest section of the survey.",
+        "description_zh": "山径在闭合树冠下穿行，树隙间可见海面；评估的 20 米路段大部份有遮阴，是全天最凉爽的一段。",
         "concerns": "Uneven, rooty surface in low light. | Vegetation worn back where visitors have cut corners.",
         "facilities": "Direction signs at the woodland edge.",
         "suggestion": "Save this section for the hottest part of the day and watch your footing.",
@@ -155,19 +176,23 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.2918,
-          22.36
+          114.292,
+          22.3658
         ]
       },
       "properties": {
         "code": "06",
         "name": "Kiu Tsui Viewing Point",
         "name_zh": "桥咀观景台",
-        "route": "B",
+        "stage": "S3",
         "time_hkt": "12:52–13:24",
         "weather": "Sunny",
         "shade_20m": "unshaded",
+        "elev_m_dem": 51,
+        "chainage_km": 1.101,
         "attraction": "A labelled panorama at Kiu Tsui Viewing Point, with views down over Hap Mun Bay (p25).",
+        "description": "A green panorama panel labels the islands and bays across the water. The ridge around it is open scrub with no shade for at least 20 m in any direction.",
+        "description_zh": "绿色全景解说牌标注对岸岛屿与海湾；山脊为开阔灌丛，四周至少 20 米内无任何遮阴。",
         "concerns": "Full sun and wind exposure on the ridge. | Short, steep access on a loose surface.",
         "facilities": "Panorama interpretation panel.",
         "suggestion": "Keep the stop short; wear a hat and drink water here.",
@@ -183,19 +208,23 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.2932,
-          22.3592
+          114.2935,
+          22.362
         ]
       },
       "properties": {
         "code": "07",
         "name": "Junction & Repaired Steps",
         "name_zh": "分岔路・手作步道",
-        "route": "B",
+        "stage": "S4",
         "time_hkt": "12:55–12:59",
         "weather": "Sunny",
         "shade_20m": "partly",
+        "elev_m_dem": 30,
+        "chainage_km": 1.571,
         "attraction": "Signposted junction and hand-built timber steps.",
+        "description": "A wooden signpost gives Kiu Tsui 1 km / ¾ hr and Hap Mun Bay 0.7 km / ¼ hr. Nearby, an AFCD board explains serious trail erosion caused by off-path trampling and the hand-built log steps used to repair it.",
+        "description_zh": "木路牌标示桥咀 1 公里／¾ 小时、厦门湾 0.7 公里／¼ 小时；旁有渔护署解说牌说明游客抄捷径造成的严重水土流失与手作木级修复。",
         "concerns": "Visible soil loss and loose sandy tread beside the steps (p19). | Erosion from visitors leaving the path, as described on the AFCD maintenance board (p18).",
         "facilities": "Junction signpost and “Country Park Trail Maintenance Broadcast” board.",
         "suggestion": "Stay on the trail and take the steps slowly, especially downhill.",
@@ -219,11 +248,15 @@
         "code": "08",
         "name": "Hap Mun Bay Beach",
         "name_zh": "厦门湾泳滩",
-        "route": "B",
+        "stage": "S4",
         "time_hkt": "13:30–13:38",
         "weather": "Sunny, scattered cloud",
         "shade_20m": "unshaded",
+        "elev_m_dem": 5,
+        "chainage_km": 2.192,
         "attraction": "A sheltered bay, white sand, clear turquoise water and the painted Hap Mun Bay Beach sign.",
+        "description": "The final record: a crescent of pale sand and clear shallow water, seen from the viewpoint at 13:24 and reached at 13:30. The LCSD beach layout plan and by-laws board stand at the entrance.",
+        "description_zh": "最后一笔记录：13:24 自观景台俯瞰、13:30 抵达的月牙形白沙滩；入口处有康文署泳滩平面图与规例告示。",
         "concerns": "Open sand with no shade. | Coral and marine life in the shallow water. | No lifeguard service in November — LCSD suspends winter service at this beach.",
         "facilities": "Beach layout plan and by-laws board. LCSD lists a kiosk, 22 BBQ pits, changing rooms, showers, toilets and a raft.",
         "suggestion": "Bring your own shade and water, and swim only when lifeguards are on duty.",
