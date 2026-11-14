@@ -62,6 +62,8 @@
      over it, so the letters sit down into the paper. */
   --press-hi: rgba(255,255,255,.92);
   --press-lo: rgba(0,0,0,.07);
+  /* the shade the front of an open drawer lays over what is inside it */
+  --drawer-shade: rgba(0,0,0,.15);
 }
 
 html[data-theme="dark"] {
@@ -100,6 +102,7 @@ html[data-theme="dark"] {
   --shadow-lg: 0 28px 80px rgba(0,0,0,.7);
   --press-hi: rgba(255,255,255,.18);
   --press-lo: rgba(0,0,0,.55);
+  --drawer-shade: rgba(0,0,0,.62);
 }
 
 * { box-sizing: border-box; }
@@ -226,7 +229,15 @@ i { font-style: normal; color: var(--faint); font-size: .82em; margin-left: 4px;
 /* A folded part is only a line in the table of contents, so it takes the
    page colour rather than the panel colour of the part it would have been. */
 .section.is-folded { padding: 0; background: none; }
-.section.is-folded .fold-body { display: none; }
+/* The drawer. The body of a part runs from nothing to the height of what is
+   inside it, and what is inside it comes out from under the lip while it
+   runs, so the part reads as being pulled out rather than switched on. */
+.fold-body { transition: height .52s var(--ease); }
+.fold-inner { transform: translateY(-18px); transition: transform .52s var(--ease); }
+.section:not(.is-folded) .fold-inner { transform: none; }
+/* While the drawer is on its way, the front of it lays a soft shade over
+   what is inside it, the way the face of a drawer does. */
+.section.is-running .fold-body { box-shadow: 0 -16px 24px -16px var(--drawer-shade); }
 /* The rule between two parts is drawn on the section itself, so it does not
    double up when a part is folded. Open, the bar becomes that rule: the
    number of the part at one end, the control that closes it at the other. */
@@ -256,8 +267,9 @@ html[data-lang="zh-hans"] .fold-titles .t-en, html[data-lang="zh-hant"] .fold-ti
 .guide-panel { position: fixed; top: 0; right: 0; z-index: 70; width: min(400px, 92vw); height: 100dvh;
   display: flex; flex-direction: column; gap: 18px; padding: 26px 26px 22px; overflow-y: auto;
   background: var(--bg); border-left: 1px solid var(--line-soft); box-shadow: var(--shadow-lg);
-  transform: translateX(100%); transition: transform .32s var(--ease); }
-.guide-panel.is-open { transform: none; }
+  transform: translateX(100%) scaleX(.97); transform-origin: right center;
+  transition: transform .32s var(--ease); }
+.guide-panel.is-open { transform: translateX(0) scaleX(1); }
 body.guide-open { overflow: hidden; }
 .guide-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .guide-head .eyebrow { margin-bottom: 8px; }
@@ -814,8 +826,10 @@ html[data-theme="dark"] #tideModel { filter: brightness(.76) saturate(.9); }
 /* ---------- detail drawer ---------- */
 .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.36); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); z-index: 60; opacity: 0; transition: opacity .4s; }
 .scrim.show { opacity: 1; }
-.drawer { position: fixed; z-index: 61; top: 0; right: 0; height: 100dvh; width: min(460px, 100%); background: var(--surface); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; transform: translateX(102%); transition: transform .5s var(--ease); }
-.drawer.show { transform: none; }
+.drawer { position: fixed; z-index: 61; top: 0; right: 0; height: 100dvh; width: min(460px, 100%); background: var(--surface); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;
+  transform: translateX(102%) scaleX(.92); transform-origin: right center;
+  transition: transform .5s var(--ease); }
+.drawer.show { transform: translateX(0) scaleX(1); }
 .drawer-top { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid var(--line-soft); }
 .drawer-kicker { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-weight: 700; }
 .close-btn { font-size: 13px; }
@@ -956,8 +970,9 @@ body.no-scroll { overflow: hidden; }
      footer row has to be allowed to wrap rather than push the page wide */
   .footer-links { flex-wrap: wrap; gap: 10px 16px; }
   .footer-inner > * { min-width: 0; }
-  .drawer { width: 100%; height: 86dvh; top: auto; bottom: 0; border-radius: 24px 24px 0 0; transform: translateY(102%); }
-  .drawer.show { transform: none; }
+  .drawer { width: 100%; height: 86dvh; top: auto; bottom: 0; border-radius: 24px 24px 0 0;
+    transform: translateY(102%) scaleY(.94); transform-origin: center bottom; }
+  .drawer.show { transform: translateY(0) scaleY(1); }
   .lightbox { padding: 56px 16px 70px; }
   .lb-nav { width: 38px; height: 38px; }
   .lb-prev { left: 8px; } .lb-next { right: 8px; }

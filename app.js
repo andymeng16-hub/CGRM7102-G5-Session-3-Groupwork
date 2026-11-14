@@ -2232,15 +2232,61 @@
 
       /* Everything already in the section becomes the body that folds away.
          The heading that was there stays visible inside the body, so a
-         folded section still shows its own title line. */
+         folded section still shows its own title line. The contents ride
+         in an inner wrapper, so they can be held just under the lip of
+         the drawer while it is being pulled out. */
       var body = document.createElement('div');
       body.className = 'fold-body';
       body.id = s.id + '-body';
-      while (sec.firstChild) body.appendChild(sec.firstChild);
+      var inner = document.createElement('div');
+      inner.className = 'fold-inner';
+      while (sec.firstChild) inner.appendChild(sec.firstChild);
+      body.appendChild(inner);
       sec.appendChild(bar);
       sec.appendChild(body);
+
+      /* The run is finished when the browser says the height has settled,
+         and also when the clock says it must have, so the drawer can never
+         be left half open. */
+      body.addEventListener('transitionend', function (e) {
+        if (e.target !== body || e.propertyName !== 'height') return;
+        foldSettle(body, sec);
+      });
+
       expandHant(bar);
     });
+  }
+
+  /* The drawer. A section is not simply there or not there: the height of
+     its body runs from nothing to the height of what is inside it, and what
+     is inside it comes out from under the lip of the drawer while it runs. */
+  var FOLD_MS = 520;
+  function foldRun(body, to) {
+    if (body._foldTimer) { clearTimeout(body._foldTimer); body._foldTimer = 0; }
+    body.style.overflow = 'hidden';
+    if (body.parentNode) body.parentNode.classList.add('is-running');
+    if (to === 'open') {
+      body.hidden = false;
+      body.style.height = '0px';
+      void body.offsetHeight;
+      body.style.height = body.scrollHeight + 'px';
+    } else {
+      body.style.height = body.getBoundingClientRect().height + 'px';
+      void body.offsetHeight;
+      body.style.height = '0px';
+    }
+    body._foldTimer = setTimeout(function () {
+      foldSettle(body, body.parentNode);
+    }, FOLD_MS + 160);
+  }
+  /* The drawer has come to rest: the body takes its own height again, and
+     a folded one is taken out of the page altogether. */
+  function foldSettle(body, sec) {
+    if (body._foldTimer) { clearTimeout(body._foldTimer); body._foldTimer = 0; }
+    body.style.height = '';
+    body.style.overflow = '';
+    if (sec) sec.classList.remove('is-running');
+    if (sec && sec.classList.contains('is-folded')) body.hidden = true;
   }
 
   /* Is this one of the twelve parts of the guide? */
@@ -2248,23 +2294,45 @@
     for (var i = 0; i < SECTIONS.length; i++) if (SECTIONS[i].id === id) return true;
     return false;
   }
-  /* Write the folded state of one section into the page. */
-  function applyFoldDom(id, folded) {
+  /* Write the folded state of one section into the page. When the reader
+     asks for it, the body of the section is drawn open like a drawer. */
+  function applyFoldDom(id, folded, animate) {
     var sec = document.getElementById(id);
     if (!sec) return;
     var body = document.getElementById(id + '-body');
     var bar = sec.querySelector('.fold-bar');
     if (!body || !bar) return;
-    body.hidden = folded;
     bar.setAttribute('aria-expanded', folded ? 'false' : 'true');
     sec.classList.toggle('is-folded', folded);
+
+    if (folded) {
+      /* A body that is already out of the page has nothing to run. */
+      if (!animate || body.hidden) {
+        if (body._foldTimer) { clearTimeout(body._foldTimer); body._foldTimer = 0; }
+        sec.classList.remove('is-running');
+        body.hidden = true;
+        body.style.height = '';
+        body.style.overflow = '';
+        return;
+      }
+      foldRun(body, 'close');
+      return;
+    }
+    if (!animate) {
+      sec.classList.remove('is-running');
+      body.hidden = false;
+      body.style.height = '';
+      body.style.overflow = '';
+      return;
+    }
+    foldRun(body, 'open');
   }
 
   /* Open one part of the guide and fold the other eleven away. This is the
      rule the whole page runs on: a part is either the one being read, or a
      line in the table of contents. */
   function openOnly(id) {
-    SECTIONS.forEach(function (s) { applyFoldDom(s.id, s.id !== id); });
+    SECTIONS.forEach(function (s) { applyFoldDom(s.id, s.id !== id, true); });
     writeOpen([id]);
     syncGuideState();
     relayoutSection(id);
@@ -2274,7 +2342,7 @@
   function closeOne(id) {
     var list = readOpen() || [];
     list = list.filter(function (x) { return x !== id; });
-    SECTIONS.forEach(function (s) { applyFoldDom(s.id, list.indexOf(s.id) < 0); });
+    SECTIONS.forEach(function (s) { applyFoldDom(s.id, list.indexOf(s.id) < 0, s.id === id); });
     writeOpen(list);
     syncGuideState();
   }
@@ -2286,8 +2354,22 @@
   /* Any link that names a part of the guide opens that part first and then
      goes to it, so a reader who follows a link never lands on a heading
      that is folded shut. */
+  var foldScrollTimer = 0;
   function openAndScroll(id) {
-    if (!isOpen(id)) openOnly(id);
+    var wasOpen = isOpen(id);
+    if (!wasOpen) openOnly(id);
+    /* The parts above are on their way out, so the page is still moving
+       under the reader. Where the part will finally sit is only known once
+       the guide has come to rest, so the page goes there then. */
+    if (foldScrollTimer) { clearTimeout(foldScrollTimer); foldScrollTimer = 0; }
+    if (wasOpen) { scrollToSection(id); return; }
+    foldScrollTimer = setTimeout(function () {
+      foldScrollTimer = 0;
+      scrollToSection(id);
+    }, FOLD_MS + 60);
+  }
+
+  function scrollToSection(id) {
     var sec = document.getElementById(id);
     if (!sec) return;
     var navH = 56;
@@ -2307,7 +2389,9 @@
       list = ['tide'];
       writeOpen(list);
     }
-    SECTIONS.forEach(function (s) { applyFoldDom(s.id, list.indexOf(s.id) < 0); });
+    /* The page is drawn in the state the reader left it in, with nothing
+       to watch: the drawer only runs when the reader pulls it. */
+    SECTIONS.forEach(function (s) { applyFoldDom(s.id, list.indexOf(s.id) < 0, false); });
     syncGuideState();
   }
 
@@ -2315,7 +2399,7 @@
      for a reader who wants to read straight through. */
   function allFolded(folded) {
     var list = folded ? [] : SECTIONS.map(function (s) { return s.id; });
-    SECTIONS.forEach(function (s) { applyFoldDom(s.id, folded); });
+    SECTIONS.forEach(function (s) { applyFoldDom(s.id, folded, true); });
     writeOpen(list);
     syncGuideState();
     if (!folded) relayoutAll();

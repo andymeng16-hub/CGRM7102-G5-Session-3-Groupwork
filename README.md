@@ -149,6 +149,24 @@ everything at once. Which sections are open is remembered in `localStorage`
 under `si-open`, so the page comes back the way it was left. The first time the
 page is opened it starts with the tide table and the other eleven folded away.
 
+## The drawer
+
+A part of the guide does not simply appear. When it is opened its body runs
+from nothing to the height of what is inside it, over about half a second,
+and what is inside it comes out from under the lip of the drawer while it
+runs. The front of the drawer lays a soft shade over the contents as it
+moves, so the part reads as being pulled out of its housing rather than
+switched on. Closing it runs the same way in reverse.
+
+The same idea is carried by the two panels that slide in: the observation
+point drawer and the guide panel both come in with a slight stretch, as if
+they were being drawn out of the edge of the page.
+
+The run is measured in the browser rather than guessed, so a part opens to
+whatever height its own contents need, including a part whose height changes
+when the language changes under it. A reader who has asked the system to
+reduce motion gets the same result without the movement.
+
 ## The title
 
 The heading at the top of the page is the one piece of type that is printed
