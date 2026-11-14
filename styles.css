@@ -138,7 +138,15 @@ html[data-lang="zh-hant"] .t-hans { display: none; }
 h1 .t-hans, h1 .t-hant { font-size: .70em; letter-spacing: .05em; line-height: 1.18; }
 h2 .t-hans, h2 .t-hant { font-size: .66em; letter-spacing: .05em; line-height: 1.2; }
 h3 .t-hans, h3 .t-hant { font-size: .84em; letter-spacing: .05em; line-height: 1.35; }
-h4 .t-hans, h4 .t-hant { font-size: 11px; letter-spacing: .04em; font-weight: 400; color: var(--muted); }
+/* A Chinese title follows the size of the English line it sits beside,
+   the way the three headings above do. Chinese glyphs are denser than
+   Latin ones, so they carry a little more weight to match. */
+h4 .t-hans, h4 .t-hant { font-size: .84em; letter-spacing: .04em; font-weight: 500; color: inherit; line-height: 1.4; }
+.read-body h4 .t-hans, .read-body h4 .t-hant,
+.advice-list h4 .t-hans, .advice-list h4 .t-hant { font-weight: 600; }
+/* The label on a survey card is a caption rather than a title, so it keeps
+   a fixed size in both languages. */
+.survey-card h4 .t-hans, .survey-card h4 .t-hant { font-size: 11px; font-weight: 700; color: var(--faint); letter-spacing: .1em; }
 .eyebrow .t-hans, .eyebrow .t-hant { text-transform: none; letter-spacing: .14em; font-weight: 500; }
 .body .t-hans, .body .t-hant,
 .lede .t-hans, .lede .t-hant { line-height: 1.85; letter-spacing: .015em; }
@@ -595,7 +603,6 @@ html[data-theme="dark"] #tideModel { filter: brightness(.76) saturate(.9); }
 .veg-code { font-size: 11px; font-weight: 700; color: var(--green); letter-spacing: .1em; }
 .veg-form { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); text-align: right; }
 .veg-body h4 { font-size: 20px; font-weight: 300; text-transform: uppercase; letter-spacing: .02em; margin: 8px 0 2px; }
-.veg-zh { font-size: 13px; color: var(--faint); letter-spacing: .06em; }
 .veg-blurb { margin-top: 14px; font-size: 14px; line-height: 1.62; color: var(--muted); }
 .veg-blurb-zh { margin-top: 8px; font-size: 13px; line-height: 1.75; color: var(--faint); }
 .veg-species { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
