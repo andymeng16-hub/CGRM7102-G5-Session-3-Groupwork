@@ -7,12 +7,6 @@
 <title>SHARP ISLAND: ONE ROUTE, ONE ISLAND</title>
 <link rel="preload" as="image" href="assets/photos/p25.jpg">
 <link rel="stylesheet" href="styles.css">
-<!-- Tencent Maps GL JS, key-proxy mode. No API key is embedded in this project. -->
-<script>
-  window._TMapSecurityConfig = {
-    serviceHost: 'http://127.0.0.1:__WB_HTTP_PORT__/_TMapService/_wbt/__WB_TMAP_SECRET__'
-  };
-</script>
 <script src="data/zh-hant.js"></script>
 <!-- If this file is opened on its own, without the data, assets and styles
      that sit beside it, the browser would show a bare document with nothing
@@ -170,7 +164,7 @@ window.addEventListener('load', function () {
       <div>
         <p class="eyebrow"><span class="t-en">INTERACTIVE MAP</span><span class="t-hans">互动地图</span></p>
         <h2><span class="t-en">MAP AND ROUTE.</span><span class="t-hans">地图与路线</span></h2>
-        <p class="body"><span class="t-en">Street-level Tencent basemap at zoom 16, with our single route, eight numbered observation points and the elevation cursor drawn on top. Drag to pan, pinch or scroll to zoom, drag the scrubber to walk the line.</span><span class="t-hans">腾讯地图十六级街道底图，叠加一条路线、八个编号观察点与海拔游标。可拖动平移，双指或滚轮缩放，拖动游标即沿线行走。</span></p>
+        <p class="body"><span class="t-en">A street-level basemap with our single route, eight numbered observation points and the elevation cursor drawn on top. Three basemaps are on offer: the street map with the group's own ten-metre contours, satellite imagery, and satellite imagery carrying the street and place names. Drag to pan, pinch or scroll to zoom, drag the scrubber to walk the line.</span><span class="t-hans">街道级底图，叠加一条路线、八个编号观察点与海拔游标。底图有三层：带本组自绘十米等高线的街道图、卫星影像，以及带路名与地名的卫星影像。可拖动平移，双指或滚轮缩放，拖动游标即沿线行走。</span></p>
       </div>
     </div>
 
@@ -178,8 +172,9 @@ window.addEventListener('load', function () {
       <div class="gis-body">
         <div class="map-stage">
           <canvas id="tileMap" aria-label="Interactive tiled map of the Sharp Island route"></canvas>
-          <div id="tmap" hidden aria-label="Tencent Maps base map with the Sharp Island route"></div>
+          <div class="map-modes" id="mapModes" role="group" aria-label="Basemap"></div>
           <div class="map-overlay-note" id="mapNote" hidden></div>
+          <p class="map-credit"><span class="t-en">Basemap © AMap (AutoNavi)</span><span class="t-hans">底图 © 高德地图</span></p>
           <div class="compass" aria-hidden="true"><span class="t-en">N</span><span class="t-hans">北</span></div>
           <div class="map-scale"><span></span><b id="scaleLabel">200 m</b></div>
           <div class="map-zoom">
@@ -190,7 +185,7 @@ window.addEventListener('load', function () {
           <div class="map-legend">
             <span class="lg"><i class="lg-line"></i><span class="lg-txt"><span class="t-en">ROUTE</span><span class="t-hans">路线</span></span></span>
             <span class="lg"><i class="lg-dot"></i><span class="lg-txt"><span class="t-en">OBSERVATION POINT</span><span class="t-hans">观察点</span></span></span>
-            <span class="lg"><i class="lg-tile"></i><span class="lg-txt"><span class="t-en">CONTOUR 10 M</span><span class="t-hans">等高线</span></span></span>
+            <span class="lg lg-contour"><i class="lg-tile"></i><span class="lg-txt"><span class="t-en">CONTOUR 10 M</span><span class="t-hans">等高线</span></span></span>
           </div>
         </div>
 
@@ -216,7 +211,7 @@ window.addEventListener('load', function () {
         </aside>
       </div>
     </div>
-    <p class="map-caption"><span class="t-en">BASE MAP TENCENT MAPS, GCJ-02. ROUTE, POINTS AND SURVEY DATA COLLECTED 13 NOVEMBER 2026.</span><span class="t-hans">底图为腾讯地图，GCJ-02 坐标。路线、观察点与调查数据采集于 2026 年 11 月 13 日。</span></p>
+    <p class="map-caption"><span class="t-en">BASE MAP AMAP (AUTONAVI), GCJ-02. ROUTE, POINTS AND SURVEY DATA COLLECTED 13 NOVEMBER 2026.</span><span class="t-hans">底图为高德地图，GCJ-02 坐标。路线、观察点与调查数据采集于 2026 年 11 月 13 日。</span></p>
 
     <div class="stops-head reveal"><h3><span class="t-en">OBSERVATION POINTS</span><span class="t-hans">观察点</span></h3><span id="stopsCount"></span></div>
     <div class="stops-rail" id="stopsRail" aria-label="Observation points"></div>
@@ -443,7 +438,7 @@ window.addEventListener('load', function () {
     <div class="footer-links">
       <a href="#map"><span class="t-en">MAP</span><span class="t-hans">地图</span></a><a href="#elevation"><span class="t-en">ELEVATION</span><span class="t-hans">海拔</span></a><a href="#tombolo"><span class="t-en">TIDE</span><span class="t-hans">潮汐</span></a><a href="#stages"><span class="t-en">ROUTE</span><span class="t-hans">路线</span></a><a href="#vegetation"><span class="t-en">PLANTS</span><span class="t-hans">植被</span></a><a href="#reading"><span class="t-en">READING</span><span class="t-hans">文献</span></a><a href="#survey"><span class="t-en">SOURCES</span><span class="t-hans">来源</span></a>
     </div>
-    <p class="fine"><span class="t-en">A STUDENT GIS FIELD GUIDE. BASE MAP TENCENT MAPS, GCJ-02</span><span class="t-hans">学生地理信息实地报告；底图为腾讯地图，GCJ-02 坐标。</span></p>
+    <p class="fine"><span class="t-en">A STUDENT GIS FIELD GUIDE. BASE MAP TENCENT MAPS, GCJ-02</span><span class="t-hans">学生地理信息实地报告；底图为高德地图，GCJ-02 坐标。</span></p>
   </div>
 </footer>
 

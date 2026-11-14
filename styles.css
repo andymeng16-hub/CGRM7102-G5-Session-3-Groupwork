@@ -266,13 +266,30 @@ html[data-theme="dark"] .i-moon { display: block; }
 #tileMap { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 #tileMap:active { cursor: grabbing; }
 #tmap { position: absolute; inset: 0; width: 100%; height: 100%; background: var(--map-sea); }
-.map-overlay-note { position: absolute; inset: auto 16px 16px 16px; z-index: 6; padding: 12px 16px; border-radius: 12px;
+.map-overlay-note { position: absolute; inset: auto 14px 12px auto; z-index: 6; max-width: 340px; padding: 12px 16px; border-radius: 12px;
   background: color-mix(in srgb, var(--surface) 94%, transparent); border: 1px solid var(--line-soft); font-size: 12px; line-height: 1.5; color: var(--muted); cursor: pointer; }
 .compass { position: absolute; top: 14px; right: 14px; z-index: 5; width: 36px; height: 36px; border-radius: 50%;
   background: color-mix(in srgb, var(--surface) 90%, transparent); border: 1px solid var(--line-soft);
   display: grid; place-items: center; font-size: 9px; letter-spacing: .06em; font-weight: 700; color: var(--ink); box-shadow: var(--shadow-sm); }
 
 .map-zoom { position: absolute; top: 62px; right: 14px; z-index: 5; display: flex; flex-direction: column; gap: 6px; }
+.map-modes { position: absolute; top: 12px; left: 14px; z-index: 6; display: inline-flex; align-items: center; gap: 1px;
+  padding: 2px; border: 1px solid var(--line-soft); border-radius: 980px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent); box-shadow: var(--shadow-sm);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.mode-btn { border: 0; background: transparent; color: var(--muted); border-radius: 980px; padding: 5px 11px;
+  font-size: 9px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+  cursor: pointer; transition: color .25s, background .25s; }
+.mode-btn .t-hans, .mode-btn .t-hant { letter-spacing: .04em; text-transform: none; font-weight: 600; }
+.mode-btn:hover { color: var(--ink); }
+.mode-btn.active { background: var(--ink); color: var(--bg); }
+.mode-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.map-credit { position: absolute; right: 14px; bottom: 42px; z-index: 5; margin: 0; font-size: 9px;
+  letter-spacing: .06em; color: var(--faint); padding: 3px 8px; border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 78%, transparent); }
+.map-credit .t-hans, .map-credit .t-hant { letter-spacing: .02em; }
+/* the ten-metre contours are only drawn over the street map */
+.map-stage[data-basemap="sat"] .lg-contour, .map-stage[data-basemap="satlbl"] .lg-contour { display: none; }
 .map-scale { position: absolute; bottom: 42px; left: 14px; z-index: 5; display: flex; align-items: flex-end; gap: 8px; color: var(--ink); }
 .map-scale span { display: block; width: 70px; height: 7px; border: 2px solid var(--ink); border-top: 0; }
 .map-scale b { font-size: 10px; font-weight: 600; letter-spacing: .05em; }
@@ -660,9 +677,14 @@ body.no-scroll { overflow: hidden; }
   .map-stage { height: 380px; min-height: 380px; }
   .map-overlay-note { inset: auto 8px 8px 8px; padding: 9px 11px; font-size: 10px; line-height: 1.45; }
   .map-legend { font-size: 8px; gap: 10px; padding: 6px 9px; right: 8px; left: 8px; }
-  .map-legend .t-hans, .map-legend .t-hant { display: none; }
+  /* on a phone the legend keeps only the language being read */
+  html[data-lang="en"] .map-legend .t-hans, html[data-lang="en"] .map-legend .t-hant { display: none; }
+  html[data-lang="zh-hans"] .map-legend .t-en, html[data-lang="zh-hant"] .map-legend .t-en { display: none; }
   .compass { top: 10px; right: 10px; width: 30px; height: 30px; }
   .map-zoom { top: 50px; right: 10px; }
+  .map-modes { top: 10px; left: 10px; }
+  .mode-btn { padding: 4px 8px; font-size: 8px; letter-spacing: .07em; }
+  .map-credit { right: 10px; bottom: 50px; font-size: 8px; padding: 2px 6px; }
   .map-scale { bottom: 54px; left: 10px; }
   .side-fact { margin-top: 6px; }
   .tm-stage { height: 340px; }

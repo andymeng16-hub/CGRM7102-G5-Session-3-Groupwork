@@ -14,8 +14,8 @@
     "methodZh": "每个观察点评估约 20 米路径，统一使用「大部份遮阴、部份遮阴、无遮阴」三级分类，并记录照片、时间与证据来源。",
     "place": "Kiu Tsui Country Park, Sai Kung, Hong Kong, China",
     "placeZh": "中国香港西贡桥咀郊野公园",
-    "mapping": "The base map is the Tencent Maps vector basemap on the GCJ-02 grid, held at zoom 16 so the pier, beaches and country park labels stay readable. The route, the eight points and the elevation cursor are drawn as overlays on top of it, and the same geometry is exported to GeoJSON for QGIS.",
-    "mappingZh": "底图采用腾讯地图矢量底图，GCJ-02 坐标，固定十六级以保留码头、泳滩与郊野公园标注的可读性；路线、八个观察点与海拔游标叠加其上，同一套几何数据另导出为 GeoJSON 供 QGIS 使用。"
+    "mapping": "The base map is the AMap (AutoNavi) tile service on the GCJ-02 grid, with three layers to choose from: the street map carrying the group's own ten-metre contours, satellite imagery, and satellite imagery with the street and place names on top. The route, the eight points and the elevation cursor are drawn as vector overlays above the tiles, and the same geometry is exported to GeoJSON for QGIS.",
+    "mappingZh": "底图采用高德地图瓦片服务，GCJ-02 坐标，共三层可选：带本组自绘十米等高线的街道图、卫星影像，以及叠加路名与地名的卫星影像。路线、八个观察点与海拔游标以矢量图层绘制在瓦片之上，同一套几何数据另导出为 GeoJSON 供 QGIS 使用。"
   },
   "route": {
     "name": "Sharp Island Traverse",
@@ -656,11 +656,11 @@
     {
       "kind": "Map",
       "kindZh": "地图",
-      "label": "Tencent Maps GL JS: vector basemap and overlay layers",
-      "labelZh": "腾讯地图 GL JS：矢量底图与叠加图层",
-      "detail": "GCJ-02 compliant basemap held at zoom 16; route, markers and cursor are drawn as vector overlays.",
-      "detailZh": "GCJ-02 底图固定在十六级；路线、标记与游标以矢量叠加层绘制。",
-      "url": "https://lbs.qq.com/webApi/javascriptGL/glDoc/glDocLayer"
+      "label": "AMap (AutoNavi) tile service: street, satellite and place names",
+      "labelZh": "高德地图瓦片服务：街道、卫星与地名注记",
+      "detail": "GCJ-02 compliant basemap in three layers, drawn tile by tile on a canvas; route, markers and cursor are drawn as vector overlays above them.",
+      "detailZh": "GCJ-02 底图分三层，逐块绘制于画布之上；路线、标记与游标以矢量叠加层绘制。",
+      "url": "https://lbs.amap.com/"
     },
     {
       "kind": "Map",

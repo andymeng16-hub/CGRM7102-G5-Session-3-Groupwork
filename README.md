@@ -54,12 +54,14 @@ together.
 If `index.html` is ever opened on its own, the page says so plainly instead of
 showing a broken document.
 
-Two differences are worth knowing about the offline case:
+Two things are worth knowing about the offline case:
 
-* The Tencent Maps vector basemap is only reachable where the WorkBuddy map
-  proxy is running. Everywhere else, including a plain local server, the map
-  falls back to the local terrain tiles. The tiles, the route and the eight
-  markers are all still there.
+* The basemap is drawn from the official AMap (AutoNavi) tile service, so it
+  needs a network connection. When the tiles cannot be reached the page says
+  so, and the local terrain tiles built from the group's own elevation grid
+  take over instead. The route, the eight markers, the ten-metre contours and
+  the cursor are all still there, because they are drawn on top of the tiles
+  from the survey data.
 * Photographs are loaded lazily, so they appear as the page scrolls to them.
 
 ## What is in the folder
@@ -93,7 +95,7 @@ tools/
 | Section | What it does |
 |---|---|
 | **The sandbar has a schedule** 潮汐 | The tidal window, and the 1.25 m rule that decides whether the sandbar can be crossed |
-| **Map and route** 地图与路线 | The interactive basemap, the single route, and eight numbered observation points |
+| **Map and route** 地图与路线 | The interactive basemap in three layers, the single route, and eight numbered observation points |
 | **The climb, in metres** 以米为单位的起伏 | The elevation profile along the route, with the four stages marked |
 | **A bridge that comes and goes** 一座时有时无的桥 | A shaded-relief model of the tombolo, flooded to any tide height you choose |
 | **One route, four different walks** 一条路线，四段体验 | The four stages, with photographs, timings, shade and one caution each |
@@ -133,8 +135,19 @@ The division of work is on the page itself, under Sources.
 
 ## Technical notes
 
-* The basemap is Tencent Maps GL JS, reached through the WorkBuddy map proxy.
-  No API key is embedded in this repository. The coordinates are GCJ-02.
+* The basemap is the official AMap (AutoNavi) raster tile service, drawn tile
+  by tile on a canvas. No API key is embedded in this repository and no local
+  proxy is needed, so the map works from a plain file or a plain web server.
+  The coordinates are GCJ-02.
+* Three basemaps are on offer from the switch in the corner of the map: the
+  street map, the satellite imagery, and the satellite imagery carrying the
+  street and place names. The street map keeps the group's own ten-metre
+  contours, which are computed from the elevation grid with marching squares
+  and drawn as vector lines, so they sit on the ground exactly.
+* The place names on the tiles are Chinese whatever language the page is in.
+  AMap's English rendering of the street map fills its empty tiles with a
+  slightly different blue from the sea it draws, which leaves pale rectangles
+  across the water; the Chinese rendering has no such seam.
 * The elevation figures are read from a 90 m resolution SRTM sample that has been
   smoothed for display, and the profile and the tide model are drawn from that
   same grid. The AFCD source notes the island's high point as 136 m.

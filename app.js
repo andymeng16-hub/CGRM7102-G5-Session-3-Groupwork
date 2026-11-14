@@ -1,6 +1,7 @@
 /* Sharp Island: GIS field guide interactions
-   - Tencent Maps GL JS vector basemap at street zoom, with our route and points
-     drawn as vector overlays. Local terrain tiles serve as an offline fallback.
+   - AMap raster tiles drawn on a canvas, with our route and points drawn as
+     vector overlays on top. The group's own terrain tiles serve as an offline
+     fallback.
    - One interactive route: scrubber, elevation profile, observation drawer.
    - A tide model of the tombolo: analytic surface, 0.5 m contours, live waterline.
 */
@@ -98,10 +99,6 @@
   function timeZh(str) {
     return str.replace(/ to /g, ' 至 ');
   }
-
-  var proxyReady = !!(window._TMapSecurityConfig &&
-    window._TMapSecurityConfig.serviceHost &&
-    window._TMapSecurityConfig.serviceHost.indexOf('__WB_') === -1);
 
   /* ------------------------------------------------------------------ */
   /* Coordinate helpers                                                   */
@@ -232,7 +229,8 @@
     zoom: 15.4, center: null,
     tide: 0.95, tidePlaying: false, tideT: 0,
     point: null, drawerIdx: 0, lbPhotos: [], lbIdx: 0,
-    lang: 'en', lbCaption: '', lbCaptionZh: '', lbCaptions: null, lbCaptionsZh: null
+    lang: 'en', lbCaption: '', lbCaptionZh: '', lbCaptions: null, lbCaptionsZh: null,
+    basemap: 'road'
   };
   var c = gcj(22.3625, 114.2915);
   state.center = { lat: c.lat, lng: c.lng };
@@ -252,7 +250,7 @@
   }
 
   /* ------------------------------------------------------------------ */
-  /* Scale bar, shared by the canvas map and the Tencent basemap          */
+  /* Scale bar                                                            */
   /* ------------------------------------------------------------------ */
   function updateScale(z) {
     var mpp = 156543.03392 * Math.cos(state.center.lat*Math.PI/180) / Math.pow(2, z);
@@ -265,32 +263,176 @@
   }
 
   /* ------------------------------------------------------------------ */
-  /* Canvas tiled map: offline fallback when the basemap cannot load      */
+  /* Base map                                                             */
+  /* ------------------------------------------------------------------ */
+  /* The basemap is drawn tile by tile on a canvas, from the official AMap
+     raster service. Three layers share one grid, and all of them are on the
+     GCJ-02 system the route is projected into:
+       road     the street map, with place names
+       sat      satellite imagery
+       labels   street and place names, transparent, laid over the imagery
+     The label language follows the language of the page. The group's own
+     terrain tiles stay in the repository as an offline fallback, so the
+     island still draws when there is no network. */
+  var BASEMAPS = [
+    { id: 'road', en: 'MAP', zh: '地图' },
+    { id: 'sat', en: 'SATELLITE', zh: '卫星' },
+    { id: 'satlbl', en: 'SATELLITE + NAMES', zh: '卫星加地名' }
+  ];
+  var Z_MIN = 13, Z_MAX = 17.4;
+
+  /* ------------------------------------------------------------------ */
+  /* Scale bar                                                            */
+  /* ------------------------------------------------------------------ */
+  function updateScale(z) {
+    var mpp = 156543.03392 * Math.cos(state.center.lat*Math.PI/180) / Math.pow(2, z);
+    var metres = 70*mpp;
+    var nice = metres > 900 ? Math.round(metres/500)*500 : metres > 300 ? Math.round(metres/100)*100 : Math.round(metres/50)*50;
+    nice = Math.max(25, nice);
+    var bar = $('.map-scale span'), lab = $('#scaleLabel');
+    if (bar) bar.style.width = Math.round(nice/mpp) + 'px';
+    if (lab) lab.textContent = nice >= 1000 ? (nice/1000).toFixed(1)+' km' : nice+' m';
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Tiles                                                                */
   /* ------------------------------------------------------------------ */
   var canvas = $('#tileMap'), ctx = canvas.getContext('2d');
-  var tileCache = {}, tileW = 0, tileH = 0, mapFallback = false;
+  var tileCache = {}, tileW = 0, tileH = 0, redrawQueued = false;
+  var remoteHits = 0, remoteChecked = false;
+
+  /* One tile URL. The four sub-domains are rotated by the tile index so
+     that no single host carries the whole view.
+
+     The labels are drawn in Chinese whatever language the page is in. The
+     English rendering of the street map fills its empty tiles with a
+     slightly different blue from the sea it draws, which leaves pale
+     rectangles across the water; the Chinese rendering is consistent, and
+     it carries the place names as they are written here: 桥咀洲, 罟佬洲,
+     厦门湾. The name overlay over the satellite view is transparent, so
+     it has no such seam. */
+  var TILE_LANG = 'zh_cn';
+  function tileUrl(layer, z, x, y) {
+    var sub = 1 + ((x + y) % 4);
+    if (layer === 'sat') return 'https://webst0'+sub+'.is.autonavi.com/appmaptile?style=6&x='+x+'&y='+y+'&z='+z;
+    if (layer === 'labels') return 'https://webst0'+sub+'.is.autonavi.com/appmaptile?style=8&lang='+TILE_LANG+'&x='+x+'&y='+y+'&z='+z;
+    return 'https://webrd0'+sub+'.is.autonavi.com/appmaptile?style=8&lang='+TILE_LANG+'&size=1&scale=1&x='+x+'&y='+y+'&z='+z;
+  }
+  function remoteTile(url) {
+    if (tileCache[url]) return tileCache[url];
+    var im = new Image();
+    im.decoding = 'async';
+    im.onload = function () { im.ready = true; remoteHits++; queueRedraw(); };
+    im.onerror = function () { im.failed = true; queueRedraw(); };
+    im.src = url;
+    tileCache[url] = im;
+    return im;
+  }
+  /* The survey tiles, cut from the group's own elevation grid, are used
+     when the online service cannot be reached. */
+  function localTile(kind, z, x, y) {
+    var key = 'local/'+kind+'/'+z+'/'+x+'/'+y;
+    if (tileCache[key]) return tileCache[key];
+    if (!tileInRange(x, y, z)) return null;
+    var im = new Image();
+    im.decoding = 'async';
+    im.onload = function () { im.ready = true; queueRedraw(); };
+    im.onerror = function () { im.failed = true; };
+    im.src = 'assets/tiles/'+kind+'/'+z+'/'+x+'/'+y+'.png';
+    tileCache[key] = im;
+    return im;
+  }
+  function queueRedraw() {
+    if (redrawQueued) return;
+    redrawQueued = true;
+    requestAnimationFrame(function () { redrawQueued = false; drawTileMap(); });
+  }
+  /* If nothing has come back from the tile service after a few seconds,
+     the page says so plainly instead of showing an empty sea. */
+  function checkMapService() {
+    if (remoteChecked) return;
+    remoteChecked = true;
+    if (!remoteHits) setMapStatus('The online basemap is unreachable, so the local survey tiles are shown.',
+      '在线底图无法连接，当前显示本地地形瓦片。');
+  }
+  function setMapStatus(en, zh) {
+    var nb = $('#mapNote');
+    if (!nb || !en) return;
+    setHTML(nb, bi(en, zh));
+    nb.hidden = false;
+  }
+
   function sizeCanvas() {
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     tileW = canvas.clientWidth || 800; tileH = canvas.clientHeight || 520;
     canvas.width = Math.round(tileW*dpr); canvas.height = Math.round(tileH*dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-  function getTile(kind, z, x, y) {
-    var key = kind+'/'+z+'/'+x+'/'+y;
-    if (tileCache[key]) return tileCache[key];
-    if (!tileInRange(x, y, z)) return null;
-    var im = new Image();
-    im.decoding = 'async';
-    im.onload = function () { im.ready = true; if (mapFallback) drawTileMap(); };
-    im.onerror = function () { im.failed = true; };
-    im.src = 'assets/tiles/'+kind+'/'+z+'/'+x+'/'+y+'.png';
-    tileCache[key] = im;
-    return im;
+
+  /* ------------------------------------------------------------------ */
+  /* Contours                                                            */
+  /* ------------------------------------------------------------------ */
+  /* Ten-metre contour lines, taken from the same elevation grid the profile
+     and the tide model are built on. Marching squares over the grid gives
+     the line, and because the grid is pushed through the same GCJ-02
+     transform as the route, the lines sit exactly on the ground rather than
+     on a raster that would not quite line up. */
+  var contourCache = null;
+  function contourSegments() {
+    if (contourCache) return contourCache;
+    var n = T.n, z = T.z, segs = [];
+    var dLat = (T.north - T.s)/n, dLng = (T.e - T.w)/n;
+    function lerp(a, b, t) { return a + (b-a)*t; }
+    function corner(r, c) { return [T.north - r*dLat, T.w + c*dLng]; }
+    for (var r = 0; r < n-1; r++) {
+      for (var c = 0; c < n-1; c++) {
+        var v = [z[r][c], z[r][c+1], z[r+1][c+1], z[r+1][c]];
+        var p = [corner(r, c), corner(r, c+1), corner(r+1, c+1), corner(r+1, c)];
+        for (var level = 10; level <= 60; level += 10) {
+          var pts = [];
+          for (var e = 0; e < 4; e++) {
+            var i0 = e, i1 = (e+1) % 4, v0 = v[i0], v1 = v[i1];
+            if (v1 === v0 || (v0 > level) === (v1 > level)) continue;
+            var t = (level - v0)/(v1 - v0);
+            pts.push([lerp(p[i0][0], p[i1][0], t), lerp(p[i0][1], p[i1][1], t)]);
+          }
+          if (pts.length === 2) segs.push({ lv: level, a: pts[0], b: pts[1] });
+          else if (pts.length === 4) {
+            segs.push({ lv: level, a: pts[0], b: pts[1] });
+            segs.push({ lv: level, a: pts[2], b: pts[3] });
+          }
+        }
+      }
+    }
+    /* The transform is done once, here, so that panning the map only costs
+       one projection per line rather than the whole offset again. */
+    contourCache = segs.map(function (s) {
+      var a = gcj(s.a[0], s.a[1]), b = gcj(s.b[0], s.b[1]);
+      return { lv: s.lv, a: a, b: b };
+    });
+    return contourCache;
+  }
+  function drawContours(z, px0, py0, w, h) {
+    var segs = contourSegments();
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (var i = 0; i < segs.length; i++) {
+      var s = segs[i];
+      var a = merc(s.a.lat, s.a.lng, z), b = merc(s.b.lat, s.b.lng, z);
+      var x1 = a.x-px0, y1 = a.y-py0, x2 = b.x-px0, y2 = b.y-py0;
+      if ((x1 < -40 && x2 < -40) || (y1 < -40 && y2 < -40) ||
+          (x1 > w+40 && x2 > w+40) || (y1 > h+40 && y2 > h+40)) continue;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+      if (s.lv % 50 === 0) { ctx.strokeStyle = 'rgba(112,68,28,.75)'; ctx.lineWidth = 1.5; }
+      else { ctx.strokeStyle = 'rgba(112,68,28,.45)'; ctx.lineWidth = 1; }
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   function drawTileMap() {
     if (!tileW || !tileH) sizeCanvas();
-    var w = tileW, h = tileH, z = state.zoom, tz = clamp(Math.round(z), 13, 17);
+    var w = tileW, h = tileH, z = state.zoom, tz = clamp(Math.ceil(z), Z_MIN, 17);
     var scale = Math.pow(2, z - tz);
     var cc = merc(state.center.lat, state.center.lng, z);
     var px0 = cc.x - w/2, py0 = cc.y - h/2;
@@ -301,18 +443,33 @@
     var ts = 256*scale;
     var bx0 = Math.floor(px0/ts), bx1 = Math.floor((px0+w)/ts);
     var by0 = Math.floor(py0/ts), by1 = Math.floor((py0+h)/ts);
+    var baseLayer = state.basemap === 'road' ? 'road' : 'sat';
     for (var x = bx0; x <= bx1; x++) {
       for (var y = by0; y <= by1; y++) {
         var sx = x*ts - px0, sy = y*ts - py0;
-        var base = getTile('base', tz, x, y);
+        var base = remoteTile(tileUrl(baseLayer, tz, x, y));
         if (base && base.ready) ctx.drawImage(base, sx, sy, ts+1, ts+1);
-        var ov = getTile('overlay', tz, x, y);
-        if (ov && ov.ready) {
-          ctx.save(); ctx.globalAlpha = .78;
-          ctx.drawImage(ov, sx, sy, ts+1, ts+1); ctx.restore();
+        else {
+          /* offline: the group's own survey tiles take over, contours and all */
+          var loc = localTile('base', tz, x, y);
+          if (loc && loc.ready) ctx.drawImage(loc, sx, sy, ts+1, ts+1);
+          var ov = localTile('overlay', tz, x, y);
+          if (ov && ov.ready) {
+            ctx.save(); ctx.globalAlpha = .8;
+            ctx.drawImage(ov, sx, sy, ts+1, ts+1); ctx.restore();
+          }
+        }
+        if (state.basemap === 'satlbl') {
+          /* street and place names, transparent, over the imagery */
+          var lb = remoteTile(tileUrl('labels', tz, x, y));
+          if (lb && lb.ready) ctx.drawImage(lb, sx, sy, ts+1, ts+1);
         }
       }
     }
+
+    /* the group's own ten-metre contours, over the street map. Offline the
+       raster contours in the local tiles already carry them. */
+    if (state.basemap === 'road' && remoteHits) drawContours(z, px0, py0, w, h);
 
     /* route */
     var pts = PATH.map(function (p) {
@@ -355,7 +512,31 @@
     updateScale(z);
   }
 
-  /* pointer interaction on the fallback canvas */
+  /* The three basemaps, and the button that chooses between them. */
+  function setBasemap(id) {
+    if (!BASEMAPS.some(function (b) { return b.id === id; })) return;
+    state.basemap = id;
+    var stage = $('.map-stage');
+    if (stage) stage.setAttribute('data-basemap', id);
+    $$('#mapModes .mode-btn').forEach(function (b) {
+      var on = b.dataset.mode === id;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    try { localStorage.setItem('si-basemap', id); } catch (e) {}
+    drawTileMap();
+  }
+  function buildMapModes() {
+    setHTML('#mapModes', BASEMAPS.map(function (b) {
+      return '<button type="button" class="mode-btn" data-mode="' + b.id + '" aria-pressed="false">' +
+        bi(b.en, b.zh) + '</button>';
+    }).join(''));
+    var stage = $('.map-stage');
+    if (stage) stage.setAttribute('data-basemap', state.basemap);
+    setBasemap(state.basemap);
+  }
+
+  /* pointer interaction on the map canvas */
   var pointers = new Map(), drag = null, pinch = null;
   canvas.addEventListener('pointerdown', function (e) {
     canvas.setPointerCapture(e.pointerId);
@@ -374,7 +555,7 @@
     if (pointers.size === 2 && pinch) {
       var a = Array.from(pointers.values());
       var d = Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y);
-      state.zoom = clamp(pinch.zoom + Math.log2(d/pinch.d), 13, 17.4);
+      state.zoom = clamp(pinch.zoom + Math.log2(d/pinch.d), Z_MIN, Z_MAX);
       drawTileMap(); return;
     }
     if (drag) {
@@ -399,7 +580,7 @@
     var r = canvas.getBoundingClientRect(), mx = e.clientX-r.left, my = e.clientY-r.top;
     var z0 = state.zoom, cc = merc(state.center.lat, state.center.lng, z0);
     var wx = cc.x - tileW/2 + mx, wy = cc.y - tileH/2 + my;
-    var z1 = clamp(z0 - e.deltaY*0.0022, 13, 17.4);
+    var z1 = clamp(z0 - e.deltaY*0.0022, Z_MIN, Z_MAX);
     var f = Math.pow(2, z1-z0);
     var nc = invMerc(wx*f - mx + tileW/2, wy*f - my + tileH/2, z1);
     state.zoom = z1; state.center = { lat: nc.lat, lng: nc.lng };
@@ -424,93 +605,6 @@
       if (d < bdist) { bdist = d; best = idx; }
     });
     if (bdist < 16) setProgress(best/NS);
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Tencent Maps basemap                                                 */
-  /* ------------------------------------------------------------------ */
-  var tmap = null, tMarkers = null, tLine = null, tCursor = null;
-  var sdkRequested = false, tmapReady = false;
-  var Z_BASE = 16;
-
-  function markerSvg(num, color) {
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">' +
-      '<circle cx="20" cy="20" r="15" fill="'+color+'" stroke="#fff" stroke-width="3.5"/>' +
-      '<text x="20" y="25" font-family="Arial" font-size="13" font-weight="700" text-anchor="middle" fill="#fff">'+num+'</text></svg>';
-    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-  }
-
-  function initTencent() {
-    if (!window.TMap || tmapReady) return;
-    try {
-      tmap = new TMap.Map(document.getElementById('tmap'), {
-        zoom: Z_BASE,
-        center: new TMap.LatLng(state.center.lat, state.center.lng),
-        pitch: 0, rotation: 0,
-        minZoom: 12, maxZoom: 18,
-        baseMap: { type: 'vector', features: ['base', 'label'] }
-      });
-      tmapReady = true;
-      var styles = {};
-      D.points.forEach(function (p) {
-        styles[p.id] = new TMap.MarkerStyle({ width: 40, height: 40, anchor: { x: 20, y: 20 }, src: markerSvg(p.code, '#1d1d1f') });
-      });
-      tMarkers = new TMap.MultiMarker({ map: tmap, styles: styles,
-        geometries: D.points.map(function (p) { var g = gcj(p.lat, p.lng); return { id: p.id, styleId: p.id, position: new TMap.LatLng(g.lat, g.lng) }; }) });
-      tMarkers.on('click', function (evt) { if (evt && evt.geometry) openPoint(evt.geometry.id); });
-      tLine = new TMap.MultiPolyline({ map: tmap,
-        styles: { line: new TMap.PolylineStyle({ color: '#0066cc', width: 7, borderWidth: 2, borderColor: '#ffffff' }) },
-        geometries: [{ id: 'route', styleId: 'line',
-          paths: PATH.map(function (p) { var g = gcj(p[0], p[1]); return new TMap.LatLng(g.lat, g.lng); }) }] });
-      tCursor = new TMap.MultiMarker({ map: tmap,
-        styles: { cur: new TMap.MarkerStyle({ width: 26, height: 26, anchor: { x: 13, y: 13 }, src: markerSvg('', '#0066cc') }) },
-        geometries: [] });
-      updateTencentCursor();
-      useOfficial();
-      try { tmap.on('zoom_changed', function () { updateScale(tmap.getZoom()); }); } catch (e) {}
-    } catch (err) {
-      tmapReady = false;
-      useFallback('The basemap could not be started here. Local survey tiles are shown instead.', '底图在此环境未能启动，已改用本地地形瓦片。');
-    }
-  }
-
-  function updateTencentCursor() {
-    if (!tCursor) return;
-    var s = sampleAt(state.progress), g = gcj(s.lat, s.lng);
-    try { tCursor.setGeometries([{ id: 'cursor', styleId: 'cur', position: new TMap.LatLng(g.lat, g.lng) }]); } catch (e) {}
-  }
-
-  function useOfficial() {
-    mapFallback = false;
-    canvas.hidden = true;
-    $('#tmap').hidden = false;
-    var nb = $('#mapNote'); if (nb) nb.hidden = true;
-    try { updateScale(tmap.getZoom()); } catch (e) {}
-  }
-
-  function useFallback(en, zh) {
-    mapFallback = true;
-    $('#tmap').hidden = true;
-    canvas.hidden = false;
-    sizeCanvas(); drawTileMap();
-    var nb = $('#mapNote');
-    if (en) { setHTML(nb, bi(en, zh)); nb.hidden = false; }
-  }
-
-  function loadTencentSDK() {
-    if (sdkRequested) return;
-    sdkRequested = true;
-    var s = document.createElement('script');
-    s.src = 'https://map.qq.com/api/gljs?v=1.exp';
-    s.async = true;
-    s.onload = function () { setTimeout(initTencent, 80); };
-    s.onerror = function () { useFallback('The map service is unreachable. Local survey tiles are shown.', '地图服务无法连接，已显示本地地形瓦片。'); };
-    document.head.appendChild(s);
-    setTimeout(function () {
-      if (!tmapReady && !mapFallback) {
-        useFallback('The basemap did not load in time. Local survey tiles are shown.', '底图未能及时载入，已显示本地地形瓦片。');
-      }
-    }, 7000);
   }
 
   /* ------------------------------------------------------------------ */
@@ -1066,7 +1160,7 @@
     $$('.stage-chip').forEach(function (b) { b.classList.toggle('active', b.dataset.stage === st.id); });
     $$('.seg-shade').forEach(function (b) { b.classList.toggle('on', b.dataset.point === np.id); });
     updateProfile();
-    if (tmapReady && !mapFallback) updateTencentCursor(); else drawTileMap();
+    drawTileMap();
   }
   var playTimer = null, lastTs = 0;
   function togglePlay() {
@@ -1247,7 +1341,7 @@
       ['FIELD RECORDS', '记录', s.photos+' photographs, '+s.points+' observation points', s.photos+' 张照片，'+s.points+' 个观察点'],
       ['ROUTE', '路线', 'One continuous line from '+D.route.start+' to '+D.route.finish, '一条连续路线，由'+D.route.startZh+'至'+D.route.finishZh],
       ['SHADE CLASSES', '遮阴分级', 'Mostly shaded, partly shaded, unshaded', '大部份遮阴，部份遮阴，无遮阴'],
-      ['BASE MAP', '底图', 'Tencent Maps vector basemap, GCJ-02', '腾讯地图矢量底图，GCJ-02'],
+      ['BASE MAP', '底图', 'AMap street and satellite tiles, GCJ-02', '高德地图街道与卫星瓦片，GCJ-02'],
       ['LOCATION', '地点', s.place, s.placeZh]
     ];
     setHTML('#surveyFacts', facts.map(function (f) {
@@ -1418,8 +1512,7 @@
     $('#lbNext').setAttribute('aria-label', tr('Next photograph', '下一张照片'));
     $('#drawer').setAttribute('aria-label', tr('Observation point detail', '观察点详情'));
     $('#lightbox').setAttribute('aria-label', tr('Photograph viewer', '照片浏览器'));
-    $('#tileMap').setAttribute('aria-label', tr('Interactive tiled map of the Sharp Island route', '桥咀洲路线互动地图'));
-    $('#tmap').setAttribute('aria-label', tr('Tencent Maps base map with the Sharp Island route', '腾讯地图底图与桥咀洲路线'));
+    $('#tileMap').setAttribute('aria-label', tr('Interactive tiled map of the Sharp Island route, with a street map, a satellite view and a satellite view with place names', '桥咀洲路线互动地图，可切换街道底图、卫星影像与卫星加地名'));
     $('#tideModel').setAttribute('aria-label', tr('Shaded relief map of the Sharp Island tombolo, flooded to the selected tide height', '连岛沙洲晕渲图，按选定潮高淹没'));
     $('#profileChart').setAttribute('aria-label', tr('Elevation profile of the Sharp Island route', '桥咀洲路线海拔剖面'));
     $('#tideSection').setAttribute('aria-label', tr('Cross section along the tombolo showing the saddle and the water level', '连岛沙洲横剖面，显示鞍部与水位'));
@@ -1443,7 +1536,7 @@
     buildSurvey();
     buildProfile();
     buildSection();
-    if (mapFallback) drawTileMap();
+    drawTileMap();
     drawTombolo();
     setProgress(state.progress);
     setTide(state.tide, true);
@@ -1472,18 +1565,19 @@
   function wire() {
     var nb = $('#mapNote');
     if (nb) nb.addEventListener('click', function () { nb.hidden = true; });
+    $('#mapModes').addEventListener('click', function (e) {
+      var b = e.target.closest('.mode-btn');
+      if (b) setBasemap(b.dataset.mode);
+    });
 
     $('#zoomIn').addEventListener('click', function () {
-      if (tmapReady && !mapFallback) { tmap.setZoom(clamp(tmap.getZoom()+1, 12, 18)); return; }
-      state.zoom = clamp(state.zoom+1, 13, 17.4); drawTileMap();
+      state.zoom = clamp(state.zoom+1, Z_MIN, Z_MAX); drawTileMap();
     });
     $('#zoomOut').addEventListener('click', function () {
-      if (tmapReady && !mapFallback) { tmap.setZoom(clamp(tmap.getZoom()-1, 12, 18)); return; }
-      state.zoom = clamp(state.zoom-1, 13, 17.4); drawTileMap();
+      state.zoom = clamp(state.zoom-1, Z_MIN, Z_MAX); drawTileMap();
     });
     $('#zoomReset').addEventListener('click', function () {
       var c0 = gcj(22.3625, 114.2915);
-      if (tmapReady && !mapFallback) { try { tmap.setCenter(new TMap.LatLng(c0.lat, c0.lng)); tmap.setZoom(Z_BASE); } catch (e) {} return; }
       state.zoom = 15.4; state.center = { lat: c0.lat, lng: c0.lng }; drawTileMap();
     });
 
@@ -1557,7 +1651,7 @@
       var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       document.documentElement.dataset.theme = next;
       try { localStorage.setItem('si-theme', next); } catch (e) {}
-      if (mapFallback) drawTileMap();
+      drawTileMap();
       drawTombolo();
     });
 
@@ -1567,7 +1661,7 @@
     var relayoutTimer = 0, lastW = 0, lastH = 0;
     var relayout = function () {
       var w = tbC.clientWidth, h = tbC.clientHeight;
-      if (mapFallback) { sizeCanvas(); drawTileMap(); }
+      sizeCanvas(); drawTileMap();
       if (w === lastW && h === lastH && tbNodes.length) return;
       clearTimeout(relayoutTimer);
       relayoutTimer = setTimeout(function () {
@@ -1618,6 +1712,11 @@
   expandHant(document.body);
   relocalizeMeta();
 
+  try {
+    var savedBase = localStorage.getItem('si-basemap');
+    if (savedBase && BASEMAPS.some(function (b) { return b.id === savedBase; })) state.basemap = savedBase;
+  } catch (e) {}
+
   buildStops();
   buildStages();
   buildRibbon();
@@ -1629,14 +1728,16 @@
   buildSurvey();
   buildProfile();
   sizeCanvas();
-  drawTileMap();      /* a warm fallback is on screen while the SDK loads */
+  buildMapModes();
+  drawTileMap();
   tbLayout();
   buildSection();
   wire();
   setProgress(0);
   setTide(0.95, true);
-  if (proxyReady) loadTencentSDK();
-  else useFallback('The basemap needs the WorkBuddy map proxy. Local survey tiles are shown.', '官方底图需要 WorkBuddy 地图代理，当前显示本地地形瓦片。');
+  /* The tiles come from the network. If they do not, the local survey tiles
+     take over and the page says so. */
+  setTimeout(checkMapService, 5000);
 
   /* The page is whole. index.html watches for this flag and puts up a notice
      if it never arrives, which is what happens when the file is opened on
