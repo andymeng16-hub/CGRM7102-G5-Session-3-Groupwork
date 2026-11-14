@@ -10,6 +10,7 @@
   var D = window.FIELD_DATA;
   var T = window.TERRAIN;
   var V = window.VEGETATION || [];
+  var G = window.GALLERY || null;
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var photo = function (id) { return 'assets/photos/' + id + '.jpg'; };
@@ -231,7 +232,7 @@
     zoom: 15.4, center: null,
     tide: 0.95, tidePlaying: false, tideT: 0,
     point: null, drawerIdx: 0, lbPhotos: [], lbIdx: 0,
-    lang: 'en', lbCaption: '', lbCaptionZh: ''
+    lang: 'en', lbCaption: '', lbCaptionZh: '', lbCaptions: null, lbCaptionsZh: null
   };
   var c = gcj(22.3625, 114.2915);
   state.center = { lat: c.lat, lng: c.lng };
@@ -1182,6 +1183,42 @@
         '</div></article>';
     }).join(''));
   }
+  /* The photographs are grouped by the place they were made. Each tile keeps
+     its own caption so the section reads as a record on its own, and the
+     lightbox can step through one group a frame at a time. */
+  var galleryIndex = {};
+  function buildGallery() {
+    if (!G) return;
+    galleryIndex = {};
+    setHTML('#photoGroups', G.groups.map(function (g) {
+      var items = G.photos.filter(function (p) { return p.g === g.id; });
+      var ids = items.map(function (p) { return p.file; });
+      galleryIndex[g.id] = {
+        ids: ids,
+        en: g.en, zh: g.zh,
+        capsEn: items.map(function (p) { return p.en; }),
+        capsZh: items.map(function (p) { return p.zh; })
+      };
+      var tiles = items.map(function (p, i) {
+        var cap = state.lang === 'en' ? p.en : (state.lang === 'zh-hant' ? ZH.toHant(p.zh) : p.zh);
+        var label = tr('Open photograph ', '打开照片 ') + (i + 1) + tr(' of ', ' / 共 ') + items.length;
+        return '<figure class="gal-item reveal">' +
+          '<button type="button" class="gal-open" data-group="' + g.id + '" data-idx="' + i + '" aria-label="' + label + '" title="' + cap + '">' +
+            '<img src="' + thumb(p.file) + '" alt="' + cap + '" loading="lazy">' +
+          '</button>' +
+          '<figcaption>' + bi(p.en, p.zh) + '</figcaption>' +
+        '</figure>';
+      }).join('');
+      return '<section class="gal-group reveal" data-group="' + g.id + '">' +
+        '<div class="gal-head">' +
+          '<div class="gal-title"><h3>' + bi(g.en, g.zh) + '</h3>' +
+            '<p class="gal-count">' + bi(items.length + ' PHOTOGRAPHS', items.length + ' 张照片') + '</p></div>' +
+          '<p class="gal-desc">' + bi(g.enDesc, g.zhDesc) + '</p>' +
+        '</div>' +
+        '<div class="gal-grid" style="--gal-cols:' + g.cols + '">' + tiles + '</div>' +
+      '</section>';
+    }).join(''));
+  }
   function buildReading() {
     setHTML('#readList', D.reading.map(function (r) {
       var en = r.url ? '<a href="'+r.url+'" target="_blank" rel="noopener">'+r.title+'</a>' : r.title;
@@ -1292,17 +1329,29 @@
     document.body.classList.remove('no-scroll');
     setTimeout(function () { $('#scrim').hidden = true; $('#drawer').hidden = true; state.point = null; }, 460);
   }
-  function openLightbox(ids, idx, caption, captionZh) {
+  /* A group of photographs. The last two arguments carry one caption per
+     frame; without them the viewer falls back to the group name and the
+     file reference. */
+  function openLightbox(ids, idx, caption, captionZh, captions, captionsZh) {
     state.lbPhotos = ids; state.lbIdx = idx || 0;
     state.lbCaption = caption || 'GROUP FIELD PHOTOGRAPH';
     state.lbCaptionZh = captionZh || '本组实地照片';
+    state.lbCaptions = captions || null;
+    state.lbCaptionsZh = captionsZh || null;
     $('#lightbox').hidden = false; document.body.classList.add('no-scroll');
     updateLightbox();
   }
   function updateLightbox() {
-    $('#lbImage').src = photo(state.lbPhotos[state.lbIdx]);
-    $('#lbImage').alt = tr('Field photograph ', '实地照片 ') + state.lbPhotos[state.lbIdx];
-    $('#lbCaption').textContent = tr(state.lbCaption, state.lbCaptionZh) + ', ' + state.lbPhotos[state.lbIdx];
+    var id = state.lbPhotos[state.lbIdx];
+    $('#lbImage').src = photo(id);
+    $('#lbImage').alt = tr('Field photograph ', '实地照片 ') + id;
+    /* A group with captions shows the caption of the frame on screen; the
+       group name stays above it as the heading. */
+    var note = state.lbCaptions && state.lbCaptions[state.lbIdx] ? state.lbCaptions[state.lbIdx] : '';
+    var noteZh = state.lbCaptionsZh && state.lbCaptionsZh[state.lbIdx] ? state.lbCaptionsZh[state.lbIdx] : '';
+    $('#lbNote').textContent = note ? tr(note, noteZh) : '';
+    $('#lbCaption').textContent = note ? tr(state.lbCaption, state.lbCaptionZh)
+      : tr(state.lbCaption, state.lbCaptionZh) + ', ' + id;
     $('#lbCount').textContent = tr((state.lbIdx+1)+' of '+state.lbPhotos.length,
       '第 '+(state.lbIdx+1)+' 张，共 '+state.lbPhotos.length+' 张');
     $('#lbPrev').hidden = $('#lbNext').hidden = state.lbPhotos.length < 2;
@@ -1388,6 +1437,7 @@
     buildRibbon();
     buildNotes();
     buildVegetation();
+    buildGallery();
     buildReading();
     buildAdvice();
     buildSurvey();
@@ -1397,11 +1447,28 @@
     drawTombolo();
     setProgress(state.progress);
     setTide(state.tide, true);
+    if (!$('#lightbox').hidden) updateLightbox();
+    observeReveals(true);
   }
 
   /* ------------------------------------------------------------------ */
   /* Wiring                                                               */
   /* ------------------------------------------------------------------ */
+  /* Blocks fade in as they come into view. Changing the language rebuilds
+     those blocks, and the new ones have never been seen by the observer, so
+     they are handed back to it after every rebuild. */
+  var revealIO = null;
+  function observeReveals(keepLit) {
+    if (!revealIO) return;
+    var h = window.innerHeight;
+    $$('.reveal').forEach(function (el) {
+      if (el.classList.contains('in')) return;
+      /* After a rebuild the blocks above the fold have already been seen, so
+         they stay lit; the rest wait for the observer to bring them in. */
+      if (keepLit && el.getBoundingClientRect().top < h) { el.classList.add('in'); return; }
+      revealIO.observe(el);
+    });
+  }
   function wire() {
     var nb = $('#mapNote');
     if (nb) nb.addEventListener('click', function () { nb.hidden = true; });
@@ -1436,6 +1503,13 @@
     $('#notesGrid').addEventListener('click', function (e) {
       var im = e.target.closest('img[data-photo]');
       if (im) openLightbox([im.dataset.photo], 0, im.dataset.caption, im.dataset.captionZh || im.dataset.caption);
+    });
+    $('#photoGroups').addEventListener('click', function (e) {
+      var b = e.target.closest('.gal-open');
+      if (!b) return;
+      var grp = galleryIndex[b.dataset.group];
+      if (!grp) return;
+      openLightbox(grp.ids, Number(b.dataset.idx), grp.en, grp.zh, grp.capsEn, grp.capsZh);
     });
 
     $('#tideSlider').addEventListener('input', function (e) {
@@ -1507,10 +1581,10 @@
     }
     window.addEventListener('resize', relayout, { passive: true });
     if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+      revealIO = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); revealIO.unobserve(en.target); } });
       }, { threshold: .08, rootMargin: '0px 0px -40px 0px' });
-      $$('.reveal').forEach(function (el) { io.observe(el); });
+      observeReveals();
     } else $$('.reveal').forEach(function (el) { el.classList.add('in'); });
 
     var links = $$('.nav-links a');
@@ -1549,6 +1623,7 @@
   buildRibbon();
   buildNotes();
   buildVegetation();
+  buildGallery();
   buildReading();
   buildAdvice();
   buildSurvey();

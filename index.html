@@ -101,6 +101,7 @@ window.addEventListener('load', function () {
       <a href="#tombolo"><span class="t-en">TIDE</span><span class="t-hans">潮汐</span></a>
       <a href="#stages"><span class="t-en">ROUTE</span><span class="t-hans">路线</span></a>
       <a href="#vegetation"><span class="t-en">PLANTS</span><span class="t-hans">植被</span></a>
+      <a href="#photos"><span class="t-en">PHOTOS</span><span class="t-hans">照片</span></a>
       <a href="#reading"><span class="t-en">READING</span><span class="t-hans">文献</span></a>
       <a href="#survey"><span class="t-en">SOURCES</span><span class="t-hans">来源</span></a>
     </div>
@@ -351,6 +352,24 @@ window.addEventListener('load', function () {
   </div>
 </section>
 
+<!-- PHOTOGRAPHS -->
+<section class="section photos-section" id="photos">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <p class="eyebrow"><span class="t-en">FIELD PHOTOGRAPHS</span><span class="t-hans">实地照片</span></p>
+        <h2><span class="t-en">THE PLACES,<br>IN PICTURES.</span><span class="t-hans">照片里的地方</span></h2>
+        <p class="body"><span class="t-en">Thirty-seven photographs taken on the day, grouped by where they were made. The first three groups stay close to the ground: the shore, the pier and the sand at Hap Mun Bay. The last group is the climb's reward, taken from the ridge path and the viewing point.</span><span class="t-hans">当日拍摄的三十七张照片，按拍摄地点分组。前三组贴近地面：岸线、码头与半月湾的沙；最后一组是上山的回报，取自山脊小径与观景台。</span></p>
+      </div>
+      <p class="body section-note"><span class="t-en">SELECT A PHOTOGRAPH TO OPEN IT FULL SIZE AND STEP THROUGH THE GROUP.</span><span class="t-hans">点选照片可放大查看，并可逐张翻看同一组。</span></p>
+    </div>
+    <div id="photoGroups"></div>
+    <div class="photos-foot reveal">
+      <p class="fine"><span class="t-en">ALL THIRTY-SEVEN PHOTOGRAPHS WERE TAKEN ON 13 NOVEMBER 2026 WITH A DJI ACTION CAMERA. THE FRAMES ARE EDITED FOR EXPOSURE ONLY; WHAT THE CAMERA SAW IS WHAT THE GROUND LOOKED LIKE.</span><span class="t-hans">三十七张照片全部摄于 2026 年 11 月 13 日，使用 DJI 运动相机。画面只做了曝光合成，所见即实地。</span></p>
+    </div>
+  </div>
+</section>
+
 <!-- READING -->
 <section class="section reading-section" id="reading">
   <div class="wrap">
@@ -444,12 +463,13 @@ window.addEventListener('load', function () {
   <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous photograph">‹</button>
   <img id="lbImage" src="" alt="">
   <button class="lb-nav lb-next" id="lbNext" aria-label="Next photograph">›</button>
-  <div class="lb-caption"><span id="lbCaption"></span><span id="lbCount"></span></div>
+  <div class="lb-caption"><p id="lbNote"></p><p class="lb-meta"><span id="lbCaption"></span><span id="lbCount"></span></p></div>
 </div>
 
 <script src="data/field-data.js"></script>
 <script src="data/terrain.js"></script>
 <script src="data/vegetation.js"></script>
+<script src="data/gallery.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

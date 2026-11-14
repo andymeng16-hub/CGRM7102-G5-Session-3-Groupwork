@@ -33,6 +33,7 @@ SCAN = [
     'data/field-data.js',
     'data/vegetation.js',
     'data/terrain.js',
+    'data/gallery.js',
 ]
 
 # Hong Kong convention. zhconv already returns Hong Kong forms for most of

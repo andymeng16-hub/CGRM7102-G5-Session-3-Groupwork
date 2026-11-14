@@ -3,13 +3,13 @@
 A field-based GIS-style visitor guide to a single continuous walking route across
 Sharp Island (Kiu Tsui Chau), Kiu Tsui Country Park, Sai Kung, Hong Kong, China.
 Everything in it comes from the group's own survey of 13 November 2026: eight
-observation points, twenty-nine photographs, one elevation profile, and a working
+observation points, sixty-six photographs, one elevation profile, and a working
 model of the sandbar the tide takes away.
 
 The site is a static website. No build step, no package manager, no framework.
 
 中文简介：本仓库是中国香港西贡桥咀洲一条连续步行路线的地理信息式实地导览，
-内容全部来自小组 2026 年 11 月 13 日的实地考察，共八个观察点、二十九张照片、
+内容全部来自小组 2026 年 11 月 13 日的实地考察，共八个观察点、六十六张照片、
 一幅海拔剖面图，以及一个会随潮位涨落而淹没的连岛沙洲模型。网站为纯静态页面，
 无需安装任何依赖。
 
@@ -73,11 +73,12 @@ data/
   field-data.json       the same survey as JSON, for QGIS
   terrain.js            the elevation grid the profile and the model are built on
   vegetation.js         four plant communities and their plates
+  gallery.js            the photo section: four groups and thirty-seven captions
   zh-hant.js            the Simplified to Traditional conversion table
   survey-points.geojson the eight observation points, for QGIS
   routes.geojson        the route geometry, for QGIS
 assets/
-  photos/               twenty-nine photographs, with thumbnails
+  photos/               sixty-six photographs, with thumbnails
   tiles/                the local basemap and overlay tile pyramid
 tools/
   gen-hant.py           regenerates data/zh-hant.js and checks it against zhconv
@@ -99,6 +100,7 @@ tools/
 | **How much sun are you walking in?** 全程日照评估 | How much of the walk is in shade, drawn as a ribbon |
 | **Where extra care is needed** 需要格外留意之处 | Four conditions recorded in the field: erosion, geoconservation, intertidal life, sun |
 | **Four ways to be a plant here** 四种生存方式 | Four vegetation communities, painted as plates, with the species found in each |
+| **The places, in pictures** 照片里的地方 | Thirty-seven photographs of the day, grouped as the shore, the pier, Hap Mun Bay and the view from the ridge |
 | **What others have written** 前人怎么写 | Eight sources: a gazetteer, three journal articles, a book chapter and three reports |
 | **Before you step onto the boat** 登船之前 | What to bring, and what the tide will do to the plan |
 | **How we know** 资料依据 | The survey record, the data sources and the team's division of work |
@@ -109,6 +111,12 @@ Eight observation points, one continuous route of about 2.19 km, visited between
 11:10 and 13:38 on 13 November 2026. Shade was classified at each point over
 roughly 20 m of path using the same three categories throughout, and every record
 pairs a photograph with an observation time and an evidence source.
+
+The photographs come from the same day. Twenty-nine of them are attached to the
+route, the stages and the field notes; the other thirty-seven sit in their own
+section, grouped by where they were made and given one caption each. Opening a
+photograph shows it full size, with the caption underneath and the rest of its
+group one keypress away.
 
 The reading list is deliberately mixed. It starts with the Jiaqing era *Xin'an
 County Gazetteer* of 1819, the county record that covered what is now Hong Kong
