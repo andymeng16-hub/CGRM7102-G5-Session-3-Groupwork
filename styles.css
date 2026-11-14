@@ -64,6 +64,10 @@
   --press-lo: rgba(0,0,0,.07);
   /* the shade the front of an open drawer lays over what is inside it */
   --drawer-shade: rgba(0,0,0,.15);
+  /* A title that should be read at a glance without being shouted at: the
+     ink of the page, pulled back just far enough to sit behind the real
+     headings rather than in front of them. */
+  --title-ink: color-mix(in srgb, var(--ink) 86%, var(--bg));
 }
 
 html[data-theme="dark"] {
@@ -184,7 +188,9 @@ h4 .t-hans, h4 .t-hant { font-size: .84em; letter-spacing: .04em; font-weight: 5
 .tm-panel-label .t-hans, .tm-panel-label .t-hant { font-size: 10px; letter-spacing: .04em; margin-top: 1px; }
 .compass .t-en { font-size: 12px; line-height: 1; color: var(--blue); }
 .compass .t-hans, .compass .t-hant { font-size: 11px; line-height: 1; color: var(--blue); }
-.nav-links a .t-hans, .nav-links a .t-hant { letter-spacing: .06em; }
+/* The Chinese in the bar is denser than the Latin capitals and needs a size
+   and a weight of its own to carry the same presence beside them. */
+.nav-links a .t-hans, .nav-links a .t-hant { font-size: 13px; letter-spacing: .03em; font-weight: 550; }
 .footer-links a .t-hans, .footer-links a .t-hant { letter-spacing: .06em; }
 
 .legend-name { display: inline-flex; flex-direction: column; }
@@ -242,10 +248,12 @@ i { font-style: normal; color: var(--faint); font-size: .82em; margin-left: 4px;
    double up when a part is folded. Open, the bar becomes that rule: the
    number of the part at one end, the control that closes it at the other. */
 .section:not(.is-folded) .fold-bar { padding: 0 0 14px; border-bottom: 1px solid var(--line-soft); }
-.fold-num { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: var(--faint); }
+.fold-num { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; color: var(--title-ink); }
 .fold-titles { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.fold-titles .t-en { font-size: 15px; font-weight: 600; letter-spacing: .04em; }
-.fold-titles .t-hans, .fold-titles .t-hant { font-size: 13px; font-weight: 400; color: var(--muted); letter-spacing: .02em; }
+/* The title of a part is the whole of it when the part is folded, so it is
+   set at a size and a weight that can be read from the top of the page. */
+.fold-titles .t-en { font-size: 15.5px; font-weight: 650; letter-spacing: .012em; color: var(--ink); }
+.fold-titles .t-hans, .fold-titles .t-hant { font-size: 16px; font-weight: 550; color: var(--ink); letter-spacing: .03em; }
 html[data-lang="en"] .fold-titles .t-hans, html[data-lang="en"] .fold-titles .t-hant { display: none; }
 html[data-lang="zh-hans"] .fold-titles .t-en, html[data-lang="zh-hant"] .fold-titles .t-en { display: none; }
 .fold-mark { margin-left: auto; display: grid; place-items: center; width: 30px; height: 30px; flex: none;
@@ -289,8 +297,8 @@ body.guide-open { overflow: hidden; }
 .guide-item.is-current .guide-num { color: var(--blue); }
 .guide-num { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--faint); flex: none; }
 .guide-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.guide-text .t-en { font-size: 13.5px; font-weight: 550; letter-spacing: .01em; }
-.guide-text .t-hans, .guide-text .t-hant { font-size: 12px; font-weight: 400; color: var(--faint); letter-spacing: .01em; }
+.guide-text .t-en { font-size: 14px; font-weight: 600; letter-spacing: .01em; color: var(--ink); }
+.guide-text .t-hans, .guide-text .t-hant { font-size: 13.5px; font-weight: 600; color: var(--ink); letter-spacing: .01em; }
 html[data-lang="en"] .guide-text .t-hans, html[data-lang="en"] .guide-text .t-hant { display: none; }
 html[data-lang="zh-hans"] .guide-text .t-en, html[data-lang="zh-hant"] .guide-text .t-en { display: none; }
 /* The small square on the right shows the state of its section: a plus for a
@@ -322,7 +330,8 @@ html[data-lang="zh-hans"] .guide-text .t-en, html[data-lang="zh-hant"] .guide-te
 .nav-links { margin-left: auto; display: flex; gap: 22px; align-items: center;
   min-width: 0; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
 .nav-links::-webkit-scrollbar { display: none; }
-.nav-links a { font-size: 11px; letter-spacing: .1em; color: var(--muted); white-space: nowrap; transition: color .25s; }
+.nav-links a { font-size: 11.5px; letter-spacing: .09em; color: var(--title-ink); font-weight: 500;
+  white-space: nowrap; transition: color .25s; }
 .nav-links a:hover, .nav-links a.active { color: var(--ink); }
 .nav-links a.active { font-weight: 700; }
 .icon-btn { flex: none; display: grid; place-items: center; width: 32px; height: 32px;

@@ -233,8 +233,7 @@ The division of work is on the page itself, under Sources.
   crest is set to close just above the 1.25 m posted limit, and the sea floor
   falls away from the mapped shoreline. `python3 tools/build_tombolo_model.py`
   rebuilds `data/tombolo-model.js` from the cached OSM ways.
-* The sun exposure panel carries a second model, built by `tools/build_sun_model.py`
-  and read from `data/sun-model.js`. The sun is placed with the NOAA solar
+* The sun exposure panel carries a second model. The sun is placed with the NOAA solar
   position algorithm for 13 November 2026 at the island's own latitude and
   longitude, which puts it in the southern sky all morning, 43 to 50 degrees
   above the horizon, swinging from south south east to south south west. The
@@ -272,5 +271,5 @@ The division of work is on the page itself, under Sources.
   entry gives the volume, issue and pages the publisher records.
 * Each section can be folded down to its heading, and the guide panel in the
   navigation bar lists all twelve, marks the one being read, and folds the
-  page down to a single part. Which sections are folded is kept in
-  `localStorage` under `si-folded`.
+  page down to a single part. Which sections are open is kept in
+  `localStorage` under `si-open`.
