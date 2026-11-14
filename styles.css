@@ -541,6 +541,14 @@ html[data-theme="dark"] .i-moon { display: block; }
 .sx-axis { fill: var(--faint); font-size: 9px; letter-spacing: .05em; }
 .sx-end { fill: var(--ink); font-size: 10px; font-weight: 700; letter-spacing: .09em; }
 .sx-saddle { fill: var(--faint); font-size: 9px; letter-spacing: .07em; }
+/* The section is drawn in a 640 by 220 coordinate system, so on a phone every
+   label is scaled to roughly half its size. These sizes are set in user units,
+   which puts them back near ten pixels on screen without redrawing the chart. */
+@media (max-width: 720px) {
+  .sx-axis, .sx-crest, .sx-thresh-label, .sx-saddle { font-size: 15px; letter-spacing: .04em; }
+  .sx-level-label { font-size: 17px; letter-spacing: .05em; }
+  .sx-end { font-size: 17px; letter-spacing: .07em; }
+}
 html[data-theme="dark"] .sx-land { fill: #454431; }
 html[data-theme="dark"] .sx-line { stroke: #8d8a6c; }
 /* the relief is drawn on a canvas with fixed ink, so it is dimmed rather than
