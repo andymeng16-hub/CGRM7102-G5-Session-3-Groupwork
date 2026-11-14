@@ -1204,6 +1204,7 @@
   var SM_MLON = 111320.0 * Math.cos(SM_LAT0 * Math.PI / 180);
   var SM_YAW = -0.36, SM_PITCH = 0.62, SM_EXAG = 3.8;
   var smCtx = null, smCanvas = null, smW = 0, smH = 0, smScale = 1, smOx = 0, smOy = 0;
+  var smOff = null, smOffCtx = null, smBlur = 0.55;
   var smCache = { t: -999, vals: null };
   var smLevels = [10, 20, 30, 40, 50, 60, 70, 80];
   /* the relief is lit by a fixed cartographic light from the north west, the
@@ -1222,13 +1223,17 @@
     var g = SM.grid, nx = g.nx, ny = g.ny, n = nx * ny;
     var z = new Float32Array(n), cover = new Float32Array(n), crown = new Float32Array(n);
     var land = new Uint8Array(n);
+    var table = g.canopyTable || [];
     var zi = 0, ci = 0;
     for (var i = 0; i < n; i++) {
       z[i] = (SB36.indexOf(g.z.charAt(zi)) * 36 + SB36.indexOf(g.z.charAt(zi + 1))) / 4 - 5;
       zi += 2;
-      cover[i] = SB36.indexOf(g.canopy.charAt(ci)) / 35;
-      crown[i] = SB36.indexOf(g.canopy.charAt(ci + 1)) / 2;
-      ci += 2;
+      /* the canopy is stored as a class number, and the table beside it says
+         what cover and crown height the class stands for */
+      var cls = SB36.indexOf(g.canopy.charAt(ci));
+      var row = table[cls] || [0, 0];
+      cover[i] = row[0]; crown[i] = row[1];
+      ci += 1;
     }
     var stride = Math.ceil(nx / 4);
     for (var j = 0; j < ny; j++) {
@@ -1320,8 +1325,11 @@
     return { az: a.az + (b.az - a.az) * f, alt: a.alt + (b.alt - a.alt) * f };
   }
   function smHash(i, j) {
-    var v = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453;
-    return v - Math.floor(v);
+    /* a plain integer hash, so the dapple under the trees is noise and not a
+       weave, which is what the sine of a linear combination gives */
+    var n = ((i | 0) * 73856093) ^ ((j | 0) * 19349663);
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
   }
   function smTone(h) {
     if (h < 2) return [236, 226, 198];
@@ -1357,6 +1365,12 @@
     smCanvas.style.height = smH + 'px';
     smCtx = smCanvas.getContext('2d');
     smCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    /* the ground is drawn on its own layer, so it can be softened before it
+       is laid back over the sea */
+    if (!smOff) smOff = document.createElement('canvas');
+    smOff.width = smW;
+    smOff.height = smH;
+    smOffCtx = smOff.getContext('2d');
 
     /* fit the island into the frame. The fit works in unscaled units, so the
        transform is reset first: the layout runs again whenever the box moves. */
@@ -1396,22 +1410,43 @@
         var c2 = smProject(x2 + h, y2 - h, z11);
         var c3 = smProject(x2 - h, y2 - h, z01);
         var cp = [c0, c1, c2, c3];
+        /* the corners are pushed a fraction of a pixel outwards on the
+           canvas, so that two cells sharing an edge overlap instead of
+           leaving a hairline of sea between them */
+        var ccx = (c0[0] + c1[0] + c2[0] + c3[0]) * 0.25;
+        var ccy = (c0[1] + c1[1] + c2[1] + c3[1]) * 0.25;
+        for (var cq = 0; cq < 4; cq++) {
+          var cdx = cp[cq][0] - ccx, cdy = cp[cq][1] - ccy;
+          var cl = Math.sqrt(cdx * cdx + cdy * cdy) || 1;
+          cp[cq] = [cp[cq][0] + cdx / cl * 0.3, cp[cq][1] + cdy / cl * 0.3];
+        }
         /* the normal, from the neighbouring heights */
         var hx = smHeight(x2 + SUN.step, y2) - smHeight(x2 - SUN.step, y2);
         var hy = smHeight(x2, y2 + SUN.step) - smHeight(x2, y2 - SUN.step);
         var nl = Math.hypot(hx / (2 * SUN.step), hy / (2 * SUN.step), 1);
-        /* the lines of equal height, cut across the cell */
+        /* the lines of equal height, cut across the cell by marching squares.
+           The line crosses the cell between two of its edges, and those two
+           points have to be joined, or the contour comes out in pieces. */
         var seg = [], zc = [z00, z10, z11, z01];
         for (var li = 0; li < smLevels.length; li++) {
           var L = smLevels[li];
+          var cross = [];
           for (var e = 0; e < 4; e++) {
             var ea = e, eb = (e + 1) % 4, za = zc[ea], zb = zc[eb];
             if ((za - L) * (zb - L) < 0) {
               var tf = (L - za) / (zb - za);
               var pa = cp[ea], pb = cp[eb];
-              seg.push([pa[0] + (pb[0] - pa[0]) * tf, pa[1] + (pb[1] - pa[1]) * tf,
-                        pb[0] + (pa[0] - pb[0]) * tf, pb[1] + (pa[1] - pb[1]) * tf, L]);
+              cross.push([pa[0] + (pb[0] - pa[0]) * tf, pa[1] + (pb[1] - pa[1]) * tf]);
             }
+          }
+          if (cross.length === 2) {
+            seg.push([cross[0][0], cross[0][1], cross[1][0], cross[1][1], L]);
+          } else if (cross.length === 4) {
+            /* the saddle, where two lines cross the same cell */
+            var up = SUN.z[k2] > L;
+            var a0 = up ? 0 : 0, a1 = up ? 1 : 3, b0 = up ? 2 : 1, b1 = up ? 3 : 2;
+            seg.push([cross[a0][0], cross[a0][1], cross[a1][0], cross[a1][1], L]);
+            seg.push([cross[b0][0], cross[b0][1], cross[b1][0], cross[b1][1], L]);
           }
         }
         list.push({
@@ -1493,14 +1528,18 @@
     var s = smSunAt(SUN.t);
     var ctx = smCtx;
     ctx.clearRect(0, 0, smW, smH);
-
-    /* the sea */
     var sea = ctx.createLinearGradient(0, 0, smW * 0.55, smH);
     sea.addColorStop(0, '#d5e4ea');
     sea.addColorStop(1, '#a3c0cd');
     ctx.fillStyle = sea;
     ctx.fillRect(0, 0, smW, smH);
 
+    /* The ground is drawn on its own layer and then laid back over the sea
+       with a touch of blur. The cells are seven and a half metres across, and
+       the blur takes the last of the stair off the shoreline and the canopy
+       edge, so the island reads as a surface rather than as a mosaic. */
+    var octx = smOffCtx;
+    octx.clearRect(0, 0, smW, smH);
     var cells = SUN.cells;
     var share = smShareField(s.az, s.alt);
     for (var i = 0; i < cells.length; i++) {
@@ -1534,29 +1573,38 @@
       } else {
         r *= 1.05; g *= 1.02; b *= 0.985;
       }
-      ctx.beginPath();
-      ctx.moveTo(c.p[0][0], c.p[0][1]);
-      ctx.lineTo(c.p[1][0], c.p[1][1]);
-      ctx.lineTo(c.p[2][0], c.p[2][1]);
-      ctx.lineTo(c.p[3][0], c.p[3][1]);
-      ctx.closePath();
-      ctx.fillStyle = 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
-      ctx.fill();
-      /* seal the hairline seam between two cells */
-      ctx.strokeStyle = ctx.fillStyle;
-      ctx.lineWidth = 0.7;
-      ctx.stroke();
+      octx.beginPath();
+      octx.moveTo(c.p[0][0], c.p[0][1]);
+      octx.lineTo(c.p[1][0], c.p[1][1]);
+      octx.lineTo(c.p[2][0], c.p[2][1]);
+      octx.lineTo(c.p[3][0], c.p[3][1]);
+      octx.closePath();
+      octx.fillStyle = 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
+      octx.fill();
     }
 
-    /* the contour lines, over the finished surface */
+    ctx.save();
+    if (smBlur > 0) ctx.filter = 'blur(' + smBlur + 'px)';
+    ctx.drawImage(smOff, 0, 0, smW, smH);
+    ctx.restore();
+
+    /* the contour lines are laid on after the ground, so that the softening
+       of the surface does not take them with it */
     var lines = SUN.contours || [];
-    for (var li = 0; li < lines.length; li++) {
-      var ln = lines[li];
+    for (var pass = 0; pass < 2; pass++) {
+      var major = (pass === 0);
       ctx.beginPath();
-      ctx.moveTo(ln.a[0], ln.a[1]);
-      ctx.lineTo(ln.b[0], ln.b[1]);
-      ctx.strokeStyle = (ln.L % 20 === 0) ? 'rgba(46,52,40,.50)' : 'rgba(46,52,40,.24)';
-      ctx.lineWidth = (ln.L % 20 === 0) ? 1.1 : 0.7;
+      var any = false;
+      for (var li = 0; li < lines.length; li++) {
+        var ln = lines[li];
+        if ((ln.L % 20 === 0) !== major) continue;
+        ctx.moveTo(ln.a[0], ln.a[1]);
+        ctx.lineTo(ln.b[0], ln.b[1]);
+        any = true;
+      }
+      if (!any) continue;
+      ctx.strokeStyle = major ? 'rgba(44,50,38,.62)' : 'rgba(44,50,38,.36)';
+      ctx.lineWidth = major ? 1.1 : 0.8;
       ctx.stroke();
     }
 

@@ -67,7 +67,7 @@ SEG_LEN = 20.0                # metres of path assessed at each point
 SEG_SAMPLES = 11
 WALK_HEIGHT = 1.0             # the ray starts one metre above the ground
 CROWN_R = 3.5                 # a mature evergreen broadleaf crown, metres across
-MODEL_STEP = 15.0             # the model grid, metres
+MODEL_STEP = 7.5              # the model grid, metres
 CORRIDOR = 22.0               # how far the formation reaches from the path
 
 # formation, canopy height above ground, and the share of ground the crowns
@@ -101,7 +101,7 @@ CLASS_OF_TAG = [
 
 # the model window: the island's bounding box plus a margin
 WIN_X0, WIN_X1 = -300.0, 1200.0
-WIN_Y0, WIN_Y1 = -1400.0, 1250.0
+WIN_Y0, WIN_Y1 = -1400.0, 1247.5
 
 
 # --- solar geometry (NOAA) ------------------------------------------------
@@ -171,6 +171,37 @@ def in_poly(x, y, poly):
     return inside
 
 
+def in_poly_many(xs, ys, poly):
+    """The same test for a whole grid of points, done with numpy.
+
+    The model grid is seventy thousand cells and every mapped polygon has to
+    be tested against all of them, so the loop is far too slow. The crossing
+    test is vectorised over blocks of edges, which keeps the temporaries to a
+    few megabytes.
+    """
+    rx = np.array([p[0] for p in poly], dtype=float)
+    ry = np.array([p[1] for p in poly], dtype=float)
+    if rx[0] != rx[-1] or ry[0] != ry[-1]:
+        rx = np.append(rx, rx[0])
+        ry = np.append(ry, ry[0])
+    ne = len(rx) - 1
+    X = xs[None, :, None]
+    Y = ys[:, None, None]
+    acc = np.zeros((len(ys), len(xs)), dtype=np.int32)
+    blk = 16
+    for k0 in range(0, ne, blk):
+        k1 = min(ne, k0 + blk)
+        y1 = ry[k0:k1][None, None, :]
+        y2 = ry[k0 + 1:k1 + 1][None, None, :]
+        x1 = rx[k0:k1][None, None, :]
+        x2 = rx[k0 + 1:k1 + 1][None, None, :]
+        straddle = (y1 > Y) != (y2 > Y)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            xint = x1 + (Y - y1) * (x2 - x1) / (y2 - y1 + 1e-12)
+        acc += (straddle & (X < xint)).sum(axis=2)
+    return (acc % 2) == 1
+
+
 # --- loading --------------------------------------------------------------
 def load_dem():
     with open(os.path.join(TOOLS, "dem30_cache.json")) as fh:
@@ -198,21 +229,47 @@ def island_ring():
 
 
 def build_grid(dem, ring):
-    """The model grid: fifteen metres, the island's bounding box plus a margin."""
+    """The model grid: seven and a half metres, the island's bounding box plus
+    a margin. Seven and a half metres is the finest the browser can draw
+    without the cells themselves becoming the picture."""
     nx = int(round((WIN_X1 - WIN_X0) / MODEL_STEP))
     ny = int(round((WIN_Y1 - WIN_Y0) / MODEL_STEP))
-    xs = [WIN_X0 + (i + 0.5) * MODEL_STEP for i in range(nx)]
-    ys = [WIN_Y1 - (j + 0.5) * MODEL_STEP for j in range(ny)]
+    xs = np.array([WIN_X0 + (i + 0.5) * MODEL_STEP for i in range(nx)])
+    ys = np.array([WIN_Y1 - (j + 0.5) * MODEL_STEP for j in range(ny)])
 
-    z = np.zeros((ny, nx))
-    land = np.zeros((ny, nx), dtype=bool)
-    for j in range(ny):
-        for i in range(nx):
-            z[j, i] = sample_dem(dem, xs[i], ys[j]) or 0.0
-            land[j, i] = in_poly(xs[i], ys[j], ring)
+    z = sample_dem_grid(dem, xs, ys)
+    land = in_poly_many(xs, ys, ring)
     z = smooth_relief(z, land)
     return {"nx": nx, "ny": ny, "step": MODEL_STEP, "x0": WIN_X0, "y0": WIN_Y0,
             "xs": xs, "ys": ys, "z": z, "land": land}
+
+
+def sample_dem_grid(dem, xs, ys):
+    """Bilinear sample of the 30 m elevation over a whole grid of points."""
+    ny, nx = dem["ny"], dem["nx"]
+    fx = (xs[None, :] - dem["cx"]) / dem["dx"] + (nx - 1) * 0.5
+    fy = (ny - 1) * 0.5 - (ys[:, None] - dem["cy"]) / dem["dy"]
+    x0 = np.clip(np.floor(fx).astype(int), 0, nx - 1)
+    y0 = np.clip(np.floor(fy).astype(int), 0, ny - 1)
+    x1 = np.minimum(x0 + 1, nx - 1)
+    y1 = np.minimum(y0 + 1, ny - 1)
+    tx = fx - x0
+    ty = fy - y0
+    z = dem["z"]
+    return (z[y0, x0] * (1 - tx) * (1 - ty) + z[y0, x1] * tx * (1 - ty) +
+            z[y1, x0] * (1 - tx) * ty + z[y1, x1] * tx * ty)
+
+
+def _shift(a, dj, di):
+    """The array moved by one cell in each direction, without wrapping."""
+    out = np.zeros_like(a)
+    h, w = a.shape
+    ys = slice(max(0, -dj), h - max(0, dj))
+    xs = slice(max(0, -di), w - max(0, di))
+    yd = slice(max(0, dj), h - max(0, -dj))
+    xd = slice(max(0, di), w - max(0, -di))
+    out[yd, xd] = a[ys, xs]
+    return out
 
 
 def smooth_relief(z, land):
@@ -226,22 +283,18 @@ def smooth_relief(z, land):
     out = z.copy()
     for _ in range(2):
         prev = out
-        out = z.copy()
-        for j in range(1, z.shape[0] - 1):
-            for i in range(1, z.shape[1] - 1):
-                if not land[j, i]:
-                    continue
-                acc, n = 0.0, 0
-                for dj in (-1, 0, 1):
-                    for di in (-1, 0, 1):
-                        jj, ii = j + dj, i + di
-                        if not land[jj, ii]:
-                            continue
-                        w = 4.0 if (dj == 0 and di == 0) else (2.0 if dj == 0 or di == 0 else 1.0)
-                        acc += prev[jj, ii] * w
-                        n += w
-                if n:
-                    out[j, i] = acc / n
+        acc = np.zeros_like(out)
+        wsum = np.zeros_like(out)
+        for dj in (-1, 0, 1):
+            for di in (-1, 0, 1):
+                w = 4.0 if (dj == 0 and di == 0) else (2.0 if dj == 0 or di == 0 else 1.0)
+                here = _shift(prev, dj, di)
+                near = _shift(land, dj, di)
+                take = near & land
+                acc += np.where(take, here * w, 0.0)
+                wsum += np.where(take, w, 0.0)
+        blended = np.where(wsum > 0, acc / np.maximum(wsum, 1e-9), prev)
+        out = np.where(land, blended, prev)
     return out
 
 
@@ -267,6 +320,7 @@ def load_osm_canopy(grid):
     cover = np.zeros((grid["ny"], grid["nx"]))
     crown = np.zeros((grid["ny"], grid["nx"]))
     rank = np.zeros((grid["ny"], grid["nx"]), dtype=int)
+    xs, ys = grid["xs"], grid["ys"]
     for el in d["elements"]:
         tags = el.get("tags", {})
         kind = None
@@ -280,16 +334,21 @@ def load_osm_canopy(grid):
         if len(geom) < 4:
             continue
         poly = [to_local(p["lon"], p["lat"]) for p in geom]
-        for j in range(grid["ny"]):
-            y = grid["ys"][j]
-            for i in range(grid["nx"]):
-                x = grid["xs"][i]
-                if rank[j, i] >= CLASS_RANK[kind]:
-                    continue
-                if in_poly(x, y, poly):
-                    rank[j, i] = CLASS_RANK[kind]
-                    cover[j, i] = CLASS_COVER[kind]
-                    crown[j, i] = CLASS_CROWN[kind]
+        px = np.array([p[0] for p in poly])
+        py = np.array([p[1] for p in poly])
+        # only the cells the polygon could possibly reach
+        i0 = max(0, int(np.floor((px.min() - WIN_X0) / MODEL_STEP)) - 1)
+        i1 = min(grid["nx"] - 1, int(np.ceil((px.max() - WIN_X0) / MODEL_STEP)) + 1)
+        j0 = max(0, int(np.floor((WIN_Y1 - py.max()) / MODEL_STEP)) - 1)
+        j1 = min(grid["ny"] - 1, int(np.ceil((WIN_Y1 - py.min()) / MODEL_STEP)) + 1)
+        if i0 > i1 or j0 > j1:
+            continue
+        hit = in_poly_many(xs[i0:i1 + 1], ys[j0:j1 + 1], poly)
+        cur = rank[j0:j1 + 1, i0:i1 + 1]
+        take = hit & (cur < CLASS_RANK[kind])
+        cover[j0:j1 + 1, i0:i1 + 1] = np.where(take, CLASS_COVER[kind], cover[j0:j1 + 1, i0:i1 + 1])
+        crown[j0:j1 + 1, i0:i1 + 1] = np.where(take, CLASS_CROWN[kind], crown[j0:j1 + 1, i0:i1 + 1])
+        rank[j0:j1 + 1, i0:i1 + 1] = np.where(take, CLASS_RANK[kind], cur)
     return cover, crown
 
 
@@ -404,7 +463,7 @@ def main():
     ring = island_ring()
     grid = build_grid(dem, ring)
     grid["dem"] = dem
-    print("model grid %d x %d at %.0f m, land cells %d of %d"
+    print("model grid %d x %d at %g m, land cells %d of %d"
           % (grid["nx"], grid["ny"], MODEL_STEP, int(grid["land"].sum()),
              grid["ny"] * grid["nx"]))
 
@@ -488,11 +547,12 @@ def main():
     # --- write the data file ---------------------------------------------
     zchars = "".join(b36(round((float(grid["z"][j, i]) + 5) * 4))
                      for j in range(grid["ny"]) for i in range(grid["nx"]))
-    cchars = ""
-    for j in range(grid["ny"]):
-        for i in range(grid["nx"]):
-            cchars += B36[min(35, int(round(cover[j, i] * 35)))]
-            cchars += B36[min(35, int(round(crown[j, i] * 2)))]
+    # the canopy takes a small number of distinct shapes, so the cells hold a
+    # class number and the table beside them says what the class means
+    stacked = np.stack([cover.ravel(), crown.ravel()], axis=1)
+    uniq, inv = np.unique(stacked, axis=0, return_inverse=True)
+    ctable = [[float(a), float(b)] for a, b in uniq]
+    cchars = "".join(B36[i] for i in inv.tolist())
     land = ""
     for j in range(grid["ny"]):
         bits = 0
@@ -506,7 +566,7 @@ def main():
             "date": "13 November 2026",
             "zone": "HKT, UTC+8",
             "lat": LAT0, "lon": LON0,
-            "dem": "CGIAR SRTM 30 m via OpenTopoData, sampled onto a 15 m grid",
+            "dem": "CGIAR SRTM 30 m via OpenTopoData, sampled onto a 7.5 m grid",
             "canopy": "OpenStreetMap natural=wood and natural=scrub with the group's own vegetation map along the path. ODbL 1.0.",
             "method": "The sun is placed with the NOAA position algorithm. Every cell is tested for whether the ray towards the sun is blocked by terrain or by canopy, and the share of sun that gets through is worked out from the canopy density.",
             "walkHeight": WALK_HEIGHT,
@@ -519,6 +579,7 @@ def main():
             "x0": grid["x0"], "y0": grid["y0"],
             "lat0": LAT0 + WIN_Y0 / M_LAT, "lon0": LON0 + WIN_X0 / M_LON,
             "z": zchars, "canopy": cchars, "land": land,
+            "canopyTable": ctable,
         },
         "sun": track,
         "route": [[round(c[1], 6), round(c[0], 6)] for c in route],

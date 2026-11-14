@@ -211,9 +211,9 @@ The division of work is on the page itself, under Sources.
   position algorithm for 13 November 2026 at the island's own latitude and
   longitude, which puts it in the southern sky all morning, 43 to 50 degrees
   above the horizon, swinging from south south east to south south west. The
-  ground is CGIAR SRTM 30 m elevation resampled onto a fifteen metre grid and
-  smoothed twice, because thirty metre data puts a whole cliff into one cell
-  and reads as a spike rather than a slope. The canopy is the mapped
+  ground is CGIAR SRTM 30 m elevation resampled onto a seven and a half metre
+  grid and smoothed twice, because thirty metre data puts a whole cliff into
+  one cell and reads as a spike rather than a slope. The canopy is the mapped
   OpenStreetMap woodland and scrub, plus the group's own vegetation map along
   the corridor, since OSM tags the whole middle of the island as one scrub
   polygon and the route never enters a mapped woodland polygon at all. A ray
@@ -225,7 +225,11 @@ The division of work is on the page itself, under Sources.
   the field record at all eight observation points. The browser re-runs the same
   march on every cell to draw the shadows, and the gold ring around each
   numbered point is read from the model's own table, so the picture and the
-  numbers come from one computation.
+  numbers come from one computation. The ground is drawn on its own layer and
+  laid back over the sea with a light blur, which takes the last of the stair
+  off the shoreline and the canopy edge. The contour lines are cut by marching
+  squares and drawn over the finished surface, so they come out as lines
+  rather than as pieces.
 * The canopy geometry in `data/sun-model.js` is © OpenStreetMap contributors,
   released under ODbL 1.0, and the page credits it under the section.
 * The OSM geometry in `data/tombolo-model.js` is © OpenStreetMap contributors,
