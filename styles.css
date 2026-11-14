@@ -50,6 +50,18 @@
   --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont,
                   "PingFang SC", "DengXian Light", "DengXian",
                   "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  /* The title is printed rather than rendered. A carver cutting a block
+     works in a high-contrast serif: Songti for the Chinese, an old-style
+     Didone for the Latin. These are the faces that carry the bitten edge
+     of ink on paper. */
+  --font-print: "Songti TC", "Songti SC", STSong, "LiSong Pro", "SimSun",
+                "Yu Mincho", "Source Han Serif SC", "Noto Serif CJK SC", serif;
+  --font-print-en: "Iowan Old Style", "Hoefler Text", Baskerville, "Big Caslon",
+                   "Times New Roman", Georgia, serif;
+  /* The impression: a hairline of light under the stroke and a soft shade
+     over it, so the letters sit down into the paper. */
+  --press-hi: rgba(255,255,255,.92);
+  --press-lo: rgba(0,0,0,.07);
 }
 
 html[data-theme="dark"] {
@@ -86,6 +98,8 @@ html[data-theme="dark"] {
   --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
   --shadow-md: 0 10px 34px rgba(0,0,0,.5);
   --shadow-lg: 0 28px 80px rgba(0,0,0,.7);
+  --press-hi: rgba(255,255,255,.18);
+  --press-lo: rgba(0,0,0,.55);
 }
 
 * { box-sizing: border-box; }
@@ -205,16 +219,18 @@ i { font-style: normal; color: var(--faint); font-size: .82em; margin-left: 4px;
    the only thing left when the section is folded, so the page can be read
    as a list of parts and opened where it is wanted. */
 .fold-bar { display: flex; width: min(var(--max), calc(100% - 48px)); margin-inline: auto;
-  align-items: center; gap: 16px; padding: 15px 0; text-align: left; color: var(--ink);
+  align-items: center; gap: 16px; padding: 17px 0; text-align: left; color: var(--ink);
   border: 0; background: none; font: inherit; transition: color .25s; }
 .fold-bar:hover { color: var(--blue); }
 .section { position: relative; }
-.section.is-folded { padding: 0; }
+/* A folded part is only a line in the table of contents, so it takes the
+   page colour rather than the panel colour of the part it would have been. */
+.section.is-folded { padding: 0; background: none; }
 .section.is-folded .fold-body { display: none; }
-/* A folded section is just a line of text between two rules, the same
-   weight as the rule that separates two open sections. */
-.section.is-folded .fold-bar { border-top: 1px solid var(--line-soft); }
-.section.is-folded:last-of-type .fold-bar { border-bottom: 1px solid var(--line-soft); }
+/* The rule between two parts is drawn on the section itself, so it does not
+   double up when a part is folded. Open, the bar becomes that rule: the
+   number of the part at one end, the control that closes it at the other. */
+.section:not(.is-folded) .fold-bar { padding: 0 0 14px; border-bottom: 1px solid var(--line-soft); }
 .fold-num { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: var(--faint); }
 .fold-titles { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .fold-titles .t-en { font-size: 15px; font-weight: 600; letter-spacing: .04em; }
@@ -228,8 +244,9 @@ html[data-lang="zh-hans"] .fold-titles .t-en, html[data-lang="zh-hant"] .fold-ti
    quiet handle at the top. Folded, it becomes the heading itself. */
 .fold-bar .fold-titles { opacity: 0; height: 0; overflow: hidden; }
 .section.is-folded .fold-bar .fold-titles { opacity: 1; height: auto; overflow: visible; }
-.section.is-folded .fold-bar { padding: 15px 0; }
-.fold-mark svg { transition: transform .3s var(--ease); }
+/* Folded, the arrow points along the row; open, it points back up, the way
+   the part closes again. */
+.fold-mark svg { transition: transform .3s var(--ease); transform: rotate(180deg); }
 .section.is-folded .fold-mark svg { transform: rotate(-90deg); }
 
 /* ---------- the guide panel ---------- */
@@ -264,16 +281,22 @@ body.guide-open { overflow: hidden; }
 .guide-text .t-hans, .guide-text .t-hant { font-size: 12px; font-weight: 400; color: var(--faint); letter-spacing: .01em; }
 html[data-lang="en"] .guide-text .t-hans, html[data-lang="en"] .guide-text .t-hant { display: none; }
 html[data-lang="zh-hans"] .guide-text .t-en, html[data-lang="zh-hant"] .guide-text .t-en { display: none; }
-/* The small square on the right folds one section without leaving the panel. */
+/* The small square on the right shows the state of its section: a plus for a
+   part that is folded away, a filled minus for the one that is open. Only
+   the open part is marked in colour, so the panel reads as one blue step in
+   a list of twelve. */
 .guide-fold { flex: none; width: 20px; height: 20px; border: 1px solid var(--line); border-radius: 6px;
   background: var(--surface); position: relative; transition: border-color .25s, background .25s; }
 .guide-fold::before, .guide-fold::after { content: ""; position: absolute; inset: 50% 5px auto; height: 1px;
   background: var(--muted); transform: translateY(-50%); }
 .guide-fold::after { transform: translateY(-50%) rotate(90deg); transition: transform .25s; }
 .guide-fold:hover { border-color: var(--faint); }
-.guide-fold.is-folded { background: var(--blue); border-color: var(--blue); }
-.guide-fold.is-folded::before { background: #fff; }
-.guide-fold.is-folded::after { background: #fff; transform: translateY(-50%) rotate(0deg); }
+.guide-fold.is-folded { background: var(--surface); border-color: var(--line); }
+.guide-fold.is-folded::before { background: var(--muted); }
+.guide-fold.is-folded::after { background: var(--muted); transform: translateY(-50%) rotate(90deg); }
+.guide-fold:not(.is-folded) { background: var(--blue); border-color: var(--blue); }
+.guide-fold:not(.is-folded)::before { background: #fff; }
+.guide-fold:not(.is-folded)::after { background: #fff; transform: translateY(-50%) rotate(0deg); }
 .guide-foot { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line-soft);
   font-size: 11px; line-height: 1.6; color: var(--faint); }
 
@@ -309,7 +332,28 @@ html[data-theme="dark"] .i-moon { display: block; }
 /* ---------- hero ---------- */
 .hero { padding-top: clamp(70px, 9vw, 118px); padding-bottom: clamp(70px, 9vw, 120px); }
 .hero-copy { max-width: 940px; }
-.hero h1 { letter-spacing: .018em; }
+/* The title is the one piece of type on the page that is printed rather
+   than rendered: a high-contrast serif, inked down into the paper. The two
+   lines are set on separate blocks so the second can be indented the way a
+   compositor would indent it. */
+.hero h1 {
+  font-family: var(--font-print-en);
+  font-weight: 400;
+  letter-spacing: .006em;
+  line-height: 1.06;
+  text-shadow: 0 1px 0 var(--press-hi), 0 -1px 0 var(--press-lo),
+               0 20px 44px rgba(0,0,0,.045);
+}
+.hero h1 .t-en { font-family: var(--font-print-en); letter-spacing: .016em; }
+.hero h1 .t-hans, .hero h1 .t-hant {
+  font-family: var(--font-print);
+  font-weight: 700;
+  font-size: .74em;
+  letter-spacing: .09em;
+  line-height: 1.26;
+}
+.hero h1 .l1, .hero h1 .l2 { display: block; }
+.hero h1 .l2 { padding-left: .34em; }
 .hero-tag { margin-top: 18px; font-size: clamp(1rem, 1.8vw, 1.3rem); color: var(--faint); letter-spacing: .12em; }
 .lede { margin: 26px 0 0; max-width: 680px; font-size: clamp(1.05rem, 1.7vw, 1.3rem); line-height: 1.55; color: var(--muted); text-wrap: pretty; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
@@ -851,7 +895,8 @@ body.no-scroll { overflow: hidden; }
   .lang-btn { padding: 4px 7px; font-size: 9px; }
   .nav-links { gap: 13px; }
   .nav-links a { font-size: 10px; }
-  .brand { flex: none; }
+  .brand { flex: none; font-size: 12.5px; letter-spacing: .06em; }
+  .brand .t-hans, .brand .t-hant { font-size: 12px; }
   /* eight links will not fit a phone, so the three the page can live without go */
   .nav-links a:nth-child(2), .nav-links a:nth-child(5), .nav-links a:nth-child(7) { display: none; }
   .hero { padding-top: 54px; }
@@ -916,6 +961,13 @@ body.no-scroll { overflow: hidden; }
   .lightbox { padding: 56px 16px 70px; }
   .lb-nav { width: 38px; height: 38px; }
   .lb-prev { left: 8px; } .lb-next { right: 8px; }
+}
+
+/* On the narrowest phones the bar cannot carry the name of the guide as
+   well as its mark, so the mark is left on its own. */
+@media (max-width: 460px) {
+  .nav-guide { width: 32px; padding: 0; justify-content: center; }
+  .nav-guide .t-en, .nav-guide .t-hans, .nav-guide .t-hant { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

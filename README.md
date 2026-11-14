@@ -8,6 +8,8 @@ of the sandbar the tide takes away, and a three dimensional model of the island
 with the real sun of that day casting its shadows.
 
 The site is a static website. No build step, no package manager, no framework.
+The guide runs as an accordion, one part open at a time, and the title at the
+head of the page is set as a letterpress.
 
 中文简介：本仓库是中国香港西贡桥咀洲一条连续步行路线的地理信息式实地导览，
 内容全部来自小组 2026 年 11 月 13 日的实地考察，共八个观察点、六十六张照片、
@@ -132,15 +134,31 @@ ten of different sizes.
 The guide runs to about twenty-two thousand pixels, which is a long scroll for
 a phone. Two things shorten it.
 
-Every section has a bar at its head carrying its number and title. Clicking the
-bar folds the section away to that one line, and clicking it again opens it
-again. The page becomes a table of the twelve parts, and the reader opens only
-the one they came for.
+Every section has a bar at its head carrying its number and title. The guide is
+an accordion: opening a section folds the other eleven away, so the page is
+always the table of the twelve parts with one of them open under it. Clicking
+the bar of the open section closes it as well, and the whole guide folds down
+to nothing. The rule holds wherever a section is opened from, whether that is
+its own bar, the small square beside its name in the guide panel, a chip under
+the title, a link in the navigation bar, or a link in the text, and a link that
+names a section opens it before it goes there.
 
-The guide panel in the navigation bar lists all twelve with a fold button
-beside each one, marks the section currently being read, and offers to expand
-or fold everything at once. Which sections are folded is remembered in
-`localStorage` under `si-folded`, so the page comes back the way it was left.
+The guide panel in the navigation bar lists all twelve with a button beside each
+one, marks the section currently being read, and offers to expand or fold
+everything at once. Which sections are open is remembered in `localStorage`
+under `si-open`, so the page comes back the way it was left. The first time the
+page is opened it starts with the tide table and the other eleven folded away.
+
+## The title
+
+The heading at the top of the page is the one piece of type that is printed
+rather than rendered. The Chinese is set in Songti and the Latin in an
+old-style serif, the pair a carver cutting a block would have used, and the
+second line is indented the way a compositor would indent it. A hairline of
+light under the stroke and a soft shade over it press the letters down into
+the paper, so the title reads as an impression rather than as a screen font.
+The rest of the page stays in the modern sans, which is what makes the
+difference between the two read.
 
 ## The survey
 

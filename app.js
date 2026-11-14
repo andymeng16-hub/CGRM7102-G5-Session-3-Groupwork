@@ -946,8 +946,12 @@
   }
 
   function tbLayout() {
+    /* A folded part has no box to measure, and the relief is expensive to
+       rebuild, so the last good size is kept until the part is opened. */
+    var w = tbC.clientWidth, h = tbC.clientHeight;
+    if (!w || !h) return;
     tbDpr = Math.min(window.devicePixelRatio || 1, 2);
-    tbW = tbC.clientWidth || 900; tbH = tbC.clientHeight || 480;
+    tbW = w; tbH = h;
     tbC.width = Math.round(tbW * tbDpr); tbC.height = Math.round(tbH * tbDpr);
     tbCtx.setTransform(tbDpr, 0, 0, tbDpr, 0, 0);
     tbWash.width = Math.round(tbW); tbWash.height = Math.round(tbH);
@@ -1357,7 +1361,12 @@
     if (!smCanvas) return;
     var host = smCanvas.parentNode;
     var dpr = Math.min(2, window.devicePixelRatio || 1);
-    smW = host.clientWidth;
+    var w = host.clientWidth;
+    /* A folded section has no width to measure, and a canvas with nothing in
+       it cannot be drawn into, so the last good size is kept until the part
+       is opened again. */
+    if (!w) return;
+    smW = w;
     var pad = smW < 640 ? 18 : 40;
     smH = Math.round(smW * (smW < 640 ? 0.85 : 0.44));
     smCanvas.width = Math.round(smW * dpr);
@@ -1524,7 +1533,7 @@
   }
 
   function smRender() {
-    if (!SUN.ready || !smCtx) return;
+    if (!SUN.ready || !smCtx || !smW || !smH) return;
     var s = smSunAt(SUN.t);
     var ctx = smCtx;
     ctx.clearRect(0, 0, smW, smH);
@@ -2158,8 +2167,9 @@
   /* ------------------------------------------------------------------ */
   /* The guide runs to a long scroll. Each section can be folded down to
      its heading, so a reader who wants one part of the guide does not have
-     to pass through the other eleven. Which sections are folded is kept in
-     local storage, so the choice survives a reload. */
+     to pass through the other eleven. Only one part is open at a time:
+     opening a section folds the rest of the guide away. Which parts are
+     open is kept in local storage, so the choice survives a reload. */
   var SECTIONS = [
     { id: 'tide',       num: '01', en: 'The sandbar has a schedule', zh: '连岛沙洲时间表' },
     { id: 'map',        num: '02', en: 'Map and route',               zh: '地图与路线' },
@@ -2174,23 +2184,33 @@
     { id: 'advice',     num: '11', en: 'Before the boat',              zh: '登船之前' },
     { id: 'survey',     num: '12', en: 'How we know',                  zh: '资料依据' }
   ];
-  var FOLD_KEY = 'si-folded';
+  var FOLD_KEY = 'si-open';
 
-  function foldedIds() {
-    try {
-      var raw = localStorage.getItem(FOLD_KEY);
-      if (!raw) return [];
-      var list = JSON.parse(raw);
-      return Array.isArray(list) ? list : [];
-    } catch (e) { return []; }
+  /* The guide runs as an accordion. One part of the guide is open at a
+     time: opening a part folds the other eleven away, so a reader who
+     wants one thing does not have to pass through the other eleven. The
+     parts that are open are kept in local storage, so the choice survives
+     a reload. An empty list means the whole guide is folded away; no list
+     at all means the reader has not chosen anything yet. */
+  function readOpen() {
+    var raw = null;
+    try { raw = localStorage.getItem(FOLD_KEY); } catch (e) {}
+    if (raw === null) return null;
+    if (raw === 'none') return [];
+    return raw.split(',').filter(function (x) { return isSection(x); });
   }
-  function saveFolded(list) {
-    try { localStorage.setItem(FOLD_KEY, JSON.stringify(list)); } catch (e) {}
+  function writeOpen(list) {
+    try { localStorage.setItem(FOLD_KEY, list.length ? list.join(',') : 'none'); } catch (e) {}
+  }
+  /* Is this part of the guide standing open right now? */
+  function isOpen(id) {
+    var list = readOpen();
+    return !!list && list.indexOf(id) >= 0;
   }
 
-  /* Each section gets a heading bar it can be folded behind. The bar carries
-     the section number, its title in both languages, and a chevron that
-     turns into a plus when the section is closed. */
+  /* Each section gets a bar it can be folded behind. The bar sits at the
+     top of the section, so a folded guide reads as a list of parts and the
+     open one can be closed again from its own heading. */
   function buildFoldHeads() {
     SECTIONS.forEach(function (s) {
       var sec = document.getElementById(s.id);
@@ -2217,13 +2237,19 @@
       body.className = 'fold-body';
       body.id = s.id + '-body';
       while (sec.firstChild) body.appendChild(sec.firstChild);
-      sec.appendChild(body);
       sec.appendChild(bar);
+      sec.appendChild(body);
       expandHant(bar);
     });
   }
 
-  function setFolded(id, folded) {
+  /* Is this one of the twelve parts of the guide? */
+  function isSection(id) {
+    for (var i = 0; i < SECTIONS.length; i++) if (SECTIONS[i].id === id) return true;
+    return false;
+  }
+  /* Write the folded state of one section into the page. */
+  function applyFoldDom(id, folded) {
     var sec = document.getElementById(id);
     if (!sec) return;
     var body = document.getElementById(id + '-body');
@@ -2232,37 +2258,82 @@
     body.hidden = folded;
     bar.setAttribute('aria-expanded', folded ? 'false' : 'true');
     sec.classList.toggle('is-folded', folded);
-    var list = foldedIds().filter(function (x) { return x !== id; });
-    if (folded) list.push(id);
-    saveFolded(list);
+  }
+
+  /* Open one part of the guide and fold the other eleven away. This is the
+     rule the whole page runs on: a part is either the one being read, or a
+     line in the table of contents. */
+  function openOnly(id) {
+    SECTIONS.forEach(function (s) { applyFoldDom(s.id, s.id !== id); });
+    writeOpen([id]);
     syncGuideState();
-    /* A folded section changes the height of the page, so the map and the
-       tide model have to be told that their canvases moved. */
-    if (typeof queueRedraw === 'function') queueRedraw();
-    if (typeof drawTombolo === 'function') drawTombolo();
+    relayoutSection(id);
+  }
+  /* Fold a part away. If it was the last one standing open, the guide closes
+     as a whole, which is the same state the panel's FOLD ALL button gives. */
+  function closeOne(id) {
+    var list = readOpen() || [];
+    list = list.filter(function (x) { return x !== id; });
+    SECTIONS.forEach(function (s) { applyFoldDom(s.id, list.indexOf(s.id) < 0); });
+    writeOpen(list);
+    syncGuideState();
+  }
+  /* The bar of a part opens it; the bar of the open part closes it. */
+  function toggleFold(id) {
+    if (isOpen(id)) closeOne(id);
+    else openOnly(id);
+  }
+  /* Any link that names a part of the guide opens that part first and then
+     goes to it, so a reader who follows a link never lands on a heading
+     that is folded shut. */
+  function openAndScroll(id) {
+    if (!isOpen(id)) openOnly(id);
+    var sec = document.getElementById(id);
+    if (!sec) return;
+    var navH = 56;
+    try {
+      navH = parseFloat(getComputedStyle(document.documentElement)
+        .getPropertyValue('--nav-h')) || navH;
+    } catch (e) {}
+    var y = sec.getBoundingClientRect().top + window.pageYOffset - navH - 12;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
   }
 
   function applyFoldState() {
-    var list = foldedIds();
-    SECTIONS.forEach(function (s) { setFoldedSilently(s.id, list.indexOf(s.id) >= 0); });
-  }
-  function setFoldedSilently(id, folded) {
-    var sec = document.getElementById(id);
-    if (!sec) return;
-    var body = document.getElementById(id + '-body');
-    var bar = sec.querySelector('.fold-bar');
-    if (!body || !bar) return;
-    body.hidden = folded;
-    bar.setAttribute('aria-expanded', folded ? 'false' : 'true');
-    sec.classList.toggle('is-folded', folded);
+    var list = readOpen();
+    if (list === null) {
+      /* First visit: the guide opens with its first part and the rest folded
+         away, so the page is short and every part is one click away. */
+      list = ['tide'];
+      writeOpen(list);
+    }
+    SECTIONS.forEach(function (s) { applyFoldDom(s.id, list.indexOf(s.id) < 0); });
+    syncGuideState();
   }
 
+  /* The panel can put the whole guide away, or lay every part out at once
+     for a reader who wants to read straight through. */
   function allFolded(folded) {
-    SECTIONS.forEach(function (s) { setFoldedSilently(s.id, folded); });
-    saveFolded(folded ? SECTIONS.map(function (s) { return s.id; }) : []);
+    var list = folded ? [] : SECTIONS.map(function (s) { return s.id; });
+    SECTIONS.forEach(function (s) { applyFoldDom(s.id, folded); });
+    writeOpen(list);
     syncGuideState();
+    if (!folded) relayoutAll();
+  }
+
+  /* A section that was folded had its canvas measured at nothing, so the
+     part that has just been opened is measured again before it is drawn. */
+  function relayoutSection(id) {
+    if (id === 'map') { sizeCanvas(); drawTileMap(); }
+    else if (id === 'tombolo') { tbLayout(); }
+    else if (id === 'shade' && SUN.ready) { smLayout(); }
     if (typeof queueRedraw === 'function') queueRedraw();
-    if (typeof drawTombolo === 'function') drawTombolo();
+  }
+  /* When the whole guide is laid out at once, every drawing is measured. */
+  function relayoutAll() {
+    relayoutSection('map');
+    relayoutSection('tombolo');
+    relayoutSection('shade');
   }
 
   /* ------------------------------------------------------------------ */
@@ -2277,18 +2348,18 @@
       return '<a class="guide-item" href="#' + s.id + '" data-guide="' + s.id + '">' +
         '<span class="guide-num" aria-hidden="true">' + s.num + '</span>' +
         '<span class="guide-text">' + bi(s.en, s.zh) + '</span>' +
-        '<span class="guide-fold" data-fold-toggle="' + s.id + '" role="button" tabindex="0" aria-label="Fold this section"></span>' +
+        '<span class="guide-fold" data-fold-toggle="' + s.id + '" role="button" tabindex="0" aria-label="Open or close this section"></span>' +
       '</a>';
     }).join('');
     expandHant(list);
   }
 
   function syncGuideState() {
-    var folded = foldedIds();
+    var list = readOpen() || [];
     SECTIONS.forEach(function (s) {
       var mark = document.querySelector('[data-fold-toggle="' + s.id + '"]');
       if (!mark) return;
-      var on = folded.indexOf(s.id) >= 0;
+      var on = list.indexOf(s.id) < 0;
       mark.classList.toggle('is-folded', on);
       mark.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
@@ -2356,24 +2427,34 @@
     var collapse = $('#guideCollapseAll');
     if (collapse) collapse.addEventListener('click', function () { allFolded(true); });
 
-    /* Clicking a section in the guide folds or unfolds it without leaving
-       the panel, so a reader can clear the page down to one part. */
+    /* One handler for every way into a part of the guide: the bar at the top
+       of each part, the small square in the panel, the panel list itself,
+       the index of sections under the title, the two buttons in the hero
+       and the links in the bar at the top of the page. Opening a part folds
+       the other eleven away, and a link that names a part goes to it. */
     document.addEventListener('click', function (e) {
       var foldBtn = e.target.closest('[data-fold-toggle]');
       if (foldBtn) {
         e.preventDefault();
         e.stopPropagation();
-        var id = foldBtn.getAttribute('data-fold-toggle');
-        setFolded(id, foldedIds().indexOf(id) < 0);
+        toggleFold(foldBtn.getAttribute('data-fold-toggle'));
         return;
       }
       var bar = e.target.closest('.fold-bar');
       if (bar) {
-        var bid = bar.getAttribute('data-fold');
-        setFolded(bid, foldedIds().indexOf(bid) < 0);
+        e.preventDefault();
+        toggleFold(bar.getAttribute('data-fold'));
         return;
       }
-      if (guideOpen && e.target.closest('.guide-item')) closeGuide();
+      var link = e.target.closest('a[href^="#"]');
+      if (link) {
+        var target = (link.getAttribute('href') || '').slice(1);
+        if (isSection(target)) {
+          e.preventDefault();
+          openAndScroll(target);
+          if (guideOpen) closeGuide();
+        }
+      }
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && guideOpen) closeGuide();
@@ -2381,8 +2462,8 @@
         var mark = e.target.closest && e.target.closest('[data-fold-toggle]');
         if (mark) {
           e.preventDefault();
-          var id = mark.getAttribute('data-fold-toggle');
-          setFolded(id, foldedIds().indexOf(id) < 0);
+          e.stopPropagation();
+          toggleFold(mark.getAttribute('data-fold-toggle'));
         }
       }
     });
@@ -2585,7 +2666,7 @@
     var relayout = function () {
       var w = tbC.clientWidth, h = tbC.clientHeight;
       sizeCanvas(); drawTileMap();
-      if (w === lastW && h === lastH && tbNodes.length) return;
+      if (w === lastW && h === lastH && tbContours.length) return;
       clearTimeout(relayoutTimer);
       relayoutTimer = setTimeout(function () {
         lastW = tbC.clientWidth; lastH = tbC.clientHeight;
