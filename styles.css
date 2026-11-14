@@ -221,6 +221,16 @@ html[data-theme="dark"] .i-moon { display: block; }
 .hero-tag { margin-top: 18px; font-size: clamp(1rem, 1.8vw, 1.3rem); color: var(--faint); letter-spacing: .12em; }
 .lede { margin: 26px 0 0; max-width: 680px; font-size: clamp(1.05rem, 1.7vw, 1.3rem); line-height: 1.55; color: var(--muted); text-wrap: pretty; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+/* the section numbers carried by the two calls to action */
+.btn-num { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: .08em; opacity: .55; }
+/* the rest of the guide, one chip per section, in the order they appear */
+.hero-index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 14px; justify-items: start; }
+.hero-index a { display: inline-flex; align-items: baseline; gap: 8px; padding: 7px 13px; border-radius: 980px;
+  border: 1px solid var(--line-soft); background: var(--surface); font-size: 10px; letter-spacing: .08em;
+  color: var(--muted); transition: color .25s, border-color .25s, transform .3s var(--ease); }
+.hero-index a:hover { color: var(--ink); border-color: var(--line); transform: translateY(-1px); }
+.hero-index i { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: .06em; color: var(--faint); }
+.hero-index .t-hans, .hero-index .t-hant { letter-spacing: .04em; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 22px;
   border-radius: 980px; font-size: 12px; letter-spacing: .1em; font-weight: 650; text-transform: uppercase;
   transition: transform .35s var(--ease), background .3s, box-shadow .3s; }
@@ -642,6 +652,7 @@ body.no-scroll { overflow: hidden; }
   .tm-foot { grid-template-columns: minmax(0, 1fr) 300px; }
   .section-head { flex-direction: column; align-items: flex-start; gap: 22px; }
   .elev-stats { text-align: left; }
+  .hero-index { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .gal-head { flex-direction: column; align-items: flex-start; gap: 12px; }
   .gal-desc { text-align: left; max-width: 620px; }
   .gal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -672,6 +683,10 @@ body.no-scroll { overflow: hidden; }
   .hero-figure img { height: 250px; }
   .hero-figure figcaption { padding: 40px 16px 16px; font-size: 10px; flex-direction: column; gap: 2px; }
   .hero-stats { grid-template-columns: repeat(2, 1fr); gap: 18px 14px; }
+  .hero-actions { margin-top: 26px; }
+  .btn { min-height: 42px; padding: 0 16px; font-size: 11px; }
+  .hero-index { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+  .hero-index a { padding: 6px 10px; font-size: 9.5px; gap: 6px; }
   .section { padding: 68px 0; }
   .section-head { margin-bottom: 34px; }
   .map-stage { height: 380px; min-height: 380px; }

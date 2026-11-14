@@ -1497,6 +1497,7 @@
   function relocalizeMeta() {
     document.title = tr('SHARP ISLAND: ONE ROUTE, ONE ISLAND', '桥咀洲：一条路线，一座岛');
     $('.nav').setAttribute('aria-label', tr('Main navigation', '主导航'));
+    $('.hero-index').setAttribute('aria-label', tr('Sections of the guide', '全篇目录'));
     $('#langSwitch').setAttribute('aria-label', tr('Language', '语言版本'));
     $('#themeToggle').setAttribute('aria-label', tr('Switch appearance', '切换外观'));
     $('#themeToggle').setAttribute('title', tr('Switch appearance', '切换外观'));

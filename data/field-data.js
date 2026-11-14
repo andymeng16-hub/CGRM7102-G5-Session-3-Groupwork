@@ -20,7 +20,7 @@ window.FIELD_DATA = {
     windowZh: "香港时间 11:10 至 13:38",
     weather: "Overcast with thick cloud at 11:10 (p01); brightening to sunny intervals with scattered cumulus from about 12:47 (p13 to p25).",
     weatherZh: "上午 11:10 密云，约 12:47 转晴间多云。",
-    photos: 29,
+    photos: 66,
     points: 8,
     method: "At each stop we assessed roughly 20 m of the existing path and used the same three categories throughout: mostly shaded, partly shaded or unshaded. Each record pairs a photograph, an observation time and an evidence source.",
     methodZh: "每个观察点评估约 20 米路径，统一使用「大部份遮阴、部份遮阴、无遮阴」三级分类，并记录照片、时间与证据来源。",
@@ -352,8 +352,8 @@ window.FIELD_DATA = {
       url: null },
     { kind: "Field evidence", kindZh: "实地证据", label: "Group QField records",
       labelZh: "本组 QField 记录",
-      detail: "29 photographs and 8 observation points, 11:10 to 13:38 HKT, 13 November 2026.",
-      detailZh: "29 张照片与 8 个观察点，香港时间 11:10 至 13:38，2026 年 11 月 13 日。",
+      detail: "66 photographs and 8 observation points, 11:10 to 13:38 HKT, 13 November 2026. Twenty-nine of the frames are tied to the route, the stages and the field notes; the other thirty-seven are the drone frames collected on the same day and gathered in the photograph section.",
+      detailZh: "66 张照片与 8 个观察点，香港时间 11:10 至 13:38，2026 年 11 月 13 日。其中 29 张与路线、分段及实地记录对应，其余 37 张为同日以无人机拍摄、并在照片板块中集中呈现的画面。",
       url: null }
   ],
 

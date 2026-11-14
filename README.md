@@ -107,6 +107,12 @@ tools/
 | **Before you step onto the boat** 登船之前 | What to bring, and what the tide will do to the plan |
 | **How we know** 资料依据 | The survey record, the data sources and the team's division of work |
 
+The opening screen carries a numbered index of all twelve sections, so every part
+of the guide is one click away without scrolling. Two of them, the map and the
+tide model, are also raised to large primary buttons; the other ten sit in a
+five-column chip row under them, and fold to four columns on a tablet and two on
+a phone.
+
 ## The survey
 
 Eight observation points, one continuous route of about 2.19 km, visited between
