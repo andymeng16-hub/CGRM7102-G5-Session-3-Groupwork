@@ -1190,6 +1190,573 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Solar model                                                          */
+  /* ------------------------------------------------------------------ */
+  /* A three dimensional model of the island. The surface is the elevation
+     grid, the canopy is the mapped woodland, and the sun is placed with the
+     same position algorithm the model was built with, so the shadows drawn
+     on the canvas are the ones the field record was made under. */
+  var SM = window.SUN_MODEL || null;
+  var SUN = { ready: false, cells: [], t: 767, playing: false };
+  var SB36 = '0123456789abcdefghijklmnopqrstuvwxyz';
+  var SM_LAT0 = 22.3652, SM_LON0 = 114.2872;
+  var SM_MLAT = 110574.0;
+  var SM_MLON = 111320.0 * Math.cos(SM_LAT0 * Math.PI / 180);
+  var SM_YAW = -0.36, SM_PITCH = 0.62, SM_EXAG = 3.8;
+  var smCtx = null, smCanvas = null, smW = 0, smH = 0, smScale = 1, smOx = 0, smOy = 0;
+  var smCache = { t: -999, vals: null };
+  var smLevels = [10, 20, 30, 40, 50, 60, 70, 80];
+  /* the relief is lit by a fixed cartographic light from the north west, the
+     way a printed map is lit, so the ground reads at every hour. The sun of
+     the day is drawn as the shadow it casts, which is the point of the panel. */
+  var HS_AZ = 315 * Math.PI / 180, HS_ALT = 42 * Math.PI / 180;
+  var HSX = Math.cos(HS_ALT) * Math.sin(HS_AZ);
+  var HSY = Math.cos(HS_ALT) * Math.cos(HS_AZ);
+  var HSZ = Math.sin(HS_ALT);
+
+  function smLocal(lat, lon) {
+    return [(lon - SM_LON0) * SM_MLON, (lat - SM_LAT0) * SM_MLAT];
+  }
+  function smDecode() {
+    if (!SM) return null;
+    var g = SM.grid, nx = g.nx, ny = g.ny, n = nx * ny;
+    var z = new Float32Array(n), cover = new Float32Array(n), crown = new Float32Array(n);
+    var land = new Uint8Array(n);
+    var zi = 0, ci = 0;
+    for (var i = 0; i < n; i++) {
+      z[i] = (SB36.indexOf(g.z.charAt(zi)) * 36 + SB36.indexOf(g.z.charAt(zi + 1))) / 4 - 5;
+      zi += 2;
+      cover[i] = SB36.indexOf(g.canopy.charAt(ci)) / 35;
+      crown[i] = SB36.indexOf(g.canopy.charAt(ci + 1)) / 2;
+      ci += 2;
+    }
+    var stride = Math.ceil(nx / 4);
+    for (var j = 0; j < ny; j++) {
+      var row = g.land.substr(j * stride, stride);
+      for (var i2 = 0; i2 < nx; i2++) {
+        /* the row is written as one wide hex number, so the first cell sits
+           in its last digit */
+        var dig = parseInt(row.charAt(stride - 1 - Math.floor(i2 / 4)), 16);
+        if (isNaN(dig)) dig = 0;
+        land[j * nx + i2] = (dig >> (i2 % 4)) & 1;
+      }
+    }
+    SUN.nx = nx; SUN.ny = ny; SUN.step = g.step; SUN.x0 = g.x0; SUN.y0 = g.y0;
+    SUN.z = z; SUN.cover = cover; SUN.crown = crown; SUN.land = land;
+    /* the drawn sheet: the island, the mapped canopy, and a one cell apron of
+       shore, so the coast does not end in a vertical wall */
+    var draw = new Uint8Array(n);
+    for (var j3 = 0; j3 < ny; j3++) {
+      for (var i3 = 0; i3 < nx; i3++) {
+        var k3 = j3 * nx + i3;
+        if (land[k3] || cover[k3] > 0) { draw[k3] = 1; continue; }
+        for (var dj = -1; dj <= 1 && !draw[k3]; dj++) {
+          for (var di = -1; di <= 1; di++) {
+            var jj = j3 + dj, ii = i3 + di;
+            if (jj < 0 || ii < 0 || jj >= ny || ii >= nx) continue;
+            if (land[jj * nx + ii]) { draw[k3] = 1; break; }
+          }
+        }
+      }
+    }
+    SUN.draw = draw;
+    return SUN;
+  }
+  function smCellIndex(x, y) {
+    var i = Math.floor((x - SUN.x0) / SUN.step);
+    var j = Math.floor((SUN.y0 + SUN.ny * SUN.step - y) / SUN.step);
+    return { i: i, j: j };
+  }
+  function smHeight(x, y) {
+    var nx = SUN.nx, ny = SUN.ny;
+    var fx = (x - SUN.x0) / SUN.step - 0.5;
+    var fy = (SUN.y0 + ny * SUN.step - y) / SUN.step - 0.5;
+    if (fx < 0 || fy < 0 || fx > nx - 1 || fy > ny - 1) return 0;
+    var x0 = Math.floor(fx), y0 = Math.floor(fy);
+    var x1 = Math.min(x0 + 1, nx - 1), y1 = Math.min(y0 + 1, ny - 1);
+    var tx = fx - x0, ty = fy - y0, z = SUN.z;
+    return z[y0 * nx + x0] * (1 - tx) * (1 - ty) + z[y0 * nx + x1] * tx * (1 - ty) +
+           z[y1 * nx + x0] * (1 - tx) * ty + z[y1 * nx + x1] * tx * ty;
+  }
+  function smCanopyAt(x, y) {
+    var c = smCellIndex(x, y);
+    if (c.i < 0 || c.j < 0 || c.i >= SUN.nx || c.j >= SUN.ny) return null;
+    var k = c.j * SUN.nx + c.i;
+    return { cover: SUN.cover[k], crown: SUN.crown[k] };
+  }
+  /* The share of the sun that reaches a point. The ray towards the sun is
+     marched outwards; while it is still inside the canopy layer it picks up
+     optical depth, and a ridge in the way ends the march at once. */
+  function smSunShare(x, y, z0, az, alt) {
+    var a = az * Math.PI / 180, e = alt * Math.PI / 180;
+    var ex = Math.cos(e) * Math.sin(a), nyv = Math.cos(e) * Math.cos(a), up = Math.sin(e);
+    var horiz = Math.hypot(ex, nyv);
+    if (horiz < 1e-6 || up <= 0) return 0;
+    var tanAlt = up / horiz, tau = 0, step = 1.5, t = step * 0.5;
+    var R = SM.meta.crownRadius;
+    while (t <= 90) {
+      var px = x + ex * t, py = y + nyv * t;
+      var zt = smHeight(px, py);
+      var zr = z0 + t * tanAlt;
+      if (zt > zr) return 0;
+      var cv = smCanopyAt(px, py);
+      if (cv && cv.cover > 0 && cv.crown > 0) {
+        var d0 = (zr - step * 0.5 * tanAlt) - zt;
+        var d1 = (zr + step * 0.5 * tanAlt) - zt;
+        if (d1 > d0) {
+          var frac = clamp((cv.crown - d0) / (d1 - d0), 0, 1);
+          tau += cv.cover * 2 * step * frac / (Math.PI * R);
+        }
+      }
+      t += step;
+    }
+    return Math.exp(-tau);
+  }
+  function smSunAt(t) {
+    var tr = SM.sun, i = 0;
+    while (i < tr.length - 2 && tr[i + 1].t < t) i++;
+    var a = tr[i], b = tr[i + 1];
+    var f = b.t === a.t ? 0 : clamp((t - a.t) / (b.t - a.t), 0, 1);
+    return { az: a.az + (b.az - a.az) * f, alt: a.alt + (b.alt - a.alt) * f };
+  }
+  function smHash(i, j) {
+    var v = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453;
+    return v - Math.floor(v);
+  }
+  function smTone(h) {
+    if (h < 2) return [236, 226, 198];
+    if (h < 12) return [221, 222, 176];
+    if (h < 30) return [199, 214, 165];
+    if (h < 50) return [172, 196, 154];
+    if (h < 68) return [146, 176, 142];
+    if (h < 82) return [164, 163, 137];
+    return [178, 172, 151];
+  }
+  function smProject(x, y, z) {
+    var cy = Math.cos(SM_YAW), sy = Math.sin(SM_YAW);
+    var u = x * cy + y * sy;
+    var v = -x * sy + y * cy;
+    return [smOx + u * smScale, smOy + (-v * Math.sin(SM_PITCH) - z * SM_EXAG * Math.cos(SM_PITCH)) * smScale];
+  }
+  function smDepth(x, y) {
+    var cy = Math.cos(SM_YAW), sy = Math.sin(SM_YAW);
+    return -x * sy + y * cy;
+  }
+
+  function smLayout() {
+    if (!SM || !SUN.z) return;
+    smCanvas = $('#sunCanvas');
+    if (!smCanvas) return;
+    var host = smCanvas.parentNode;
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    smW = host.clientWidth;
+    var pad = smW < 640 ? 18 : 40;
+    smH = Math.round(smW * (smW < 640 ? 0.85 : 0.44));
+    smCanvas.width = Math.round(smW * dpr);
+    smCanvas.height = Math.round(smH * dpr);
+    smCanvas.style.height = smH + 'px';
+    smCtx = smCanvas.getContext('2d');
+    smCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    /* fit the island into the frame. The fit works in unscaled units, so the
+       transform is reset first: the layout runs again whenever the box moves. */
+    smScale = 1; smOx = 0; smOy = 0;
+    var xs = [], ys = [];
+    for (var j = 0; j < SUN.ny; j++) {
+      for (var i = 0; i < SUN.nx; i++) {
+        var k = j * SUN.nx + i;
+        if (!SUN.draw[k]) continue;
+        var x = SUN.x0 + (i + 0.5) * SUN.step;
+        var y = SUN.y0 + SUN.ny * SUN.step - (j + 0.5) * SUN.step;
+        var p = smProject(x, y, SUN.z[k]);
+        xs.push(p[0]); ys.push(p[1]);
+      }
+    }
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    smScale = Math.min((smW - pad) / Math.max(1, maxX - minX), (smH - pad) / Math.max(1, maxY - minY));
+    smOx = pad / 2 - minX * smScale + ((smW - pad) - (maxX - minX) * smScale) / 2;
+    smOy = pad / 2 - minY * smScale + ((smH - pad) - (maxY - minY) * smScale) / 2;
+
+    /* the cells to draw, far to near */
+    var list = [];
+    for (var j2 = 0; j2 < SUN.ny; j2++) {
+      for (var i2 = 0; i2 < SUN.nx; i2++) {
+        var k2 = j2 * SUN.nx + i2;
+        if (!SUN.draw[k2]) continue;
+        var x2 = SUN.x0 + (i2 + 0.5) * SUN.step;
+        var y2 = SUN.y0 + SUN.ny * SUN.step - (j2 + 0.5) * SUN.step;
+        var h = SUN.step * 0.5;
+        /* every corner carries its own height, so the cells join into one
+           continuous surface instead of a heap of flat plates */
+        var z00 = smHeight(x2 - h, y2 + h), z10 = smHeight(x2 + h, y2 + h);
+        var z11 = smHeight(x2 + h, y2 - h), z01 = smHeight(x2 - h, y2 - h);
+        var c0 = smProject(x2 - h, y2 + h, z00);
+        var c1 = smProject(x2 + h, y2 + h, z10);
+        var c2 = smProject(x2 + h, y2 - h, z11);
+        var c3 = smProject(x2 - h, y2 - h, z01);
+        var cp = [c0, c1, c2, c3];
+        /* the normal, from the neighbouring heights */
+        var hx = smHeight(x2 + SUN.step, y2) - smHeight(x2 - SUN.step, y2);
+        var hy = smHeight(x2, y2 + SUN.step) - smHeight(x2, y2 - SUN.step);
+        var nl = Math.hypot(hx / (2 * SUN.step), hy / (2 * SUN.step), 1);
+        /* the lines of equal height, cut across the cell */
+        var seg = [], zc = [z00, z10, z11, z01];
+        for (var li = 0; li < smLevels.length; li++) {
+          var L = smLevels[li];
+          for (var e = 0; e < 4; e++) {
+            var ea = e, eb = (e + 1) % 4, za = zc[ea], zb = zc[eb];
+            if ((za - L) * (zb - L) < 0) {
+              var tf = (L - za) / (zb - za);
+              var pa = cp[ea], pb = cp[eb];
+              seg.push([pa[0] + (pb[0] - pa[0]) * tf, pa[1] + (pb[1] - pa[1]) * tf,
+                        pb[0] + (pa[0] - pb[0]) * tf, pb[1] + (pa[1] - pb[1]) * tf, L]);
+            }
+          }
+        }
+        list.push({
+          i: i2, j: j2, x: x2, y: y2, z: SUN.z[k2],
+          p: cp, d: smDepth(x2, y2),
+          nx: -hx / (2 * SUN.step) / nl, ny: -hy / (2 * SUN.step) / nl, nz: 1 / nl,
+          cover: SUN.cover[k2], tone: smTone(SUN.z[k2]), seg: seg
+        });
+      }
+    }
+    list.sort(function (a, b) { return b.d - a.d; });
+    SUN.cells = list;
+    /* where the island actually sits on the canvas, so the compass can step
+       out of the way of it */
+    var bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9;
+    for (var bi = 0; bi < list.length; bi++) {
+      for (var bj = 0; bj < 4; bj++) {
+        var bp = list[bi].p[bj];
+        if (bp[0] < bx0) bx0 = bp[0];
+        if (bp[0] > bx1) bx1 = bp[0];
+        if (bp[1] < by0) by0 = bp[1];
+        if (bp[1] > by1) by1 = bp[1];
+      }
+    }
+    SUN.bbox = { x0: bx0, y0: by0, x1: bx1, y1: by1 };
+    /* the contour lines are kept apart from the cells, because a cell drawn
+       later would otherwise wipe out the line its neighbour carried */
+    var contours = [];
+    for (var ci = 0; ci < list.length; ci++) {
+      var cl = list[ci];
+      for (var cs = 0; cs < cl.seg.length; cs++) {
+        var sg = cl.seg[cs];
+        contours.push({ a: [sg[0], sg[1]], b: [sg[2], sg[3]], L: sg[4], d: cl.d });
+      }
+    }
+    contours.sort(function (a, b) { return b.d - a.d; });
+    SUN.contours = contours;
+    SUN.ready = true;
+    smCache.t = -999;
+    smRender();
+  }
+
+  /* The share of the sun reaching one observation point at one hour, read
+     from the same table the model was built from: eleven samples along the
+     twenty metres, at thirty four times of the day. */
+  function smPointShare(idx, t) {
+    var p = SM.points[idx], tr = SM.sun, n = tr.length;
+    if (!p.share || !p.share.length) return 1;
+    var i = 0;
+    while (i < n - 2 && tr[i + 1].t < t) i++;
+    var a = tr[i], b = tr[i + 1];
+    var f = b.t === a.t ? 0 : clamp((t - a.t) / (b.t - a.t), 0, 1);
+    var samples = (SM.segments && SM.segments[idx]) ? SM.segments[idx].length : 1;
+    var sum = 0;
+    for (var k = 0; k < samples; k++) {
+      var v0 = p.share[k * n + i], v1 = p.share[k * n + i + 1];
+      if (v0 === undefined || v1 === undefined) return 1;
+      sum += v0 + (v1 - v0) * f;
+    }
+    return sum / samples;
+  }
+
+  /* One sweep of the sun over the island, kept for the minute it was
+     computed in, so the slider and the play button stay quick. */
+  function smShareField(az, alt) {
+    var key = Math.round(SUN.t);
+    if (smCache.t === key && smCache.vals) return smCache.vals;
+    var vals = new Float32Array(SUN.cells.length);
+    for (var i = 0; i < SUN.cells.length; i++) {
+      var c = SUN.cells[i];
+      vals[i] = smSunShare(c.x, c.y, c.z + SM.meta.walkHeight, az, alt);
+    }
+    smCache.t = key; smCache.vals = vals;
+    return vals;
+  }
+
+  function smRender() {
+    if (!SUN.ready || !smCtx) return;
+    var s = smSunAt(SUN.t);
+    var ctx = smCtx;
+    ctx.clearRect(0, 0, smW, smH);
+
+    /* the sea */
+    var sea = ctx.createLinearGradient(0, 0, smW * 0.55, smH);
+    sea.addColorStop(0, '#d5e4ea');
+    sea.addColorStop(1, '#a3c0cd');
+    ctx.fillStyle = sea;
+    ctx.fillRect(0, 0, smW, smH);
+
+    var cells = SUN.cells;
+    var share = smShareField(s.az, s.alt);
+    for (var i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      var shade = 1 - share[i];
+      if (shade > 0.001 && shade < 0.999) {
+        /* partial cover breaks into separate crowns */
+        var n = smHash(c.i, c.j) - 0.5;
+        shade = clamp(shade + n * 1.25 * Math.min(shade, 1 - shade) * 2, 0, 1);
+      }
+      /* the ground is lit by the fixed hillshade light */
+      var lam = Math.max(0, c.nx * HSX + c.ny * HSY + c.nz * HSZ);
+      var light = (0.44 + 0.80 * lam) * (0.82 + 0.18 * c.nz);
+      var t = c.tone, cov = c.cover;
+      var r = t[0] * light, g = t[1] * light, b = t[2] * light;
+      if (cov > 0.01) {
+        /* the canopy is its own colour, an olive green of its own */
+        var m2 = Math.min(1, cov) * 0.80;
+        r = r * (1 - m2) + 84 * m2;
+        g = g * (1 - m2) + 104 * m2;
+        b = b * (1 - m2) + 62 * m2;
+      }
+      /* and then the sun of the hour falls on it. The shade is washed in as a
+         cold blue, the way a solar survey draws it, so it separates from the
+         olive of the canopy and from the sand of the shore. */
+      if (shade > 0.004) {
+        var m = shade * 0.82;
+        r = r * (1 - m) + 56 * m;
+        g = g * (1 - m) + 76 * m;
+        b = b * (1 - m) + 116 * m;
+      } else {
+        r *= 1.05; g *= 1.02; b *= 0.985;
+      }
+      ctx.beginPath();
+      ctx.moveTo(c.p[0][0], c.p[0][1]);
+      ctx.lineTo(c.p[1][0], c.p[1][1]);
+      ctx.lineTo(c.p[2][0], c.p[2][1]);
+      ctx.lineTo(c.p[3][0], c.p[3][1]);
+      ctx.closePath();
+      ctx.fillStyle = 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
+      ctx.fill();
+      /* seal the hairline seam between two cells */
+      ctx.strokeStyle = ctx.fillStyle;
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+    }
+
+    /* the contour lines, over the finished surface */
+    var lines = SUN.contours || [];
+    for (var li = 0; li < lines.length; li++) {
+      var ln = lines[li];
+      ctx.beginPath();
+      ctx.moveTo(ln.a[0], ln.a[1]);
+      ctx.lineTo(ln.b[0], ln.b[1]);
+      ctx.strokeStyle = (ln.L % 20 === 0) ? 'rgba(46,52,40,.50)' : 'rgba(46,52,40,.24)';
+      ctx.lineWidth = (ln.L % 20 === 0) ? 1.1 : 0.7;
+      ctx.stroke();
+    }
+
+    /* the route, draped over the ground */
+    var pts = smDensify(SM.route, 12);
+    if (pts.length > 1) {
+      ctx.beginPath();
+      for (var r2 = 0; r2 < pts.length; r2++) {
+        var lp = smLocal(pts[r2][0], pts[r2][1]);
+        var hz = smHeight(lp[0], lp[1]) + 4;
+        var pp = smProject(lp[0], lp[1], hz);
+        if (r2 === 0) ctx.moveTo(pp[0], pp[1]); else ctx.lineTo(pp[0], pp[1]);
+      }
+      ctx.lineWidth = 5.5;
+      ctx.strokeStyle = 'rgba(255,255,255,.88)';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+      ctx.lineWidth = 2.1;
+      ctx.strokeStyle = '#232c26';
+      ctx.stroke();
+    }
+
+    /* the observation points, on a short pin so they sit clear of the ground.
+       The ring around each one is the share of the sun reaching that point at
+       the hour on the dial, so the dial can be read off the map. */
+    SM.points.forEach(function (p, pi) {
+      var lp = smLocal(p.lat, p.lng);
+      var gz = smHeight(lp[0], lp[1]);
+      var gp = smProject(lp[0], lp[1], gz);
+      var pp = [gp[0], gp[1] - 13];
+      var col = p.field === 'mostly' ? '#3f7a4e' : (p.field === 'partly' ? '#c08a2e' : '#b0512f');
+      var lit = smPointShare(pi, SUN.t);
+      ctx.beginPath();
+      ctx.moveTo(gp[0], gp[1]);
+      ctx.lineTo(pp[0], pp[1] + 8);
+      ctx.strokeStyle = 'rgba(47,58,51,.45)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(pp[0], pp[1], 13.5, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(38,52,82,.6)';
+      ctx.lineWidth = 3.2;
+      ctx.stroke();
+      if (lit > 0.004) {
+        ctx.beginPath();
+        ctx.arc(pp[0], pp[1], 13.5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * lit);
+        ctx.strokeStyle = '#e0a92b';
+        ctx.lineWidth = 3.2;
+        ctx.lineCap = 'butt';
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(pp[0], pp[1], 9.5, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = '700 9.5px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.code, pp[0], pp[1] + 0.5);
+    });
+
+    smCompass(ctx, s);
+
+    var clock = $('#smClock'), alt = $('#smAlt'), az = $('#smAz');
+    var total = Math.round(SUN.t);
+    var hh = Math.floor(total / 60), mm = total % 60;
+    if (clock) clock.textContent = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+    if (alt) alt.textContent = s.alt.toFixed(1) + '°';
+    if (az) az.textContent = Math.round(s.az) + '°';
+  }
+
+  function smDensify(route, step) {
+    var out = [];
+    for (var i = 0; i < route.length - 1; i++) {
+      var a = route[i], b = route[i + 1];
+      var la = smLocal(a[0], a[1]), lb = smLocal(b[0], b[1]);
+      var d = Math.hypot(lb[0] - la[0], lb[1] - la[1]);
+      var n = Math.max(1, Math.round(d / step));
+      for (var k = 0; k < n; k++) {
+        var t = k / n;
+        out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+      }
+    }
+    out.push(route[route.length - 1]);
+    return out;
+  }
+
+  /* North and the sun, in the same oblique frame as the model. The compass
+     sits in whichever corner the island has left empty. */
+  function smCompass(ctx, s) {
+    var r = 21, cx = smW - 40, cy = smH - 40;
+    var box = SUN.bbox;
+    if (box) {
+      var spots = [[34, 34], [smW - 34, 34], [smW - 34, smH - 34], [34, smH - 34]];
+      var best = 0, bestD = -1;
+      for (var si = 0; si < spots.length; si++) {
+        var sx = spots[si][0], sy = spots[si][1];
+        var dx = Math.max(box.x0 - sx, 0, sx - box.x1);
+        var dy = Math.max(box.y0 - sy, 0, sy - box.y1);
+        var d = dx * dx + dy * dy;
+        if (d > bestD) { bestD = d; best = si; }
+      }
+      /* the bottom left corner belongs to the relief label */
+      if (best === 3) best = 0;
+      cx = spots[best][0]; cy = spots[best][1];
+    }
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,.72)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(47,58,51,.28)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    function dir(dx, dy) {
+      var cyw = Math.cos(SM_YAW), syw = Math.sin(SM_YAW);
+      var u = dx * cyw + dy * syw;
+      var v = -dx * syw + dy * cyw;
+      return [u, -v * Math.sin(SM_PITCH)];
+    }
+    var nn = dir(0, 1);
+    var nl = Math.hypot(nn[0], nn[1]);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + nn[0] / nl * (r - 5), cy + nn[1] / nl * (r - 5));
+    ctx.strokeStyle = '#2f3a33';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    ctx.fillStyle = '#2f3a33';
+    ctx.font = '700 9px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('N', cx + nn[0] / nl * (r + 5), cy + nn[1] / nl * (r + 5));
+    /* the sun, at its azimuth */
+    var ar = s.az * Math.PI / 180;
+    var sd = dir(Math.sin(ar), Math.cos(ar));
+    var sl = Math.hypot(sd[0], sd[1]);
+    ctx.beginPath();
+    ctx.arc(cx + sd[0] / sl * (r - 7), cy + sd[1] / sl * (r - 7), 4.2, 0, Math.PI * 2);
+    ctx.fillStyle = '#e0a92b';
+    ctx.fill();
+    ctx.restore();
+    /* the relief is stretched so that the island can be read at this size */
+    ctx.fillStyle = 'rgba(47,58,51,.5)';
+    ctx.font = '600 9px -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(tr('RELIEF EXAGGERATED ' + SM_EXAG + '×', '地形垂直放大 ' + SM_EXAG + ' 倍'), 12, smH - 12);
+  }
+
+  function smBuildTable() {
+    if (!SM) return;
+    setHTML('#sunTable', SM.points.map(function (p) {
+      var pct = Math.round(p.sunlit * 100);
+      return '<article class="sm-card">' +
+        '<div class="sm-card-top"><span class="sm-card-code">' + p.code + '</span>' +
+        '<span class="sm-card-time">' + p.time + '</span></div>' +
+        '<h4>' + bi(p.name, p.zh) + '</h4>' +
+        '<div class="sm-bar-track"><span class="sm-bar-fill" style="width:' + pct + '%"></span></div>' +
+        '<div class="sm-card-nums"><span>' + bi('SUNLIT', '日照') + ' ' + pct + '%</span></div>' +
+        '<div class="sm-card-classes">' +
+        '<span class="sm-pair"><span class="sm-cap">' + bi('FIELD', '现场') + '</span>' +
+        '<span class="sm-chip ' + p.field + '">' + bi(shadeName[p.field], shadeZh[p.field]) + '</span></span>' +
+        '<span class="sm-pair"><span class="sm-cap">' + bi('MODEL', '模型') + '</span>' +
+        '<span class="sm-chip ghost">' + bi(shadeName[p.model], shadeZh[p.model]) + '</span></span>' +
+        '</div></article>';
+    }).join(''));
+  }
+  function smSetTime(t) {
+    SUN.t = clamp(t, 660, 825);
+    var sl = $('#sunSlider');
+    if (sl && Number(sl.value) !== Math.round(SUN.t)) sl.value = Math.round(SUN.t);
+    smRender();
+  }
+  var smTimer = null, smLast = 0;
+  function smToggle() {
+    SUN.playing = !SUN.playing;
+    var b = $('#sunPlay');
+    setHTML(b, SUN.playing ? bi('PAUSE', '暂停') : bi('RUN THE DAY', '推演一天'));
+    if (SUN.playing) {
+      smLast = 0;
+      smTimer = requestAnimationFrame(smStep);
+    } else cancelAnimationFrame(smTimer);
+  }
+  function smStep(ts) {
+    if (!SUN.playing) return;
+    if (!smLast) smLast = ts;
+    var dt = Math.min(60, ts - smLast);
+    smLast = ts;
+    var t = SUN.t + dt / 90;
+    if (t > 825) t = 660;
+    smSetTime(t);
+    smTimer = requestAnimationFrame(smStep);
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Progress control                                                      */
   /* ------------------------------------------------------------------ */
   function setProgress(p) {
@@ -1799,6 +2366,10 @@
     $('#playBtn').setAttribute('aria-label', tr('Play route animation', '播放路线动画'));
     $('#routeScrub').setAttribute('aria-label', tr('Route progress', '路线进度'));
     $('#tideSlider').setAttribute('aria-label', tr('Tide height in centimetres', '潮高，以厘米计'));
+    var sunSlider = $('#sunSlider');
+    if (sunSlider) sunSlider.setAttribute('aria-label', tr('Time of day on 13 November 2026', '2026 年 11 月 13 日的当日时间'));
+    var sunCanvas = $('#sunCanvas');
+    if (sunCanvas) sunCanvas.setAttribute('aria-label', tr('Three dimensional model of Sharp Island showing the shadows cast by the sun on 13 November 2026', '桥咀洲三维日照模型，显示 2026 年 11 月 13 日太阳投下的影子'));
     $('#drawerClose').setAttribute('aria-label', tr('Close detail', '关闭详情'));
     $('#lbClose').setAttribute('aria-label', tr('Close photograph', '关闭照片'));
     $('#lbPrev').setAttribute('aria-label', tr('Previous photograph', '上一张照片'));
@@ -1829,6 +2400,8 @@
     buildSurvey();
     buildProfile();
     buildSection();
+    smBuildTable();
+    if (SUN.ready) smRender();
     drawTileMap();
     drawTombolo();
     setProgress(state.progress);
@@ -1905,6 +2478,15 @@
     });
     $('#tidePlay').addEventListener('click', toggleTide);
 
+    var sunSlider = $('#sunSlider');
+    if (sunSlider && $('#sunPlay')) {
+      sunSlider.addEventListener('input', function (e) {
+        if (SUN.playing) smToggle();
+        smSetTime(Number(e.target.value));
+      });
+      $('#sunPlay').addEventListener('click', smToggle);
+    }
+
     $('#drawerClose').addEventListener('click', closeDrawer);
     $('#scrim').addEventListener('click', closeDrawer);
     $('#drawerContent').addEventListener('click', function (e) {
@@ -1960,6 +2542,7 @@
       relayoutTimer = setTimeout(function () {
         lastW = tbC.clientWidth; lastH = tbC.clientHeight;
         tbLayout();
+        if (SUN.ready) smLayout();
       }, 140);
     };
     if ('ResizeObserver' in window) {
@@ -2025,6 +2608,7 @@
   drawTileMap();
   tbLayout();
   buildSection();
+  if (smDecode()) { smBuildTable(); smLayout(); }
   /* The fold bars are built before the blocks are drawn, so the fold
      wrapper holds the finished content rather than an empty shell. */
   buildFoldHeads();

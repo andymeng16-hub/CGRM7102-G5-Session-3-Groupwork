@@ -3,15 +3,16 @@
 A field-based GIS-style visitor guide to a single continuous walking route across
 Sharp Island (Kiu Tsui Chau), Kiu Tsui Country Park, Sai Kung, Hong Kong, China.
 Everything in it comes from the group's own survey of 13 November 2026: eight
-observation points, sixty-six photographs, one elevation profile, and a working
-model of the sandbar the tide takes away.
+observation points, sixty-six photographs, one elevation profile, a working model
+of the sandbar the tide takes away, and a three dimensional model of the island
+with the real sun of that day casting its shadows.
 
 The site is a static website. No build step, no package manager, no framework.
 
 中文简介：本仓库是中国香港西贡桥咀洲一条连续步行路线的地理信息式实地导览，
 内容全部来自小组 2026 年 11 月 13 日的实地考察，共八个观察点、六十六张照片、
-一幅海拔剖面图，以及一个会随潮位涨落而淹没的连岛沙洲模型。网站为纯静态页面，
-无需安装任何依赖。
+一幅海拔剖面图、一个会随潮位涨落而淹没的连岛沙洲模型，以及一个以当天真实
+太阳位置投影的三维日照模型。网站为纯静态页面，无需安装任何依赖。
 
 ---
 
@@ -75,6 +76,7 @@ data/
   field-data.json       the same survey as JSON, for QGIS
   terrain.js            the elevation grid the profile and the model are built on
   tombolo-model.js      the baked surface the tide panel reads
+  sun-model.js          the baked solar model: elevation, canopy, sun track
   vegetation.js         four plant communities and their plates
   gallery.js            the photo section: four groups and thirty-seven captions
   zh-hant.js            the Simplified to Traditional conversion table
@@ -95,6 +97,10 @@ tools/
   coastline_raw.json    the cached coastline ways
   tombolo_raw.json      the cached bar, beach and reef outlines
   master_base.png       the combined basemap sheet the tiles were cut from
+  fetch_dem30.py        pulls and caches 30 m SRTM for the solar model
+  dem30_cache.json      the 30 m elevation grid the solar model reads
+  canopy_raw.json       the cached OSM woodland, scrub and building polygons
+  build_sun_model.py    regenerates data/sun-model.js from those two caches
 ```
 
 ## The guide, section by section
@@ -106,7 +112,7 @@ tools/
 | **The climb, in metres** 以米为单位的起伏 | The elevation profile along the route, with the four stages marked |
 | **A bridge that comes and goes** 一座时有时无的桥 | A shaded-relief model of the tombolo, flooded to any tide height you choose |
 | **One route, four different walks** 一条路线，四段体验 | The four stages, with photographs, timings, shade and one caution each |
-| **How much sun are you walking in?** 全程日照评估 | How much of the walk is in shade, drawn as a ribbon |
+| **How much sun are you walking in?** 全程日照评估 | How much of the walk is in shade, drawn as a ribbon, and then a three dimensional model of the island with the real sun of the day casting its shadows |
 | **Where extra care is needed** 需要格外留意之处 | Four conditions recorded in the field: erosion, geoconservation, intertidal life, sun |
 | **Four ways to be a plant here** 四种生存方式 | Four vegetation communities, painted as plates, with the species found in each |
 | **The places, in pictures** 照片里的地方 | Thirty-seven photographs of the day, grouped as the shore, the pier, Hap Mun Bay and the view from the ridge |
@@ -186,10 +192,11 @@ The division of work is on the page itself, under Sources.
   AMap's English rendering of the street map fills its empty tiles with a
   slightly different blue from the sea it draws, which leaves pale rectangles
   across the water; the Chinese rendering has no such seam.
-* The elevation figures are read from a 90 m resolution SRTM sample that has been
-  smoothed for display, and the profile is drawn from that same grid. The AFCD
-  source notes the island's high point as 136 m. The SRTM grid is far too coarse
-  to hold the tombolo, so the tide panel does not use it for the bar.
+* The elevation figures in the profile are read from a 90 m resolution SRTM
+  sample that has been smoothed for display, and the profile is drawn from that
+  same grid. The AFCD source notes the island's high point as 136 m. The SRTM
+  grid is far too coarse to hold the tombolo, so the tide panel does not use it
+  for the bar. The solar model uses a separate, finer 30 m grid.
 * The tide panel is built from the map rather than from a drawn shape. The
   shoreline and the outline of the bar are OpenStreetMap coastline and beach
   ways, stitched into closed rings by `tools/rings.py`; the bar section was
@@ -199,6 +206,28 @@ The division of work is on the page itself, under Sources.
   crest is set to close just above the 1.25 m posted limit, and the sea floor
   falls away from the mapped shoreline. `python3 tools/build_tombolo_model.py`
   rebuilds `data/tombolo-model.js` from the cached OSM ways.
+* The sun exposure panel carries a second model, built by `tools/build_sun_model.py`
+  and read from `data/sun-model.js`. The sun is placed with the NOAA solar
+  position algorithm for 13 November 2026 at the island's own latitude and
+  longitude, which puts it in the southern sky all morning, 43 to 50 degrees
+  above the horizon, swinging from south south east to south south west. The
+  ground is CGIAR SRTM 30 m elevation resampled onto a fifteen metre grid and
+  smoothed twice, because thirty metre data puts a whole cliff into one cell
+  and reads as a spike rather than a slope. The canopy is the mapped
+  OpenStreetMap woodland and scrub, plus the group's own vegetation map along
+  the corridor, since OSM tags the whole middle of the island as one scrub
+  polygon and the route never enters a mapped woodland polygon at all. A ray
+  towards the sun is then marched outwards from every cell: while it is still
+  inside the canopy layer it picks up optical depth, and a ridge in the way
+  ends the march at once, so the share of sun that gets through is
+  `exp(-tau)`. A point is unshaded when less than a tenth of its section is in
+  shade, and mostly shaded when three fifths or more is. The model agrees with
+  the field record at all eight observation points. The browser re-runs the same
+  march on every cell to draw the shadows, and the gold ring around each
+  numbered point is read from the model's own table, so the picture and the
+  numbers come from one computation.
+* The canopy geometry in `data/sun-model.js` is © OpenStreetMap contributors,
+  released under ODbL 1.0, and the page credits it under the section.
 * The OSM geometry in `data/tombolo-model.js` is © OpenStreetMap contributors,
   released under ODbL 1.0, and the page credits it under the section.
 * The terrain tiles are a static pyramid drawn by `tools/build_terrain.py` and
