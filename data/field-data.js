@@ -380,18 +380,20 @@ window.FIELD_DATA = {
       note: "The county gazetteer that covered the whole of what is now Hong Kong, including the Sai Kung islands. It sets aside a separate chapter on coastal defence and records that islands in the inner sea carried residents. We could not find an entry naming Kiu Tsui in the sections available to us, so we cite it only as background for how the islands were administered, not for anything specific about this one.",
       noteZh: "涵盖今香港全境的县志，西贡一带海岛属其范围；书中特立〈海防略〉一门，记内洋岛屿多有居民。我们未能核到直接以「桥咀」为名的条目，故仅作海岛行政背景引用，不据此推断本岛细节。",
       flag: "Index checked, main text still to be read",
-      flagZh: "目录已核，正文待查"
+      flagZh: "目录已核，正文待查",
+      url: "https://zh.wikisource.org/wiki/%E6%96%B0%E5%AE%89%E7%B8%A3%E5%BF%97_(%E8%88%92%E6%87%8B%E5%AE%98)"
     },
     {
       kind: "JOURNAL", kindZh: "期刊", year: "2012",
-      title: "Volcanic structure of the High Island caldera",
-      titleZh: "西贡高岛破火口的火山构造",
-      source: "Sewell, Tang and Campbell, Geochemistry, Geophysics, Geosystems, doi 10.1029/2011GC003865",
-      sourceZh: "Sewell、Tang 与 Campbell 撰，载《Geochemistry, Geophysics, Geosystems》，doi 10.1029/2011GC003865",
+      title: "Volcanic-plutonic connections in a tilted nested caldera complex in Hong Kong",
+      titleZh: "香港倾斜嵌套破火山口复合体内的火山岩浆岩联系",
+      source: "Sewell, Tang and Campbell, Geochemistry, Geophysics, Geosystems 13(1), doi 10.1029/2011GC003865",
+      sourceZh: "Sewell、Tang 与 Campbell 撰，载《Geochemistry, Geophysics, Geosystems》13 卷 1 期，doi 10.1029/2011GC003865",
       note: "Reconstructs the tilted, nested caldera that produced the welded tuff of the Sai Kung coast. This is the regional frame for the volcanic rock we photographed at the shore stops.",
       noteZh: "重建西贡海岸熔结凝灰岩（welded tuff）所对应的倾斜嵌套破火山口，是海岸各站所见火山岩的区域构造框架。",
       flag: "区域背景",
-      flagZh: "区域背景"
+      flagZh: "区域背景",
+      url: "https://doi.org/10.1029/2011GC003865"
     },
     {
       kind: "JOURNAL", kindZh: "期刊", year: "2010",
@@ -402,29 +404,32 @@ window.FIELD_DATA = {
       note: "Sets out why Hong Kong treats rock exposures as a conservation object rather than scenery. It is the argument behind the Geopark board at p03 that prohibits removing or defacing rock.",
       noteZh: "说明香港为何把岩石露头当作保育对象而非单纯景观，也是 p03 地质公园告示牌禁止采石与刻画背后的依据。",
       flag: "保育框架",
-      flagZh: "保育框架"
+      flagZh: "保育框架",
+      url: "https://doi.org/10.1080/10225706.2010.9684149"
     },
     {
       kind: "CHAPTER", kindZh: "论著", year: "2010",
-      title: "Hong Kong Geopark: uncovering the geology of a metropolis",
+      title: "Hong Kong Geopark uncovering the geology of a metropolis",
       titleZh: "香港地质公园：揭示大都会的地质",
-      source: "Ng, Fung and Newsome, in Global Geotourism Perspectives, doi 10.23912/978-1-906884-17-8-1120",
-      sourceZh: "Ng、Fung 与 Newsome 撰，收于《Global Geotourism Perspectives》，doi 10.23912/978-1-906884-17-8-1120",
+      source: "Ng, Fung and Newsome, chapter 13 in Global Geotourism Perspectives, Dowling and Newsome, editors, Goodfellow Publishers, April 2010, doi 10.23912/978-1-906884-17-8-1120",
+      sourceZh: "Ng、Fung 与 Newsome 撰，《Global Geotourism Perspectives》第 13 章，Dowling 与 Newsome 编，Goodfellow Publishers，2010 年 4 月，doi 10.23912/978-1-906884-17-8-1120",
       note: "Describes how a Geopark was assembled inside a dense city, and what visitor management that requires. Useful for reading the signage we recorded rather than for the island itself.",
       noteZh: "记述在高密度城市内部组建地质公园的过程及其游客管理要求，主要用于解读我们拍到的解说牌，而非岛本身。",
       flag: "管理背景",
-      flagZh: "管理背景"
+      flagZh: "管理背景",
+      url: "https://doi.org/10.23912/978-1-906884-17-8-1120"
     },
     {
       kind: "JOURNAL", kindZh: "期刊", year: "2013",
-      title: "Hong Kong Geopark as a paradigm of urban sustainable tourism",
+      title: "Hong Kong Geopark: a paradigm of urban sustainable tourism",
       titleZh: "香港地质公园：城市可持续旅游的范式",
-      source: "Ng, Fung and Newsome, Asian Geographer, doi 10.1080/10225706.2013.808577",
-      sourceZh: "Ng、Fung 与 Newsome 撰，载《Asian Geographer》，doi 10.1080/10225706.2013.808577",
+      source: "Ng, Asian Geographer 31(1), 83 to 96, doi 10.1080/10225706.2013.808577",
+      sourceZh: "Ng 撰，载《Asian Geographer》31 卷 1 期，83 至 96 页，doi 10.1080/10225706.2013.808577",
       note: "Argues that urban Geoparks carry a heavier visitor load than remote ones. It fits what we saw: a small island with a signed trail, two gazetted beaches and a busload-scale arrival point.",
       noteZh: "认为城市型地质公园的游客压力高于偏远型。这与现场相符：小岛上有完整步道系统、两个宪报泳滩，以及可容纳大批游客的到达点。",
       flag: "游客压力",
-      flagZh: "游客压力"
+      flagZh: "游客压力",
+      url: "https://doi.org/10.1080/10225706.2013.808577"
     },
     {
       kind: "REPORT", kindZh: "报告", year: "2024",
@@ -452,14 +457,15 @@ window.FIELD_DATA = {
     },
     {
       kind: "REPORT", kindZh: "报告", year: "2026",
-      title: "Vegetation of Hong Kong",
+      title: "The Vegetation of Hong Kong",
       titleZh: "香港的植被",
-      source: "Hong Kong Biodiversity Information Hub and Greening the City",
-      sourceZh: "香港生物多样性资讯中心与《Greening the City》",
+      source: "Hong Kong Herbarium, Agriculture, Fisheries and Conservation Department",
+      sourceZh: "香港植物标本室，渔农自然护理署",
       note: "Describes the subtropical evergreen broadleaf forest, the shrublands of Myrtaceae and the grass slopes that hill fire keeps open. The four plates in the vegetation section follow these formations.",
       noteZh: "记述南亚热带常绿阔叶林、以桃金娘科为主的灌丛，以及由山火维持的草坡。植被板块的四幅插画即依此四类群落绘制。",
       flag: "植被分类",
-      flagZh: "植被分类"
+      flagZh: "植被分类",
+      url: "https://www.herbarium.gov.hk/tc/special-topics/hong-kong-plants/hong-kong-plants-detail/index-id-11.html"
     }
   ],
 

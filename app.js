@@ -1494,6 +1494,248 @@
      markup holds in one attribute, follow the chosen language too. Split out
      from relocalize() so a page opened straight at one language (a shared
      link with ?lang=) is localised before anything is drawn. */
+  /* ------------------------------------------------------------------ */
+  /* Folding sections and the guide panel                                */
+  /* ------------------------------------------------------------------ */
+  /* The guide runs to a long scroll. Each section can be folded down to
+     its heading, so a reader who wants one part of the guide does not have
+     to pass through the other eleven. Which sections are folded is kept in
+     local storage, so the choice survives a reload. */
+  var SECTIONS = [
+    { id: 'tide',       num: '01', en: 'The sandbar has a schedule', zh: '连岛沙洲时间表' },
+    { id: 'map',        num: '02', en: 'Map and route',               zh: '地图与路线' },
+    { id: 'elevation',  num: '03', en: 'The climb, in metres',         zh: '以米为单位的起伏' },
+    { id: 'tombolo',    num: '04', en: 'A bridge that comes and goes', zh: '一座时有时无的桥' },
+    { id: 'stages',     num: '05', en: 'Four walks',                   zh: '四段路线' },
+    { id: 'shade',      num: '06', en: 'Sun exposure',                 zh: '全程日照' },
+    { id: 'notes',      num: '07', en: 'Field cautions',               zh: '实地提醒' },
+    { id: 'vegetation', num: '08', en: 'Plant communities',            zh: '植被分区' },
+    { id: 'photos',     num: '09', en: 'Photographs',                  zh: '照片' },
+    { id: 'reading',    num: '10', en: 'Reading and records',          zh: '文献与方志' },
+    { id: 'advice',     num: '11', en: 'Before the boat',              zh: '登船之前' },
+    { id: 'survey',     num: '12', en: 'How we know',                  zh: '资料依据' }
+  ];
+  var FOLD_KEY = 'si-folded';
+
+  function foldedIds() {
+    try {
+      var raw = localStorage.getItem(FOLD_KEY);
+      if (!raw) return [];
+      var list = JSON.parse(raw);
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+  function saveFolded(list) {
+    try { localStorage.setItem(FOLD_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  /* Each section gets a heading bar it can be folded behind. The bar carries
+     the section number, its title in both languages, and a chevron that
+     turns into a plus when the section is closed. */
+  function buildFoldHeads() {
+    SECTIONS.forEach(function (s) {
+      var sec = document.getElementById(s.id);
+      if (!sec || sec.getAttribute('data-fold-ready') === '1') return;
+      sec.setAttribute('data-fold-ready', '1');
+
+      var bar = document.createElement('button');
+      bar.type = 'button';
+      bar.className = 'fold-bar';
+      bar.setAttribute('data-fold', s.id);
+      bar.setAttribute('aria-expanded', 'true');
+      bar.setAttribute('aria-controls', s.id + '-body');
+      bar.innerHTML =
+        '<span class="fold-num" aria-hidden="true">' + s.num + '</span>' +
+        '<span class="fold-titles">' + bi(s.en, s.zh) + '</span>' +
+        '<span class="fold-mark" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
+        '</span>';
+
+      /* Everything already in the section becomes the body that folds away.
+         The heading that was there stays visible inside the body, so a
+         folded section still shows its own title line. */
+      var body = document.createElement('div');
+      body.className = 'fold-body';
+      body.id = s.id + '-body';
+      while (sec.firstChild) body.appendChild(sec.firstChild);
+      sec.appendChild(body);
+      sec.appendChild(bar);
+      expandHant(bar);
+    });
+  }
+
+  function setFolded(id, folded) {
+    var sec = document.getElementById(id);
+    if (!sec) return;
+    var body = document.getElementById(id + '-body');
+    var bar = sec.querySelector('.fold-bar');
+    if (!body || !bar) return;
+    body.hidden = folded;
+    bar.setAttribute('aria-expanded', folded ? 'false' : 'true');
+    sec.classList.toggle('is-folded', folded);
+    var list = foldedIds().filter(function (x) { return x !== id; });
+    if (folded) list.push(id);
+    saveFolded(list);
+    syncGuideState();
+    /* A folded section changes the height of the page, so the map and the
+       tide model have to be told that their canvases moved. */
+    if (typeof queueRedraw === 'function') queueRedraw();
+    if (typeof drawTombolo === 'function') drawTombolo();
+  }
+
+  function applyFoldState() {
+    var list = foldedIds();
+    SECTIONS.forEach(function (s) { setFoldedSilently(s.id, list.indexOf(s.id) >= 0); });
+  }
+  function setFoldedSilently(id, folded) {
+    var sec = document.getElementById(id);
+    if (!sec) return;
+    var body = document.getElementById(id + '-body');
+    var bar = sec.querySelector('.fold-bar');
+    if (!body || !bar) return;
+    body.hidden = folded;
+    bar.setAttribute('aria-expanded', folded ? 'false' : 'true');
+    sec.classList.toggle('is-folded', folded);
+  }
+
+  function allFolded(folded) {
+    SECTIONS.forEach(function (s) { setFoldedSilently(s.id, folded); });
+    saveFolded(folded ? SECTIONS.map(function (s) { return s.id; }) : []);
+    syncGuideState();
+    if (typeof queueRedraw === 'function') queueRedraw();
+    if (typeof drawTombolo === 'function') drawTombolo();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* The guide panel lists every section, marks the one being read, and
+     offers to fold the page down to one section at a time. */
+  var guideOpen = false;
+
+  function buildGuideList() {
+    var list = $('#guideList');
+    if (!list) return;
+    list.innerHTML = SECTIONS.map(function (s) {
+      return '<a class="guide-item" href="#' + s.id + '" data-guide="' + s.id + '">' +
+        '<span class="guide-num" aria-hidden="true">' + s.num + '</span>' +
+        '<span class="guide-text">' + bi(s.en, s.zh) + '</span>' +
+        '<span class="guide-fold" data-fold-toggle="' + s.id + '" role="button" tabindex="0" aria-label="Fold this section"></span>' +
+      '</a>';
+    }).join('');
+    expandHant(list);
+  }
+
+  function syncGuideState() {
+    var folded = foldedIds();
+    SECTIONS.forEach(function (s) {
+      var mark = document.querySelector('[data-fold-toggle="' + s.id + '"]');
+      if (!mark) return;
+      var on = folded.indexOf(s.id) >= 0;
+      mark.classList.toggle('is-folded', on);
+      mark.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  function openGuide() {
+    var panel = $('#guidePanel');
+    var back = $('#guideBackdrop');
+    if (!panel) return;
+    panel.hidden = false;
+    if (back) back.hidden = false;
+    guideOpen = true;
+    document.body.classList.add('guide-open');
+    var toggle = $('#guideToggle');
+    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(function () {
+      panel.classList.add('is-open');
+      if (back) back.classList.add('is-open');
+    });
+    syncGuideState();
+    highlightGuide();
+  }
+
+  function closeGuide() {
+    var panel = $('#guidePanel');
+    var back = $('#guideBackdrop');
+    if (!panel) return;
+    panel.classList.remove('is-open');
+    if (back) back.classList.remove('is-open');
+    guideOpen = false;
+    document.body.classList.remove('guide-open');
+    var toggle = $('#guideToggle');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    setTimeout(function () {
+      if (guideOpen) return;
+      panel.hidden = true;
+      if (back) back.hidden = true;
+    }, 320);
+  }
+
+  /* The section the reader is in is marked in the guide. */
+  function highlightGuide() {
+    var current = '';
+    SECTIONS.forEach(function (s) {
+      var el = document.getElementById(s.id);
+      if (el && el.getBoundingClientRect().top <= 160) current = s.id;
+    });
+    $$('#guideList .guide-item').forEach(function (a) {
+      a.classList.toggle('is-current', a.getAttribute('data-guide') === current);
+    });
+  }
+
+  function wireGuide() {
+    var toggle = $('#guideToggle');
+    if (toggle) toggle.addEventListener('click', function () {
+      if (guideOpen) closeGuide(); else openGuide();
+    });
+    var close = $('#guideClose');
+    if (close) close.addEventListener('click', closeGuide);
+    var back = $('#guideBackdrop');
+    if (back) back.addEventListener('click', closeGuide);
+
+    var expand = $('#guideExpandAll');
+    if (expand) expand.addEventListener('click', function () { allFolded(false); });
+    var collapse = $('#guideCollapseAll');
+    if (collapse) collapse.addEventListener('click', function () { allFolded(true); });
+
+    /* Clicking a section in the guide folds or unfolds it without leaving
+       the panel, so a reader can clear the page down to one part. */
+    document.addEventListener('click', function (e) {
+      var foldBtn = e.target.closest('[data-fold-toggle]');
+      if (foldBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var id = foldBtn.getAttribute('data-fold-toggle');
+        setFolded(id, foldedIds().indexOf(id) < 0);
+        return;
+      }
+      var bar = e.target.closest('.fold-bar');
+      if (bar) {
+        var bid = bar.getAttribute('data-fold');
+        setFolded(bid, foldedIds().indexOf(bid) < 0);
+        return;
+      }
+      if (guideOpen && e.target.closest('.guide-item')) closeGuide();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && guideOpen) closeGuide();
+      if (e.key === 'Enter' || e.key === ' ') {
+        var mark = e.target.closest && e.target.closest('[data-fold-toggle]');
+        if (mark) {
+          e.preventDefault();
+          var id = mark.getAttribute('data-fold-toggle');
+          setFolded(id, foldedIds().indexOf(id) < 0);
+        }
+      }
+    });
+
+    var ticking = false;
+    window.addEventListener('scroll', function () {
+      if (!guideOpen || ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () { highlightGuide(); ticking = false; });
+    }, { passive: true });
+  }
+
   function relocalizeMeta() {
     document.title = tr('SHARP ISLAND: ONE ROUTE, ONE ISLAND', '桥咀洲：一条路线，一座岛');
     $('.nav').setAttribute('aria-label', tr('Main navigation', '主导航'));
@@ -1501,6 +1743,12 @@
     $('#langSwitch').setAttribute('aria-label', tr('Language', '语言版本'));
     $('#themeToggle').setAttribute('aria-label', tr('Switch appearance', '切换外观'));
     $('#themeToggle').setAttribute('title', tr('Switch appearance', '切换外观'));
+    $('#guideToggle').setAttribute('aria-label', tr('Open the guide', '打开导览'));
+    $('#guideToggle').setAttribute('title', tr('Open the guide', '打开导览'));
+    $('#guidePanel').setAttribute('aria-label', tr('Guide to the sections', '全篇导览'));
+    $('#guideClose').setAttribute('aria-label', tr('Close the guide', '关闭导览'));
+    $('#guideExpandAll').setAttribute('title', tr('Open every section', '展开全部板块'));
+    $('#guideCollapseAll').setAttribute('title', tr('Fold every section', '折叠全部板块'));
     $('#zoomIn').setAttribute('aria-label', tr('Zoom in', '放大'));
     $('#zoomOut').setAttribute('aria-label', tr('Zoom out', '缩小'));
     $('#zoomReset').setAttribute('aria-label', tr('Reset view', '重置视图'));
@@ -1733,7 +1981,13 @@
   drawTileMap();
   tbLayout();
   buildSection();
+  /* The fold bars are built before the blocks are drawn, so the fold
+     wrapper holds the finished content rather than an empty shell. */
+  buildFoldHeads();
+  buildGuideList();
+  applyFoldState();
   wire();
+  wireGuide();
   setProgress(0);
   setTide(0.95, true);
   /* The tiles come from the network. If they do not, the local survey tiles

@@ -113,6 +113,21 @@ tide model, are also raised to large primary buttons; the other ten sit in a
 five-column chip row under them, and fold to four columns on a tablet and two on
 a phone.
 
+## Folding and the guide panel
+
+The guide runs to about twenty-two thousand pixels, which is a long scroll for
+a phone. Two things shorten it.
+
+Every section has a bar at its head carrying its number and title. Clicking the
+bar folds the section away to that one line, and clicking it again opens it
+again. The page becomes a table of the twelve parts, and the reader opens only
+the one they came for.
+
+The guide panel in the navigation bar lists all twelve with a fold button
+beside each one, marks the section currently being read, and offers to expand
+or fold everything at once. Which sections are folded is remembered in
+`localStorage` under `si-folded`, so the page comes back the way it was left.
+
 ## The survey
 
 Eight observation points, one continuous route of about 2.19 km, visited between
@@ -133,6 +148,15 @@ Kong UNESCO Global Geopark, AFCD, LCSD and the Hong Kong Observatory. The list
 holds a gazetteer, three journal articles, a book chapter and three official
 reports. What has been checked is marked as checked, and what has not been read
 through yet is marked as such too.
+
+Each of the four published works was checked against the Crossref record for
+its DOI, so the names, volume, issue and pages in the list are the publisher's
+own and not a recollection. Two corrections came out of that: the 2013 article
+in *Asian Geographer* has a single author, Ng Sai L., and the G3 paper is
+*Volcanic-plutonic connections in a tilted nested caldera complex in Hong Kong*.
+The vegetation entry was traced to the Hong Kong Herbarium's account of the
+vegetation of Hong Kong, which is where the four plant communities and their
+species come from.
 
 ## The team
 
@@ -164,4 +188,9 @@ The division of work is on the page itself, under Sources.
   copy is edited anywhere, run `python3 tools/gen-hant.py` to refresh the table.
 * The place names, the gazetteer text and the photographs remain the property of
   their authors and publishers. The published articles are cited by DOI in the
-  reading list.
+  reading list. Every DOI in that list was checked against Crossref, and each
+  entry gives the volume, issue and pages the publisher records.
+* Each section can be folded down to its heading, and the guide panel in the
+  navigation bar lists all twelve, marks the one being read, and folds the
+  page down to a single part. Which sections are folded is kept in
+  `localStorage` under `si-folded`.

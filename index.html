@@ -99,6 +99,10 @@ window.addEventListener('load', function () {
       <a href="#reading"><span class="t-en">READING</span><span class="t-hans">文献</span></a>
       <a href="#survey"><span class="t-en">SOURCES</span><span class="t-hans">来源</span></a>
     </div>
+    <button class="nav-guide" id="guideToggle" aria-label="Open the guide" aria-expanded="false" aria-controls="guidePanel">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <span class="t-en">GUIDE</span><span class="t-hans">导览</span>
+    </button>
     <div class="lang-switch" role="group" id="langSwitch">
       <button type="button" class="lang-btn" data-lang="zh-hans" aria-pressed="false">简中</button>
       <button type="button" class="lang-btn" data-lang="zh-hant" aria-pressed="false">繁中</button>
@@ -110,6 +114,31 @@ window.addEventListener('load', function () {
     </button>
   </div>
 </nav>
+
+<!-- GUIDE -->
+<div class="guide-backdrop" id="guideBackdrop" hidden></div>
+<aside class="guide-panel" id="guidePanel" hidden aria-label="Guide to the sections">
+  <div class="guide-head">
+    <div>
+      <p class="eyebrow"><span class="t-en">THE WHOLE GUIDE</span><span class="t-hans">全篇导览</span></p>
+      <h3><span class="t-en">TWELVE SECTIONS.</span><span class="t-hans">十二个板块</span></h3>
+    </div>
+    <button class="icon-btn guide-close" id="guideClose" aria-label="Close the guide" title="Close">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <p class="guide-note"><span class="t-en">Fold a section down to its title to shorten the page, then reopen it when you need it. The setting is remembered.</span><span class="t-hans">把板块折叠成一行标题即可缩短页面，需要时再展开，设置会被记住。</span></p>
+
+  <div class="guide-tools">
+    <button class="guide-tool" id="guideExpandAll"><span class="t-en">EXPAND ALL</span><span class="t-hans">全部展开</span></button>
+    <button class="guide-tool" id="guideCollapseAll"><span class="t-en">FOLD ALL</span><span class="t-hans">全部折叠</span></button>
+  </div>
+
+  <nav class="guide-list" id="guideList"></nav>
+
+  <p class="guide-foot"><span class="t-en">Twelve sections, eight observation points, sixty-six photographs.</span><span class="t-hans">十二个板块、八个观察点、六十六张照片。</span></p>
+</aside>
 
 <!-- HERO -->
 <header class="hero wrap">
