@@ -163,15 +163,6 @@ holds a gazetteer, three journal articles, a book chapter and three official
 reports. What has been checked is marked as checked, and what has not been read
 through yet is marked as such too.
 
-Each of the four published works was checked against the Crossref record for
-its DOI, so the names, volume, issue and pages in the list are the publisher's
-own and not a recollection. Two corrections came out of that: the 2013 article
-in *Asian Geographer* has a single author, Ng Sai L., and the G3 paper is
-*Volcanic-plutonic connections in a tilted nested caldera complex in Hong Kong*.
-The vegetation entry was traced to the Hong Kong Herbarium's account of the
-vegetation of Hong Kong, which is where the four plant communities and their
-species come from.
-
 ## The team
 
 孟楷淇（组长）、金子涵、王馨悦、伍佳慧、杨荟瑾、武若瞳、聂仕霖、刘凯心、胡佳启、吴叙静.
