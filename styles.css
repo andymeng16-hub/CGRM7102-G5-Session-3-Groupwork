@@ -475,6 +475,9 @@ html[data-theme="dark"] .i-moon { display: block; }
 .tombolo-section { background: var(--surface); }
 .tm-shell { border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-2); box-shadow: var(--shadow-md); }
 .tm-stage { position: relative; height: clamp(420px, 44vw, 560px); background: linear-gradient(180deg, var(--model-top), var(--model-bottom)); }
+/* The canvas is laid out to the model window's own 550 by 298 ratio, so the
+   map always fills the frame instead of floating inside it. */
+@media (max-width: 720px) { .tm-stage { height: auto; aspect-ratio: 550 / 298; } }
 #tideModel { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tm-hud { position: absolute; top: 18px; left: 18px;
   background: color-mix(in srgb, var(--surface) 88%, transparent);
@@ -492,15 +495,17 @@ html[data-theme="dark"] .i-moon { display: block; }
 .tm-state.is-marg { background: var(--amber-soft); color: var(--amber); }
 .tm-state.is-walk { background: var(--green-soft); color: var(--green); }
 
-.tm-legend { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 9px;
-  background: color-mix(in srgb, var(--surface) 86%, transparent); border: 1px solid var(--line-soft);
-  border-radius: 12px; padding: 11px 13px; font-size: 9px; letter-spacing: .07em; color: var(--muted); }
+.tm-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; margin-top: 4px;
+  padding-top: 14px; border-top: 1px solid var(--line-soft);
+  font-size: 9px; letter-spacing: .06em; color: var(--muted); }
 .tm-legend .lg { align-items: flex-start; }
 .sw { width: 11px; height: 11px; border-radius: 3px; flex: none; margin-top: 1px; }
 .sw-land { background: #8fb37e; }
 .sw-sand { background: #d6ceac; }
 .sw-water { background: #5c94ad; }
 .sw-contour { background: none; border: 1px solid var(--faint); }
+.sw-limit { background: none; border-top: 3px dashed #b04a30; border-radius: 0; height: 3px; margin-top: 4px; }
+.sw-tide { background: none; border-top: 3px solid #103444; border-radius: 0; height: 3px; margin-top: 4px; }
 .tm-foot { display: grid; grid-template-columns: minmax(0, 1fr) 330px; border-top: 1px solid var(--line-soft); background: var(--surface); }
 .tm-section { padding: 20px 22px 16px; border-right: 1px solid var(--line-soft); }
 #tideSection { width: 100%; height: auto; display: block; }
@@ -803,11 +808,13 @@ body.no-scroll { overflow: hidden; }
   .map-credit { right: 10px; bottom: 50px; font-size: 8px; padding: 2px 6px; }
   .map-scale { bottom: 54px; left: 10px; }
   .side-fact { margin-top: 6px; }
-  .tm-stage { height: 340px; }
-  /* the legend is hidden on a phone, so the readout takes the free corner */
-  .tm-hud { top: 12px; left: auto; right: 12px; padding: 11px 13px 12px; }
-  .tm-hud-num b { font-size: 1.7rem; }
-  .tm-legend { display: none; }
+  /* the readout sits over open water in the top corner and stays small
+     enough to leave the bar alone */
+  .tm-hud { top: 8px; left: 8px; padding: 6px 9px 7px; }
+  .tm-hud-num b { font-size: 1.15rem; }
+  .tm-hud-num i { font-size: 10px; }
+  .tm-hud-label { display: none; }
+  .tm-state { margin-top: 3px; font-size: 8px; }
   .tm-section { padding: 14px 14px 10px; }
   .tm-panel { padding: 18px 18px 22px; }
   .veg-art svg { height: 200px; }

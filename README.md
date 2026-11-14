@@ -74,6 +74,7 @@ data/
   field-data.js         the survey: points, stages, notes, sources, team
   field-data.json       the same survey as JSON, for QGIS
   terrain.js            the elevation grid the profile and the model are built on
+  tombolo-model.js      the baked surface the tide panel reads
   vegetation.js         four plant communities and their plates
   gallery.js            the photo section: four groups and thirty-seven captions
   zh-hant.js            the Simplified to Traditional conversion table
@@ -86,7 +87,13 @@ tools/
   gen-hant.py           regenerates data/zh-hant.js and checks it against zhconv
   export-data.js        regenerates the JSON and GeoJSON exports
   build_terrain.py      regenerates the terrain tiles
+  fetch_osm.py          pulls and caches the OpenStreetMap ways for the tombolo
+  rings.py              stitches those ways into closed rings
+  build_tombolo_model.py  regenerates data/tombolo-model.js
+  amap_overlay.py       draws any of it over satellite imagery, to check it
   dem_cache.json        the elevation samples the tiles were built from
+  coastline_raw.json    the cached coastline ways
+  tombolo_raw.json      the cached bar, beach and reef outlines
   master_base.png       the combined basemap sheet the tiles were cut from
 ```
 
@@ -180,8 +187,20 @@ The division of work is on the page itself, under Sources.
   slightly different blue from the sea it draws, which leaves pale rectangles
   across the water; the Chinese rendering has no such seam.
 * The elevation figures are read from a 90 m resolution SRTM sample that has been
-  smoothed for display, and the profile and the tide model are drawn from that
-  same grid. The AFCD source notes the island's high point as 136 m.
+  smoothed for display, and the profile is drawn from that same grid. The AFCD
+  source notes the island's high point as 136 m. The SRTM grid is far too coarse
+  to hold the tombolo, so the tide panel does not use it for the bar.
+* The tide panel is built from the map rather than from a drawn shape. The
+  shoreline and the outline of the bar are OpenStreetMap coastline and beach
+  ways, stitched into closed rings by `tools/rings.py`; the bar section was
+  measured by slicing that outline at one-metre stations, which is how the model
+  knows the crossing narrows to three metres at the Kiu Tau end and widens to
+  thirty three where it fans into the beach. Only height is reconstructed: the
+  crest is set to close just above the 1.25 m posted limit, and the sea floor
+  falls away from the mapped shoreline. `python3 tools/build_tombolo_model.py`
+  rebuilds `data/tombolo-model.js` from the cached OSM ways.
+* The OSM geometry in `data/tombolo-model.js` is © OpenStreetMap contributors,
+  released under ODbL 1.0, and the page credits it under the section.
 * The terrain tiles are a static pyramid drawn by `tools/build_terrain.py` and
   committed to the repository, so the map still works with no network.
 * Every translatable string exists once, in English and Simplified Chinese, and

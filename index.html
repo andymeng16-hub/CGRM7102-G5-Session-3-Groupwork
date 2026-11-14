@@ -292,7 +292,7 @@ window.addEventListener('load', function () {
       <div>
         <p class="eyebrow"><span class="t-en">TOMBOLO AND TIDE</span><span class="t-hans">连岛沙洲与潮汐</span></p>
         <h2><span class="t-en">A BRIDGE THAT<br>COMES AND GOES.</span><span class="t-hans">一座时有时无的桥</span></h2>
-        <p class="body"><span class="t-en">The bar between the main island and Kiu Tau is neither land nor sea. Set a tide height and the model floods the saddle, lifts the crest clear, and redraws the waterline along the way. Contours are drawn every half metre, so you can read the shape of the ridge before the water reaches it.</span><span class="t-hans">主岛与桥头之间的沙洲既非陆地也非海面。设定潮高，模型会把鞍部淹入水中或托出水面，并沿程重绘水线。等高线每半米一条，可以在水淹之前先读出沙脊的形状。</span></p>
+        <p class="body"><span class="t-en">OpenStreetMap draws this bar as one beach outline, and the outline is what the panel uses. It runs 272 m from the south shore of Sharp Island across to Kiu Tau Chau, the small island on the far side. At the Kiu Tau end it is only three metres of gravel. Through the middle it holds ten to thirteen. Where it fans into the beach it reaches thirty three. Set a tide height and the model floods the ridge, lifts it clear again, and redraws the waterline from the measured outline. Contours every half metre. The dashed red line is the 1.25 m limit on the pier board.</span><span class="t-hans">沙洲在 OpenStreetMap 里是一条完整的砾石滩轮廓，这个面板用的就是它。轮廓从桥咀洲南岸一直伸到对岸的桥头岛，全长 272 米。靠桥头岛那一端只有 3 米宽的砾石，中段保持在 10 到 13 米，展开进沙滩的地方到 33 米。拖动潮高，模型会把沙脊淹入水中或重新托出水面，并按实测轮廓重绘水线。等高线每半米一条，红色虚线是码头告示牌上的 1.25 米上限。</span></p>
       </div>
     </div>
 
@@ -304,25 +304,27 @@ window.addEventListener('load', function () {
           <div class="tm-hud-label"><span class="t-en">TIDE HEIGHT</span><span class="t-hans">潮高</span></div>
           <div class="tm-state" id="tmState"></div>
         </div>
-        <div class="tm-legend">
-          <span class="lg"><i class="sw sw-land"></i><span class="lg-txt"><span class="t-en">LAND</span><span class="t-hans">陆地</span></span></span>
-          <span class="lg"><i class="sw sw-sand"></i><span class="lg-txt"><span class="t-en">SAND</span><span class="t-hans">沙洲</span></span></span>
-          <span class="lg"><i class="sw sw-water"></i><span class="lg-txt"><span class="t-en">WATER</span><span class="t-hans">水面</span></span></span>
-          <span class="lg"><i class="sw sw-contour"></i><span class="lg-txt"><span class="t-en">0.5 M CONTOUR</span><span class="t-hans">等高线</span></span></span>
-        </div>
       </div>
 
       <div class="tm-foot">
         <figure class="tm-section">
           <svg id="tideSection" viewBox="0 0 640 220" role="img" aria-label="Cross section along the tombolo showing the saddle and the water level"></svg>
-          <figcaption><span class="t-en">SECTION ACROSS THE BAR AT MID CHANNEL. CREST SET AT 1.25 M.</span><span class="t-hans">沙洲中段横剖面；沙脊高程设为 1.25 米。</span></figcaption>
+          <figcaption><span class="t-en">SECTION ACROSS THE BAR AT ITS LOWEST CREST, 1.30 M ABOVE CHART DATUM. SHORELINES AND BAR OUTLINE FROM OPENSTREETMAP, ODbL 1.0.</span><span class="t-hans">剖面切在沙洲最低的沙脊处，高程 1.30 米（海图基准面以上）。岸线与沙洲轮廓取自 OpenStreetMap，ODbL 1.0。</span></figcaption>
         </figure>
         <div class="tm-panel">
           <span class="tm-panel-label"><span class="t-en">TIDE HEIGHT</span><span class="t-hans">潮高</span></span>
           <input type="range" id="tideSlider" min="0" max="260" value="95" aria-label="Tide height in centimetres">
           <div class="tm-ticks"><span>0 M</span><span class="tick-mid"><span class="t-en">1.25 M THRESHOLD</span><span class="t-hans">1.25 米临界值</span></span><span>2.60 M</span></div>
           <button class="btn btn-primary tm-play" id="tidePlay"><span class="t-en">RUN THE TIDE</span><span class="t-hans">推演潮汐</span></button>
-          <p class="tm-note"><span class="t-en">The bar crest sits at the threshold printed on the pier board. Below it the sand dries; above it the crossing is under water.</span><span class="t-hans">沙脊高程取码头告示牌所载的临界值：低于此值沙面出露，高于此值整段过水。</span></p>
+          <div class="tm-legend">
+            <span class="lg"><i class="sw sw-land"></i><span class="lg-txt"><span class="t-en">LAND</span><span class="t-hans">陆地</span></span></span>
+            <span class="lg"><i class="sw sw-sand"></i><span class="lg-txt"><span class="t-en">GRAVEL BAR</span><span class="t-hans">砾石沙洲</span></span></span>
+            <span class="lg"><i class="sw sw-water"></i><span class="lg-txt"><span class="t-en">WATER</span><span class="t-hans">水面</span></span></span>
+            <span class="lg"><i class="sw sw-contour"></i><span class="lg-txt"><span class="t-en">0.5 M CONTOUR</span><span class="t-hans">0.5 米等高线</span></span></span>
+            <span class="lg"><i class="sw sw-limit"></i><span class="lg-txt"><span class="t-en">1.25 M LIMIT</span><span class="t-hans">1.25 米上限</span></span></span>
+            <span class="lg"><i class="sw sw-tide"></i><span class="lg-txt"><span class="t-en">TIDELINE</span><span class="t-hans">当时水线</span></span></span>
+          </div>
+          <p class="tm-note"><span class="t-en">Height is the one reconstructed quantity here. The outline and the section are measured, so the crest is set to close just above the posted limit. Inland relief blends the SRTM 90 m grid, which is too coarse to hold the bar itself.</span><span class="t-hans">这里唯一经过重建的量是高程。轮廓与剖面都是实测的，沙脊高度按告示上限略高一点设定。陆上地形叠加了 SRTM 90 米网格，这个分辨率本身分辨不出沙洲。</span></p>
         </div>
       </div>
     </div>
@@ -508,6 +510,7 @@ window.addEventListener('load', function () {
 
 <script src="data/field-data.js"></script>
 <script src="data/terrain.js"></script>
+<script src="data/tombolo-model.js"></script>
 <script src="data/vegetation.js"></script>
 <script src="data/gallery.js"></script>
 <script src="app.js"></script>

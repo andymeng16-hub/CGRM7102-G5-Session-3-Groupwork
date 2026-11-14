@@ -680,421 +680,466 @@
   /* ------------------------------------------------------------------ */
   /* Tombolo tide model                                                    */
   /* ------------------------------------------------------------------ */
-  var TB = {
-    along: 240,        /* metres from the island shore to the Kiu Tau shore */
-    halfW: 24,         /* half width of the bar crest */
-    crestEnd: 1.70,    /* crest where the bar meets each shore */
-    crestMid: 1.25,    /* saddle, set to the threshold on the pier board */
-    nx: 264, ny: 280,
-    x0: -210, x1: 210, y0: -180, y1: 352
+  /* Nothing in this panel is drawn by hand. The shorelines and the outline
+     of the bar are OpenStreetMap coastline ways stitched into closed rings;
+     the bar section was measured by slicing that outline at one-metre
+     stations, which is how the model knows the crossing narrows to three
+     metres at the south end and widens to thirty where it meets the beach.
+     Terrain inland of the shore blends the SRTM 90 m grid. Height is the one
+     reconstructed quantity: the crest is tied to the thresholds printed on
+     the pier board, and the sea floor falls away from the mapped shoreline.
+     tools/build_tombolo_model.py bakes the surface into a small grid so the
+     page stays a plain file that opens without a server. */
+  var TM = window.TOMBOLA_MODEL || null;
+  var B36 = '0123456789abcdefghijklmnopqrstuvwxyz';
+  var TBG = (function () {
+    var g = TM && TM.grid;
+    if (!g) return { nx: 1, ny: 1, step: 2, s0: 0, o0: 0, z: new Float32Array([-3.2]) };
+    var n = g.nx * g.ny, z = new Float32Array(n), src = g.data;
+    for (var i = 0; i < n; i++) {
+      var k = i * 3;
+      z[i] = (B36.indexOf(src.charAt(k)) * 1296 +
+              B36.indexOf(src.charAt(k + 1)) * 36 +
+              B36.indexOf(src.charAt(k + 2))) / 40 - 4.5;
+    }
+    return { nx: g.nx, ny: g.ny, step: g.step, s0: g.s0, o0: g.o0, z: z };
+  })();
+  /* The panel is drawn in the grid's own frame: s runs along the bar, o runs
+     across it, positive towards the north-west shore. Screen x is s and
+     screen y is minus o, so north sits a little to the upper right and the
+     bar lies flat across the panel. */
+  var TB_VIEW = {
+    s0: TBG.s0, o0: TBG.o0,
+    s1: TBG.s0 + (TBG.nx - 1) * TBG.step,
+    o1: TBG.o0 + (TBG.ny - 1) * TBG.step
   };
-  var TB_BASE = -2.6;  /* depth of the open channel */
 
-  function sstep(a, b, v) {
-    var t = clamp((v - a) / (b - a), 0, 1);
-    return t * t * (3 - 2 * t);
-  }
-
-  /* Centre line of the bar. Shared so the section can put its crest label in
-     the right place rather than assuming the bar runs along x = 0. */
-  function barDrift(y) {
-    return 11 * Math.sin(y / 74 + .55) *
-           Math.sin(Math.PI * clamp(y / TB.along, 0, 1));
-  }
-
-  /* Analytic surface, in metres above chart datum. Every term stays continuous
-     in both directions, so the shoreline is simply where the surface crosses
-     zero. An earlier version switched the headlands off with a conditional at
-     the shore, which put a ten-metre cliff across the grid. */
-  function tbSurface(x, y) {
-    var t = clamp(y / TB.along, 0, 1);
-
-    /* Main island. A promontory rather than a wall of land: the ramp leaves the
-       shore almost flat, climbs inland, then runs back down to the sea behind
-       the frame. Nothing here is switched off by a conditional, so the whole
-       surface stays continuous and the coastline is where it crosses zero. */
-    var taperIsle = sstep(-180, -102, y);
-    var rampIsle = (1 - Math.exp(-Math.pow(Math.max(0, -y) / 58, 1.18))) * taperIsle;
-    var shapeIsle = Math.exp(-Math.pow(Math.abs(x) / 96, 2.6));
-    var isle = 24 * rampIsle * shapeIsle - (1 - shapeIsle) * 3.1;
-    /* a shoulder and a knoll, so the island is not one smooth dome */
-    isle += 7.5 * Math.exp(-(Math.pow((x + 34) / 46, 2) + Math.pow((y + 132) / 46, 2))) * taperIsle;
-    isle += 4.6 * Math.exp(-(Math.pow((x - 42) / 38, 2) + Math.pow((y + 76) / 32, 2))) * taperIsle;
-
-    /* Kiu Tau, a low islet at the far end of the crossing. */
-    var rampKiu = 1 - Math.exp(-Math.pow(Math.max(0, y - TB.along) / 48, 1.15));
-    var shapeKiu = Math.exp(-Math.pow(Math.abs(x - 3) / 56, 2.6)) * (1 - sstep(296, 348, y));
-    var kiu = 17 * rampKiu * shapeKiu - (1 - shapeKiu) * 3.1;
-
-    /* The bar. The crest is high where it meets each shore and dips to the
-       threshold at mid channel. Its centre drifts and its width breathes, so
-       the outline is not two parallel edges running the length of the strait. */
-    var crest = TB.crestMid + (TB.crestEnd - TB.crestMid) *
-                Math.pow(Math.abs(2 * t - 1), 1.8);
-    var drift = barDrift(y);
-    var halfW = TB.halfW * (1 + .17 * Math.sin(y / 47 - .9));
-    var win = sstep(-30, -8, y) * (1 - sstep(TB.along - 14, TB.along + 4, y));
-    var bar = TB_BASE + (crest - TB_BASE) *
-              Math.exp(-Math.pow((x - drift) / halfW, 2)) * win;
-
-    var h = Math.max(isle, kiu, bar);
-    /* A little undulation. It is scaled by height on land so the hill tops stay
-       smooth, and it keeps running under water so the channel has some depth
-       variation instead of one flat blue. */
-    h += .30 * Math.sin(x / 31 + y / 47) * Math.cos(y / 37) * clamp(h / 3.5, 0, 1);
-    h += .55 * Math.sin(x / 64 + y / 88) * (1 - clamp(h / 3, 0, 1));
-    return h;
+  function tbSample(s, o) {
+    var fx = (s - TBG.s0) / TBG.step, fy = (o - TBG.o0) / TBG.step;
+    fx = fx < 0 ? 0 : (fx > TBG.nx - 1.001 ? TBG.nx - 1.001 : fx);
+    fy = fy < 0 ? 0 : (fy > TBG.ny - 1.001 ? TBG.ny - 1.001 : fy);
+    var i = fx | 0, j = fy | 0, tx = fx - i, ty = fy - j;
+    var z = TBG.z, r0 = j * TBG.nx + i, r1 = r0 + TBG.nx;
+    return (z[r0] * (1 - tx) + z[r0 + 1] * tx) * (1 - ty) +
+           (z[r1] * (1 - tx) + z[r1 + 1] * tx) * ty;
   }
 
   var tbC = $('#tideModel'), tbCtx = tbC.getContext('2d');
-  var tbW = 0, tbH = 0;
-  var tbNodes = [], tbContours = [], tbThreshold = [];
-  /* The relief is baked once per layout; only the water is redrawn per tide.
-     Painting thirty thousand cells every animation frame is what forces a
-     coarse grid, and a coarse grid is what makes the coastline look stepped. */
-  var tbStatic = document.createElement('canvas');
-  var tbSctx = tbStatic.getContext('2d');
-  /* A shallow axonometric, just enough tilt that the surface does not read as
-     a flat plan, without the grid edges ever becoming visible: the model is
-     scaled to overflow the canvas in both directions and is cropped by it. */
-  var TB_VIEW = { tilt: .90, skew: .075 };
+  var tbW = 0, tbH = 0, tbDpr = 1;
+  var TBK = 1, TBOX = 0, TBOY = 0;
 
-  function tbLayout() {
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    tbW = tbC.clientWidth || 900; tbH = tbC.clientHeight || 480;
-    tbC.width = Math.round(tbW*dpr); tbC.height = Math.round(tbH*dpr);
-    tbCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    tbStatic.width = tbC.width; tbStatic.height = tbC.height;
-    tbSctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    buildNodes();
-    buildContours();
-    renderRelief();
-    drawTombolo();
+  function tbFit() {
+    var w = TB_VIEW.s1 - TB_VIEW.s0, h = TB_VIEW.o1 - TB_VIEW.o0;
+    TBK = Math.min(tbW / w, tbH / h);
+    TBOX = (tbW - w * TBK) / 2;
+    TBOY = (tbH - h * TBK) / 2;
+  }
+  function tbProj(s, o) {
+    return { x: TBOX + (s - TB_VIEW.s0) * TBK, y: TBOY + (TB_VIEW.o1 - o) * TBK };
+  }
+  function tbUnproj(x, y) {
+    return { s: TB_VIEW.s0 + (x - TBOX) / TBK, o: TB_VIEW.o1 - (y - TBOY) / TBK };
   }
 
-  /* Along-bar metres run left to right across the panel; across-bar metres run
-     down the panel, compressed a little to suggest ground plane. */
-  var TB_K = 1;
-  function tbProj(x, y) {
-    var dy = y - 118;
-    var dx = x - (TB.x0 + TB.x1) / 2;
-    return { x: tbW * .5 + dy * TB_K,
-             y: tbH * .5 - dx * TB_K * TB_VIEW.tilt + dy * TB_K * TB_VIEW.skew,
-             d: y };
-  }
-  function tbScale() {
-    /* 390 m across the panel: the bar plus a slice of each shore. The second
-       term keeps the grid wider than the panel on narrow screens. */
-    TB_K = Math.max(tbW / 445, tbH / ((TB.x1 - TB.x0) * TB_VIEW.tilt));
-  }
-  /* Screen back to metres. Needed to decide which contour stretches belong to
-     the bar rather than to a headland. */
-  function tbUnproj(sx, sy) {
-    var dy = (sx - tbW * .5) / TB_K;
-    var dx = (tbH * .5 + dy * TB_K * TB_VIEW.skew - sy) / (TB_K * TB_VIEW.tilt);
-    return { x: dx + (TB.x0 + TB.x1) / 2, y: dy + 118 };
-  }
+  /* ---- marching squares over the baked grid --------------------------- */
 
-  function buildNodes() {
-    tbScale();
-    tbNodes = new Array((TB.nx+1)*(TB.ny+1));
-    for (var j = 0; j <= TB.ny; j++) {
-      for (var i = 0; i <= TB.nx; i++) {
-        var x = TB.x0 + (TB.x1-TB.x0)*i/TB.nx;
-        var y = TB.y0 + (TB.y1-TB.y0)*j/TB.ny;
-        var z = tbSurface(x, y);
-        var p = tbProj(x, y);
-        tbNodes[j*(TB.nx+1)+i] = { x: p.x, y: p.y, d: p.d, z: z };
-      }
-    }
-  }
-
-  /* Marching squares over the grid. Geometry is fixed, so results are cached;
-     the waterline reuses the same routine at the live tide height. */
-  function marching(level, out) {
-    var W = TB.nx+1;
-    for (var j = 0; j < TB.ny; j++) {
-      for (var i = 0; i < TB.nx; i++) {
-        var a = tbNodes[j*W+i], b = tbNodes[j*W+i+1];
-        var c2 = tbNodes[(j+1)*W+i+1], d2 = tbNodes[(j+1)*W+i];
-        var idx = (a.z > level ? 1 : 0) | (b.z > level ? 2 : 0) |
-                  (c2.z > level ? 4 : 0) | (d2.z > level ? 8 : 0);
+  /* Returns loose segments in the grid frame. Filling is done per pixel, so
+     the segments are only ever stroked: an open chain along the edge of the
+     frame is fine and never needs closing with a chord. */
+  function tbMarch(level, out) {
+    var nx = TBG.nx, ny = TBG.ny, st = TBG.step, z = TBG.z;
+    var s0 = TBG.s0, o0 = TBG.o0;
+    out = out || [];
+    for (var j = 0; j < ny - 1; j++) {
+      var oa = o0 + j * st, ob = oa + st, r0 = j * nx, r1 = r0 + nx;
+      for (var i = 0; i < nx - 1; i++) {
+        var za = z[r0 + i], zb = z[r0 + i + 1], zc = z[r1 + i + 1], zd = z[r1 + i];
+        var idx = (za > level ? 1 : 0) | (zb > level ? 2 : 0) |
+                  (zc > level ? 4 : 0) | (zd > level ? 8 : 0);
         if (idx === 0 || idx === 15) continue;
-        var ip = function (p, q2) {
-          var t = (level - p.z) / (q2.z - p.z);
-          return [p.x + (q2.x-p.x)*t, p.y + (q2.y-p.y)*t];
-        };
-        var top = ip(a, b), right = ip(b, c2), bottom = ip(d2, c2), left = ip(a, d2);
+        var sa = s0 + i * st, sb = sa + st;
+        var T = [sa + st * (level - za) / (zb - za), oa];
+        var R = [sb, oa + st * (level - zb) / (zc - zb)];
+        var B = [sa + st * (level - zd) / (zc - zd), ob];
+        var L = [sa, oa + st * (level - za) / (zd - za)];
         switch (idx) {
-          case 1: case 14: out.push([left, top]); break;
-          case 2: case 13: out.push([top, right]); break;
-          case 3: case 12: out.push([left, right]); break;
-          case 4: case 11: out.push([right, bottom]); break;
-          case 6: case 9: out.push([top, bottom]); break;
-          case 7: case 8: out.push([left, bottom]); break;
-          case 5: out.push([left, top], [right, bottom]); break;
-          case 10: out.push([top, right], [left, bottom]); break;
+          case 1: case 14: out.push([L, T]); break;
+          case 2: case 13: out.push([T, R]); break;
+          case 3: case 12: out.push([L, R]); break;
+          case 4: case 11: out.push([R, B]); break;
+          case 6: case 9: out.push([T, B]); break;
+          case 7: case 8: out.push([L, B]); break;
+          case 5: out.push([L, T], [R, B]); break;
+          case 10: out.push([T, R], [L, B]); break;
         }
       }
     }
     return out;
   }
 
-  function buildContours() {
-    tbContours = [];
-    /* only the levels that occur on the bar, and only the stretches of those
-       lines that are near the bar: carried round the headlands they read as a
-       bright halo instead of as a map */
-    function near(x, y) {
-      return Math.abs(x - barDrift(y)) < 64 && y > -26 && y < 266;
+  function tbStroke(ctx, segs, close) {
+    ctx.beginPath();
+    for (var i = 0; i < segs.length; i++) {
+      var a = tbProj(segs[i][0][0], segs[i][0][1]);
+      var b = tbProj(segs[i][1][0], segs[i][1][1]);
+      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
     }
-    function keep(segs) {
-      var out = [];
-      for (var i = 0; i < segs.length; i++) {
-        var sg = segs[i];
-        var mx = (sg[0][0] + sg[1][0]) / 2, my = (sg[0][1] + sg[1][1]) / 2;
-        var w = tbUnproj(mx, my);
-        if (near(w.x, w.y)) out.push(sg);
-      }
-      return out;
-    }
-    for (var lv = 1; lv <= 3; lv++) {
-      var segs = keep(marching(lv * .5, []));
-      if (segs.length) tbContours.push(segs);
-    }
-    tbThreshold = keep(marching(1.25, []));
+    ctx.stroke();
   }
 
-  function mix(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; }
-  function rgb(c2) { return 'rgb(' + Math.round(clamp(c2[0],0,255)) + ',' + Math.round(clamp(c2[1],0,255)) + ',' + Math.round(clamp(c2[2],0,255)) + ')'; }
-
-  function landTone(z) {
-    if (z < 1) return [209, 196, 162];
-    if (z < 1.9) return mix([216, 204, 171], [190, 197, 160], (z-1)/.9);
-    if (z < 4.5) return mix([182, 195, 152], [150, 176, 132], (z-1.9)/2.6);
-    if (z < 13) return mix([144, 172, 126], [112, 148, 108], (z-4.5)/8.5);
-    if (z < 22) return mix([110, 148, 110], [124, 158, 120], (z-13)/9);
-    return mix([124, 158, 120], [140, 168, 132], clamp((z-22)/9, 0, 1));
-  }
-  function waterTone(d) {
-    if (d < .3) return mix([136, 186, 204], [112, 170, 192], d/.3);
-    if (d < 1.2) return mix([112, 170, 192], [74, 136, 162], (d-.3)/.9);
-    return mix([74, 136, 162], [56, 108, 132], clamp((d-1.2)/1.4, 0, 1));
+  function tbPoly(ctx, pts, close) {
+    if (!pts || !pts.length) return;
+    var p = tbProj(pts[0][0], pts[0][1]);
+    ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    for (var i = 1; i < pts.length; i++) {
+      p = tbProj(pts[i][0], pts[i][1]); ctx.lineTo(p.x, p.y);
+    }
+    if (close !== false) ctx.closePath();
   }
 
-  /* The relief, baked once per layout. It is rasterised pixel by pixel rather
-     than cell by cell: colouring a 2.5 m grid gives visible steps along the
-     shoreline, and stepping the whole grid up to a size where they vanish is
-     far slower than one pass over the pixels. */
-  var tbRaster = document.createElement('canvas');
+  /* ---- static relief --------------------------------------------------- */
+
+  var tbBase = document.createElement('canvas');
+  var tbBac = tbBase.getContext('2d');
+  var tbWash = document.createElement('canvas');
+  var tbWac = tbWash.getContext('2d');
+  var tbWashImg = null;
+  var tbZ = null;            /* height at every screen pixel, CSS resolution */
+  var tbContours = [];
+  var tbThreshold = [];
+
+  function mixc(a, b, t) {
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  }
+
+  /* Dry ground, from wet sand through gravel and scrub to the low hills. */
+  function landTone(h) {
+    if (h < 1.05) return mixc([180, 171, 146], [190, 180, 152], (h - .95) / .1);
+    if (h < 1.5) return mixc([190, 180, 152], [200, 192, 163], (h - 1.05) / .45);
+    if (h < 2.4) return mixc([200, 192, 163], [192, 190, 160], (h - 1.5) / .9);
+    if (h < 4.5) return mixc([192, 190, 160], [172, 184, 148], (h - 2.4) / 2.1);
+    if (h < 8) return mixc([172, 184, 148], [148, 172, 134], (h - 4.5) / 3.5);
+    if (h < 14) return mixc([148, 172, 134], [128, 156, 122], (h - 8) / 6);
+    return mixc([128, 156, 122], [142, 164, 130], clamp((h - 14) / 8, 0, 1));
+  }
+  /* Sea floor, so the shallows read as a shelf rather than one flat blue. */
+  function bedTone(d) {
+    if (d < .5) return mixc([158, 186, 190], [132, 172, 182], d / .5);
+    if (d < 1.3) return mixc([132, 172, 182], [100, 148, 170], (d - .5) / .8);
+    return mixc([100, 148, 170], [66, 112, 142], clamp((d - 1.3) / 2, 0, 1));
+  }
+
   function renderRelief() {
     var W = Math.max(1, Math.round(tbW)), H = Math.max(1, Math.round(tbH));
-    tbRaster.width = W; tbRaster.height = H;
-    var rctx = tbRaster.getContext('2d');
-    var img = rctx.createImageData(W, H);
-    var pix = img.data;
-    var zs = new Float32Array(W * H);
-    var wx = new Float32Array(W * H), wy = new Float32Array(W * H);
+    var dpr = tbDpr;
+    tbBase.width = Math.round(W * dpr); tbBase.height = Math.round(H * dpr);
+    tbBac.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    var px, py, w;
+    tbZ = new Float32Array(W * H);
+    var px, py;
     for (py = 0; py < H; py++) {
       for (px = 0; px < W; px++) {
-        w = tbUnproj(px + .5, py + .5);
-        var i1 = py*W + px;
-        wx[i1] = w.x; wy[i1] = w.y;
-        zs[i1] = tbSurface(w.x, w.y);
+        var w = tbUnproj(px + .5, py + .5);
+        tbZ[py * W + px] = tbSample(w.s, w.o);
       }
     }
 
-    /* metres per pixel, used to turn the height differences into a slope */
-    var mppx = 1 / TB_K, mppy = 1 / (TB_K * TB_VIEW.tilt);
-    for (py = 0; py < H; py++) {
-      for (px = 0; px < W; px++) {
-        var i2 = py*W + px, z = zs[i2];
-        var col;
-        if (z < 0) {
-          col = waterTone(-z);
-        } else {
-          /* Lambert hillshade, light from the north-west. The slope is
-             exaggerated for shading only: at true scale a 24 m hill over
-             100 m shades almost flat. */
-          var zl = zs[i2 - (px ? 1 : 0)], zr = zs[i2 + (px < W-1 ? 1 : 0)];
-          var zu = zs[i2 - (py ? W : 0)], zd = zs[i2 + (py < H-1 ? W : 0)];
-          var gx = (zr - zl) / (2 * mppy);      /* screen x runs along the bar */
-          var gy = (zd - zu) / (2 * mppx);
-          var nx2 = -gy * 15, ny2 = gx * 15, nz = 1;
-          var nl = Math.sqrt(nx2*nx2 + ny2*ny2 + 1);
-          var lam = (nx2*-.62 + ny2*-.52 + nz*.58) / nl;
-          var sh = clamp(.62 + lam*1.12, .60, 1.26);
-          var tint = Math.sin(wx[i2]/37 + wy[i2]/53) * .55 +
-                     Math.sin(wx[i2]/16.3 - wy[i2]/28.7) * .45;
-          col = landTone(z);
-          var sc = sh * (1 + tint * .045);
-          col = [col[0]*sc, col[1]*sc, col[2]*sc];
+    /* Three passes of a 1 2 1 kernel. The stored grid carries 25 mm steps,
+       which on a slope of a few centimetres per metre leave terraces about
+       four pixels wide, and the hillshade turns those into stripes. This
+       blur touches only the colour buffer: the waterline is still traced
+       from the untouched grid. */
+    for (var pass = 0; pass < 3; pass++) {
+      var tmp = new Float32Array(W * H);
+      for (var yy = 0; yy < H; yy++) {
+        var rr = yy * W;
+        tmp[rr] = (tbZ[rr] * 3 + tbZ[rr + 1]) * .25;
+        for (var xx = 1; xx < W - 1; xx++) {
+          tmp[rr + xx] = (tbZ[rr + xx - 1] + tbZ[rr + xx] * 2 + tbZ[rr + xx + 1]) * .25;
         }
-        var o = i2 * 4;
-        pix[o] = clamp(col[0], 0, 255);
-        pix[o+1] = clamp(col[1], 0, 255);
-        pix[o+2] = clamp(col[2], 0, 255);
-        pix[o+3] = 255;
+        tmp[rr + W - 1] = (tbZ[rr + W - 1] * 3 + tbZ[rr + W - 2]) * .25;
+      }
+      for (var xc = 0; xc < W; xc++) {
+        var c0 = (tmp[xc] * 3 + tmp[W + xc]) * .25;
+        tbZ[xc] = c0;
+        for (var yc = 1; yc < H - 1; yc++) {
+          tbZ[yc * W + xc] = (tmp[(yc - 1) * W + xc] + tmp[yc * W + xc] * 2 +
+                              tmp[(yc + 1) * W + xc]) * .25;
+        }
+        tbZ[(H - 1) * W + xc] = (tmp[(H - 1) * W + xc] * 3 + tmp[(H - 2) * W + xc]) * .25;
       }
     }
-    rctx.putImageData(img, 0, 0);
 
-    tbSctx.clearRect(0, 0, tbW, tbH);
-    tbSctx.drawImage(tbRaster, 0, 0, tbW, tbH);
+    var img = tbBac.createImageData(tbBase.width, tbBase.height);
+    var pix = img.data, iw = tbBase.width, ih = tbBase.height;
+    var mpp = 1 / TBK;                 /* metres per screen pixel */
 
-    /* Half-metre contours, kept to the bar. Carried round the headlands they
-       read as a bright halo rather than as a map. */
-    tbSctx.lineWidth = .9; tbSctx.lineCap = 'butt'; tbSctx.lineJoin = 'round';
-    tbSctx.strokeStyle = 'rgba(74,58,30,.30)';
-    tbContours.forEach(function (segs) {
-      tbSctx.beginPath();
-      segs.forEach(function (sg) { tbSctx.moveTo(sg[0][0], sg[0][1]); tbSctx.lineTo(sg[1][0], sg[1][1]); });
-      tbSctx.stroke();
-    });
-    /* the 1.25 m crest is the line the crossing depends on */
-    tbSctx.strokeStyle = 'rgba(44,32,12,.66)'; tbSctx.lineWidth = 1.4;
-    tbSctx.beginPath();
-    tbThreshold.forEach(function (sg) { tbSctx.moveTo(sg[0][0], sg[0][1]); tbSctx.lineTo(sg[1][0], sg[1][1]); });
-    tbSctx.stroke();
+    for (var y = 0; y < ih; y++) {
+      var sy = Math.min(H - 1, (y / dpr) | 0);
+      for (var x = 0; x < iw; x++) {
+        var sx = Math.min(W - 1, (x / dpr) | 0);
+        var i2 = sy * W + sx;
+        var h = tbZ[i2];
+        var col;
+        if (h < .95) {
+          /* Below the mapped waterline the surface is the sea bed. */
+          col = bedTone(.95 - h);
+          var dl = tbZ[sy * W + Math.max(0, sx - 1)];
+          var dr = tbZ[sy * W + Math.min(W - 1, sx + 1)];
+          var sl = (dr - dl) * .5;
+          col = [col[0] * (1 + sl * .08), col[1] * (1 + sl * .08), col[2] * (1 + sl * .08)];
+        } else {
+          var q1 = 2 / mpp;
+          var zl = tbZ[sy * W + Math.max(0, sx - 2)];
+          var zr = tbZ[sy * W + Math.min(W - 1, sx + 2)];
+          var zu = tbZ[Math.max(0, sy - 2) * W + sx];
+          var zd = tbZ[Math.min(H - 1, sy + 2) * W + sx];
+          /* Lambert shading, light from the north-west corner of the
+             frame. The slope is exaggerated: at true scale a twelve metre
+             hill across two hundred metres shades almost flat. */
+          var gx = (zr - zl) / q1, gy = (zd - zu) / q1;
+          var nxv = -gy * 4.5, nyv = gx * 4.5, nl = Math.sqrt(nxv * nxv + nyv * nyv + 1);
+          var lam = (nxv * -.60 + nyv * -.56 + .57) / nl;
+          var sh = clamp(.68 + lam * .86, .68, 1.14);
+          col = landTone(h);
+          col = [col[0] * sh, col[1] * sh, col[2] * sh];
+          /* a trace of grain, so the flat beach is not a plastic sheet */
+          var w2 = tbUnproj(sx + .5, sy + .5);
+          var grain = Math.sin(w2.s / 5.7 + w2.o / 8.3) * .6 +
+                      Math.sin(w2.s / 13.1 - w2.o / 11.3) * .4;
+          var gc = 1 + grain * (h < 2 ? .045 : .022);
+          col = [col[0] * gc, col[1] * gc, col[2] * gc];
+        }
+        var o4 = (y * iw + x) * 4;
+        pix[o4] = clamp(col[0], 0, 255);
+        pix[o4 + 1] = clamp(col[1], 0, 255);
+        pix[o4 + 2] = clamp(col[2], 0, 255);
+        pix[o4 + 3] = 255;
+      }
+    }
+    tbBac.putImageData(img, 0, 0);
+
+    /* The mapped beaches and the bar are filled with a light wash of their
+       own, so the one surface the tide takes away is not the same colour as
+       the beach it joins. */
+    if (TM) {
+      (TM.beaches || []).forEach(function (b) {
+        tbPoly(tbBac, b.pts);
+        tbBac.fillStyle = b.surface === 'sand' ? 'rgba(216,204,164,.30)' : 'rgba(184,174,148,.30)';
+        tbBac.fill();
+      });
+      if (TM.bar) {
+        tbPoly(tbBac, TM.bar.poly);
+        tbBac.fillStyle = 'rgba(150,120,64,.15)';
+        tbBac.fill();
+      }
+    }
   }
 
-  /* Marching squares returns loose segments. Stitch them into closed loops so
-     the water can be filled as one shape, with an edge that stays crisp at any
-     size instead of stepping from cell to cell. */
-  function buildLoops(segs) {
-    var pts = {}, adj = {};
-    function key(p) { return p[0].toFixed(2) + ',' + p[1].toFixed(2); }
-    segs.forEach(function (sg) {
-      var ka = key(sg[0]), kb = key(sg[1]);
-      pts[ka] = sg[0]; pts[kb] = sg[1];
-      (adj[ka] = adj[ka] || []).push(kb);
-      (adj[kb] = adj[kb] || []).push(ka);
+  function buildContours() {
+    tbContours = [];
+    [1.5, 2, 2.5, 3].forEach(function (lv) {
+      var segs = tbMarch(lv, []);
+      if (segs.length) tbContours.push({ level: lv, segs: segs });
     });
-    var used = {}, loops = [];
-    for (var start in adj) {
-      if (used[start]) continue;
-      var cur = start, loop = [], guard = 0;
-      while (cur && !used[cur] && guard++ < 40000) {
-        used[cur] = 1;
-        loop.push(pts[cur]);
-        var nb = adj[cur], next = null;
-        for (var i = 0; i < nb.length; i++) { if (!used[nb[i]]) { next = nb[i]; break; } }
-        cur = next;
-      }
-      if (loop.length > 2) loops.push(loop);
+    tbThreshold = tbMarch(1.25, []);
+  }
+
+  function tbLayout() {
+    tbDpr = Math.min(window.devicePixelRatio || 1, 2);
+    tbW = tbC.clientWidth || 900; tbH = tbC.clientHeight || 480;
+    tbC.width = Math.round(tbW * tbDpr); tbC.height = Math.round(tbH * tbDpr);
+    tbCtx.setTransform(tbDpr, 0, 0, tbDpr, 0, 0);
+    tbWash.width = Math.round(tbW); tbWash.height = Math.round(tbH);
+    tbWashImg = tbWac.createImageData(Math.round(tbW), Math.round(tbH));
+    tbFit();
+    buildContours();
+    renderRelief();
+    drawTombolo();
+  }
+
+  /* ---- water ----------------------------------------------------------- */
+
+  /* The water is painted per pixel from the same buffer the relief uses, so
+     it can never disagree with the shoreline it is drawn against. */
+  function paintWater(tide) {
+    var W = Math.round(tbW), H = Math.round(tbH);
+    var data = tbWashImg.data, z = tbZ;
+    for (var i = 0, p = 0; i < W * H; i++, p += 4) {
+      var depth = tide - z[i];
+      if (depth <= 0) { data[p + 3] = 0; continue; }
+      var t = clamp(depth / 1.9, 0, 1);
+      var a = 0.30 + 0.28 * Math.sqrt(t);
+      data[p] = 108 + (44 - 108) * t;
+      data[p + 1] = 168 + (92 - 168) * t;
+      data[p + 2] = 198 + (126 - 198) * t;
+      data[p + 3] = Math.round(a * 255);
     }
-    return loops;
+    tbWac.putImageData(tbWashImg, 0, 0);
   }
 
   function drawTombolo() {
     if (!tbW || !tbH) { tbLayout(); return; }
     var tide = state.tide;
     tbCtx.clearRect(0, 0, tbW, tbH);
-    tbCtx.drawImage(tbStatic, 0, 0, tbW, tbH);
+    tbCtx.drawImage(tbBase, 0, 0, tbW, tbH);
 
-    /* Water for this hour. The dry land is the region above the tide, and it is
-       always a closed contour inside the grid, so the water is painted as the
-       canvas minus that region. Filling the water contours instead would mean
-       closing open chains across the frame, and a chord drawn that way runs
-       straight over the bar. */
-    var land = buildLoops(marching(tide, []));
-    tbCtx.beginPath();
-    tbCtx.rect(0, 0, tbW, tbH);
-    land.forEach(function (lp) {
-      tbCtx.moveTo(lp[0][0], lp[0][1]);
-      for (var i = 1; i < lp.length; i++) tbCtx.lineTo(lp[i][0], lp[i][1]);
-      tbCtx.closePath();
-    });
-    tbCtx.fillStyle = 'rgba(104,166,194,.40)';
-    tbCtx.fill('evenodd');
+    paintWater(tide);
+    tbCtx.drawImage(tbWash, 0, 0, tbW, tbH);
 
-    /* coastline: the tideline for this hour */
-    tbCtx.beginPath();
-    land.forEach(function (lp) {
-      tbCtx.moveTo(lp[0][0], lp[0][1]);
-      for (var i = 1; i < lp.length; i++) tbCtx.lineTo(lp[i][0], lp[i][1]);
-      tbCtx.closePath();
-    });
-    tbCtx.strokeStyle = 'rgba(12,42,56,.44)';
-    tbCtx.lineWidth = 1.2; tbCtx.lineJoin = 'round';
-    tbCtx.stroke();
+    /* contours, over both the dry ground and the flooded ground */
+    tbCtx.lineJoin = 'round'; tbCtx.lineCap = 'butt';
+    tbCtx.strokeStyle = 'rgba(86,70,42,.24)'; tbCtx.lineWidth = .7;
+    for (var i = 0; i < tbContours.length; i++) {
+      var c = tbContours[i];
+      tbCtx.lineWidth = c.level >= 4 ? 1 : .8;
+      tbStroke(tbCtx, c.segs);
+    }
 
-    /* place names */
+    /* the tideline for this hour */
+    var live = tbMarch(tide, []);
+    tbCtx.strokeStyle = 'rgba(16,52,68,.72)'; tbCtx.lineWidth = 1.5;
+    tbStroke(tbCtx, live);
+
+    /* the posted limit, drawn apart from the rest */
+    tbCtx.save();
+    tbCtx.strokeStyle = 'rgba(176,74,48,.85)'; tbCtx.lineWidth = 1.2;
+    tbCtx.setLineDash([5, 4]);
+    tbStroke(tbCtx, tbThreshold);
+    tbCtx.restore();
+
+    /* the mapped outline of the bar, so its extent is legible even when the
+       whole ridge is under water */
+    if (TM && TM.bar) {
+      tbCtx.strokeStyle = 'rgba(120,92,40,.52)'; tbCtx.lineWidth = 1;
+      tbCtx.setLineDash([3, 3]);
+      tbPoly(tbCtx, TM.bar.poly); tbCtx.stroke();
+      tbCtx.setLineDash([]);
+    }
+
+    tbLabels();
+    tbCompass();
+    tbScaleBar();
+  }
+
+  function tbLabels() {
     var labels = [
-      { x: -52, y: -46, t: 'SHARP ISLAND', z: '桥咀洲' },
-      { x: 2, y: 274, t: 'KIU TAU', z: '桥头' },
-      { x: 2, y: 126, t: 'TOMBOLO', z: '连岛沙洲' }
+      { s: 286, o: 70, en: 'SHARP ISLAND', zh: '桥咀洲', big: true },
+      { s: -86, o: 24, en: 'KIU TAU CHAU', zh: '桥头岛', big: true },
+      { s: 130, o: 32, en: 'TOMBOLO', zh: '连岛沙洲', big: false }
     ];
+    /* Type has to follow the panel, not the page: at phone width the canvas
+       is under two hundred pixels tall and an eleven pixel label outweighs
+       the bar it is naming. */
+    var room = tbH >= 330;
+    var fs = room ? 11 : 8.5;
+    var sub2 = tbH >= 250;
+    tbCtx.textAlign = 'center'; tbCtx.lineJoin = 'round';
     labels.forEach(function (L) {
-      var p = tbProj(L.x, L.y);
-      var main = tr(L.t, L.z), sub = tr(L.z, L.t);
-      tbCtx.textAlign = 'center';
-      tbCtx.lineJoin = 'round';
-      tbCtx.font = '600 11px -apple-system, "PingFang SC", sans-serif';
-      tbCtx.lineWidth = 4; tbCtx.strokeStyle = 'rgba(255,255,255,.90)';
+      var p = tbProj(L.s, L.o);
+      tbCtx.font = '600 ' + (L.big ? fs : fs - 1) + 'px -apple-system, "PingFang SC", sans-serif';
+      var main = tr(L.en, L.zh), sub = tr(L.zh, L.en);
+      tbCtx.lineWidth = room ? 4 : 3; tbCtx.strokeStyle = 'rgba(255,255,255,.86)';
       tbCtx.strokeText(main, p.x, p.y);
       tbCtx.fillStyle = '#1d1d1f'; tbCtx.fillText(main, p.x, p.y);
-      tbCtx.font = '400 10px -apple-system, "PingFang SC", sans-serif';
-      tbCtx.lineWidth = 3.5;
-      tbCtx.strokeText(sub, p.x, p.y + 13);
-      tbCtx.fillStyle = '#3a3a3c'; tbCtx.fillText(sub, p.x, p.y + 13);
+      if (!sub2) return;
+      tbCtx.font = '400 ' + (fs - 1) + 'px -apple-system, "PingFang SC", sans-serif';
+      tbCtx.lineWidth = room ? 3.4 : 2.6;
+      tbCtx.strokeText(sub, p.x, p.y + (room ? 12 : 10));
+      tbCtx.fillStyle = '#48484a'; tbCtx.fillText(sub, p.x, p.y + (room ? 12 : 10));
     });
   }
 
-  /* ---- cross section across the bar, at mid channel ---- */
-  var SX = { w: 640, h: 220, l: 52, r: 20, t: 30, b: 46, min: -2.6, max: 2.2 };
-  var SX_Y = TB.along / 2;
-  /* The section window is narrower than the model grid, so the bar keeps a
-     readable share of the width instead of sitting in a wide empty sea. */
-  var SX_X0 = -110, SX_X1 = 110;
-  function sxX(x) { return SX.l + ((x - SX_X0) / (SX_X1 - SX_X0)) * (SX.w - SX.l - SX.r); }
+  /* The panel is turned so the bar lies flat, which leaves north pointing up
+     and to the right by the bar's own bearing. */
+  function tbCompass() {
+    if (tbW < 520) return;
+    var bearing = TM && TM.axis ? TM.axis.bearing : 26;
+    var a = bearing * Math.PI / 180;
+    var cx = tbW - 34, cy = tbH - 40, r = 12;
+    tbCtx.save();
+    tbCtx.translate(cx, cy);
+    tbCtx.rotate(-a);
+    tbCtx.beginPath();
+    tbCtx.moveTo(0, -r); tbCtx.lineTo(4.6, r * .55); tbCtx.lineTo(0, r * .2); tbCtx.lineTo(-4.6, r * .55);
+    tbCtx.closePath();
+    tbCtx.fillStyle = 'rgba(29,29,31,.66)'; tbCtx.fill();
+    tbCtx.restore();
+    tbCtx.font = '700 9px -apple-system, sans-serif';
+    tbCtx.textAlign = 'center'; tbCtx.fillStyle = 'rgba(29,29,31,.58)';
+    tbCtx.fillText('N', cx + Math.sin(a) * 19, cy - Math.cos(a) * 19 + 3);
+  }
+
+  /* A plain metre bar, so the panel reports its own scale. */
+  function tbScaleBar() {
+    var len = tbW < 520 ? 25 : 50, px = len * TBK, x = 16, y = tbH - 16;
+    tbCtx.save();
+    tbCtx.strokeStyle = 'rgba(29,29,31,.55)'; tbCtx.lineWidth = 1.4;
+    tbCtx.beginPath();
+    tbCtx.moveTo(x, y - 4); tbCtx.lineTo(x, y); tbCtx.lineTo(x + px, y); tbCtx.lineTo(x + px, y - 4);
+    tbCtx.moveTo(x + px / 2, y); tbCtx.lineTo(x + px / 2, y - 2.4);
+    tbCtx.stroke();
+    tbCtx.font = '600 9px -apple-system, sans-serif';
+    tbCtx.textAlign = 'left'; tbCtx.fillStyle = 'rgba(29,29,31,.52)';
+    tbCtx.fillText(len + ' M', x + px + 7, y + 1);
+    tbCtx.restore();
+  }
+
+  /* ---- cross section across the bar, at the lowest crest --------------- */
+  var SX = { w: 640, h: 220, l: 52, r: 20, t: 30, b: 46, min: -2.2, max: 2.1 };
+  /* The saddle is the station the water crosses first, so the section is cut
+     there: it is the profile a walker actually has to get over. */
+  var SX_S = TM && TM.bar && TM.bar.saddle ? TM.bar.saddle.s : 136;
+  var SX_O0 = -46, SX_O1 = 46;
+  function sxX(o) { return SX.l + ((o - SX_O0) / (SX_O1 - SX_O0)) * (SX.w - SX.l - SX.r); }
   function sxY(z) { return SX.t + (SX.max - z) / (SX.max - SX.min) * (SX.h - SX.t - SX.b); }
-  function crossProfile(x) { return tbSurface(x, SX_Y); }
+  function crossProfile(o) { return tbSample(SX_S, o); }
 
   function buildSection() {
-    var g = [], step = 1.5, pts = [];
-    for (var x = SX_X0; x <= SX_X1 + .01; x += step) pts.push([x, crossProfile(x)]);
+    var g = [], step = .5, pts = [];
+    for (var o = SX_O0; o <= SX_O1 + .01; o += step) pts.push([o, crossProfile(o)]);
     var line = pts.map(function (p, i) {
       return (i ? 'L' : 'M') + sxX(p[0]).toFixed(1) + ' ' + sxY(p[1]).toFixed(1);
     }).join(' ');
-    var land = line + ' L ' + sxX(SX_X1).toFixed(1) + ' ' + (SX.h-SX.b) +
-               ' L ' + sxX(SX_X0).toFixed(1) + ' ' + (SX.h-SX.b) + ' Z';
+    var land = line + ' L ' + sxX(SX_O1).toFixed(1) + ' ' + (SX.h - SX.b) +
+               ' L ' + sxX(SX_O0).toFixed(1) + ' ' + (SX.h - SX.b) + ' Z';
 
-    g.push('<path class="sx-land" d="'+land+'"/>');
+    /* where the crest actually sits on this profile */
+    var best = pts[0];
+    pts.forEach(function (p) { if (p[1] > best[1]) best = p; });
+
+    g.push('<path class="sx-land" d="' + land + '"/>');
     [-2, -1, 0, 1, 2].forEach(function (v) {
-      g.push('<line class="sx-grid" x1="'+SX.l+'" y1="'+sxY(v)+'" x2="'+(SX.w-SX.r)+'" y2="'+sxY(v)+'"/>');
-      g.push('<text class="sx-axis" x="'+(SX.l-7)+'" y="'+(sxY(v)+3)+'" text-anchor="end">'+v+'</text>');
+      g.push('<line class="sx-grid" x1="' + SX.l + '" y1="' + sxY(v) + '" x2="' + (SX.w - SX.r) + '" y2="' + sxY(v) + '"/>');
+      g.push('<text class="sx-axis" x="' + (SX.l - 7) + '" y="' + (sxY(v) + 3) + '" text-anchor="end">' + v + '</text>');
     });
-    g.push('<text class="sx-axis" x="'+(SX.l-7)+'" y="'+(sxY(SX.max)+2)+'" text-anchor="end">m</text>');
-    g.push('<line class="sx-zero" x1="'+SX.l+'" y1="'+sxY(0)+'" x2="'+(SX.w-SX.r)+'" y2="'+sxY(0)+'"/>');
-    g.push('<line class="sx-thresh" x1="'+SX.l+'" y1="'+sxY(1.25)+'" x2="'+(SX.w-SX.r)+'" y2="'+sxY(1.25)+'"/>');
+    g.push('<line class="sx-zero" x1="' + SX.l + '" y1="' + sxY(0) + '" x2="' + (SX.w - SX.r) + '" y2="' + sxY(0) + '"/>');
+    g.push('<line class="sx-thresh" x1="' + SX.l + '" y1="' + sxY(1.25) + '" x2="' + (SX.w - SX.r) + '" y2="' + sxY(1.25) + '"/>');
     g.push('<path id="sxWater" class="sx-water" d=""/>');
-    g.push('<path class="sx-line" d="'+line+'"/>');
-    g.push('<line id="sxLevel" class="sx-level" x1="'+SX.l+'" y1="'+sxY(0.95)+'" x2="'+(SX.w-SX.r)+'" y2="'+sxY(0.95)+'"/>');
-    g.push('<text id="sxLevelLabel" class="sx-level-label" x="'+(SX.w-SX.r)+'" y="'+(sxY(0.95)-7)+'" text-anchor="end">0.95 M</text>');
-    g.push('<text class="sx-thresh-label" x="'+SX.l+'" y="'+(sxY(1.25)-7)+'">'+tr('1.25 M THRESHOLD', '1.25 米临界值')+'</text>');
-    g.push('<text class="sx-crest" x="'+sxX(barDrift(SX_Y)).toFixed(1)+'" y="'+(sxY(1.25)-26)+'" text-anchor="middle">'+tr('BAR CREST', '沙脊')+'</text>');
-    g.push('<text class="sx-end" x="'+SX.l+'" y="'+(SX.h-16)+'">'+tr('SEA', '海面')+'</text>');
-    g.push('<text class="sx-end" x="'+(SX.w-SX.r)+'" y="'+(SX.h-16)+'" text-anchor="end">'+tr('SEA', '海面')+'</text>');
-    g.push('<text class="sx-axis" x="'+((SX.l+SX.w-SX.r)/2)+'" y="'+(SX.h-16)+'" text-anchor="middle">'+tr((SX_X1-SX_X0)+' M ACROSS THE CHANNEL', (SX_X1-SX_X0)+' 米水道宽')+'</text>');
+    g.push('<path class="sx-line" d="' + line + '"/>');
+    g.push('<line id="sxLevel" class="sx-level" x1="' + SX.l + '" y1="' + sxY(state.tide) + '" x2="' + (SX.w - SX.r) + '" y2="' + sxY(state.tide) + '"/>');
+    g.push('<text id="sxLevelLabel" class="sx-level-label" x="' + (SX.w - SX.r) + '" y="' + (sxY(state.tide) - 7) + '" text-anchor="end">' + state.tide.toFixed(2) + ' M</text>');
+    g.push('<text class="sx-thresh-label" x="' + SX.l + '" y="' + (sxY(1.25) - 7) + '">' + tr('1.25 M POSTED LIMIT', '1.25 米告示上限') + '</text>');
+    g.push('<text class="sx-crest" x="' + sxX(best[0]).toFixed(1) + '" y="' + (sxY(best[1]) - 10) + '" text-anchor="middle">' + tr('CREST ' + best[1].toFixed(2) + ' M', '沙脊 ' + best[1].toFixed(2) + ' 米') + '</text>');
+    g.push('<text class="sx-end" x="' + SX.l + '" y="' + (SX.h - 16) + '">' + tr('SEA', '海面') + '</text>');
+    g.push('<text class="sx-end" x="' + (SX.w - SX.r) + '" y="' + (SX.h - 16) + '" text-anchor="end">' + tr('SEA', '海面') + '</text>');
+    g.push('<text class="sx-axis" x="' + ((SX.l + SX.w - SX.r) / 2) + '" y="' + (SX.h - 4) + '" text-anchor="middle">' + tr((SX_O1 - SX_O0) + ' M ACROSS THE CHANNEL', (SX_O1 - SX_O0) + ' 米水道宽') + '</text>');
     $('#tideSection').innerHTML = g.join('');
   }
 
   function updateSection() {
-    var tide = state.tide, step = 1.5;
+    var tide = state.tide, step = .5;
     var runs = [], open = null;
-    for (var x = SX_X0; x <= SX_X1 + .01; x += step) {
-      if (crossProfile(x) < tide) { if (!open) open = [x, x]; else open[1] = x; }
+    for (var o = SX_O0; o <= SX_O1 + .01; o += step) {
+      if (crossProfile(o) < tide) { if (!open) open = [o, o]; else open[1] = o; }
       else if (open) { runs.push(open); open = null; }
     }
     if (open) runs.push(open);
     var out = [];
     runs.forEach(function (r) {
       var d = 'M ' + sxX(r[0]).toFixed(1) + ' ' + sxY(tide).toFixed(1);
-      for (var x2 = r[0]; x2 <= r[1] + .01; x2 += step) {
-        d += ' L ' + sxX(x2).toFixed(1) + ' ' + sxY(crossProfile(x2)).toFixed(1);
+      for (var o2 = r[0]; o2 <= r[1] + .01; o2 += step) {
+        d += ' L ' + sxX(o2).toFixed(1) + ' ' + sxY(crossProfile(o2)).toFixed(1);
       }
       d += ' L ' + sxX(r[1]).toFixed(1) + ' ' + sxY(tide).toFixed(1) + ' Z';
       out.push(d);
@@ -1105,7 +1150,6 @@
     var lb = $('#sxLevelLabel');
     if (lb) { lb.setAttribute('y', sxY(tide) - 7); lb.textContent = tide.toFixed(2) + ' M'; }
   }
-
   var TIDE_STATES = [
     { max: 1.15, en: 'WALKABLE', zh: '沙洲可通行' },
     { max: 1.35, en: 'MARGINAL, DO NOT CROSS', zh: '临界，不宜通过' },
