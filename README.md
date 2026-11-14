@@ -149,6 +149,14 @@ everything at once. Which sections are open is remembered in `localStorage`
 under `si-open`, so the page comes back the way it was left. The first time the
 page is opened it starts with the tide table and the other eleven folded away.
 
+The bar across the top names the same twelve parts, in the order they come in
+the guide, under shortened names: tides, map, height, sand bar, route, sun,
+notes, plants, photos, reading, before boarding, sources. It is given the full
+set on a wide screen and gives them up in stages as the window narrows, down
+to nine at 1040 pixels and six at 900. On a phone the bar carries the mark,
+the guide and the language, and the twelve are reached from the guide panel,
+which keeps all of them at any width.
+
 ## The drawer
 
 A part of the guide does not simply appear. When it is opened its body runs

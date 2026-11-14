@@ -324,13 +324,15 @@ html[data-lang="zh-hans"] .guide-text .t-en, html[data-lang="zh-hant"] .guide-te
   background: color-mix(in srgb, var(--bg) 78%, transparent);
   -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px);
   border-bottom: 1px solid var(--line-soft); }
-.nav-inner { width: min(var(--max), calc(100% - 48px)); height: 100%; margin-inline: auto; display: flex; align-items: center; gap: 24px; }
+.nav-inner { width: min(1280px, calc(100% - 48px)); height: 100%; margin-inline: auto; display: flex; align-items: center; gap: 24px; }
 .brand { font-size: 14px; font-weight: 650; letter-spacing: .08em; white-space: nowrap; }
 .brand .t-hans, .brand .t-hant { font-size: 13px; font-weight: 400; color: var(--faint); letter-spacing: .04em; }
-.nav-links { margin-left: auto; display: flex; gap: 22px; align-items: center;
+/* The bar carries all twelve parts now, so it is given a little more room
+   than the text column, and the gap between them is kept tight. */
+.nav-links { margin-left: auto; display: flex; gap: 20px; align-items: center;
   min-width: 0; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
 .nav-links::-webkit-scrollbar { display: none; }
-.nav-links a { font-size: 11.5px; letter-spacing: .09em; color: var(--title-ink); font-weight: 500;
+.nav-links a { font-size: 11.5px; letter-spacing: .06em; color: var(--title-ink); font-weight: 500;
   white-space: nowrap; transition: color .25s; }
 .nav-links a:hover, .nav-links a.active { color: var(--ink); }
 .nav-links a.active { font-weight: 700; }
@@ -911,17 +913,32 @@ body.no-scroll { overflow: hidden; }
   .tm-section { border-right: 0; border-bottom: 1px solid var(--line-soft); }
   .gal-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+/* The bar names all twelve parts, so it gives them up one stage at a time as
+   the window narrows. The guide panel keeps every one of them at any width,
+   and so does the index on the opening screen. */
+@media (max-width: 1280px) {
+  .nav-inner { gap: 18px; }
+  .nav-links { gap: 14px; }
+  .nav-links a { font-size: 10.5px; }
+  .nav-links a .t-hans, .nav-links a .t-hant { font-size: 12px; }
+}
+@media (max-width: 1040px) {
+  .nav-links a:nth-child(7), .nav-links a:nth-child(11), .nav-links a:nth-child(12) { display: none; }
+}
+@media (max-width: 900px) {
+  .nav-links a:nth-child(1), .nav-links a:nth-child(5), .nav-links a:nth-child(10) { display: none; }
+}
 @media (max-width: 700px) {
   body { font-size: 16px; }
   .wrap, .nav-inner { width: min(var(--max), calc(100% - 32px)); }
   .nav-inner { gap: 12px; }
   .lang-btn { padding: 4px 7px; font-size: 9px; }
-  .nav-links { gap: 13px; }
-  .nav-links a { font-size: 10px; }
+  /* A phone has room for the mark, the guide and the language, and no more.
+     The guide panel opens on the twelve parts, so none of them is lost. */
+  .nav-links { display: none; }
+  .nav-guide { margin-left: auto; }
   .brand { flex: none; font-size: 12.5px; letter-spacing: .06em; }
   .brand .t-hans, .brand .t-hant { font-size: 12px; }
-  /* eight links will not fit a phone, so the three the page can live without go */
-  .nav-links a:nth-child(2), .nav-links a:nth-child(5), .nav-links a:nth-child(7) { display: none; }
   .hero { padding-top: 54px; }
   .hero h1 { font-size: clamp(2.7rem, 12vw, 4.2rem); }
   .hero-figure img { height: 250px; }
