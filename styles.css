@@ -307,14 +307,18 @@ html[data-theme="dark"] .i-moon { display: block; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
 /* the section numbers carried by the two calls to action */
 .btn-num { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: .08em; opacity: .55; }
-/* the rest of the guide, one chip per section, in the order they appear */
-.hero-index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 14px; justify-items: start; }
-.hero-index a { display: inline-flex; align-items: baseline; gap: 8px; padding: 7px 13px; border-radius: 980px;
+/* the rest of the guide, one chip per section, in the order they appear.
+   The grid columns are equal, and each chip fills its column, so the row
+   reads as one set of boxes rather than ten of different widths. */
+.hero-index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.hero-index a { display: flex; align-items: baseline; justify-content: center; gap: 8px; padding: 7px 13px; border-radius: 980px;
   border: 1px solid var(--line-soft); background: var(--surface); font-size: 10px; letter-spacing: .08em;
-  color: var(--muted); transition: color .25s, border-color .25s, transform .3s var(--ease); }
+  color: var(--muted); white-space: nowrap; overflow: hidden;
+  transition: color .25s, border-color .25s, transform .3s var(--ease); }
 .hero-index a:hover { color: var(--ink); border-color: var(--line); transform: translateY(-1px); }
-.hero-index i { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: .06em; color: var(--faint); }
-.hero-index .t-hans, .hero-index .t-hant { letter-spacing: .04em; }
+.hero-index i { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: .06em; color: var(--faint); flex: none; }
+.hero-index .t-hans, .hero-index .t-hant { letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; }
+.hero-index .t-en, .hero-index .t-hans, .hero-index .t-hant { min-width: 0; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 22px;
   border-radius: 980px; font-size: 12px; letter-spacing: .1em; font-weight: 650; text-transform: uppercase;
   transition: transform .35s var(--ease), background .3s, box-shadow .3s; }
@@ -326,6 +330,9 @@ html[data-theme="dark"] .i-moon { display: block; }
 .btn-primary:hover { box-shadow: 0 8px 22px color-mix(in srgb, var(--blue) 35%, transparent); }
 .btn-ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
 .btn-ghost:hover { border-color: var(--faint); }
+/* The two calls to action carry different words, so they are given the same
+   width and the row reads as a matched pair. */
+.hero-actions .btn { min-width: 168px; }
 .btn-sm { min-height: 34px; padding: 0 14px; font-size: 11px; }
 .hero-figure { margin-top: clamp(52px, 7vw, 84px); position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); background: var(--surface); }
 .hero-figure img { width: 100%; height: clamp(300px, 46vw, 590px); object-fit: cover; object-position: center 46%; }
@@ -736,7 +743,10 @@ body.no-scroll { overflow: hidden; }
   .tm-foot { grid-template-columns: minmax(0, 1fr) 300px; }
   .section-head { flex-direction: column; align-items: flex-start; gap: 22px; }
   .elev-stats { text-align: left; }
-  .hero-index { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* The chip row keeps its five columns on a tablet. Dropping to four
+     would make every chip far wider than its words need, and the row would
+     no longer read as one set of boxes. */
+  .hero-index { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .gal-head { flex-direction: column; align-items: flex-start; gap: 12px; }
   .gal-desc { text-align: left; max-width: 620px; }
   .gal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }

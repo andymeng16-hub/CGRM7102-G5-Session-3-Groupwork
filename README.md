@@ -110,8 +110,9 @@ tools/
 The opening screen carries a numbered index of all twelve sections, so every part
 of the guide is one click away without scrolling. Two of them, the map and the
 tide model, are also raised to large primary buttons; the other ten sit in a
-five-column chip row under them, and fold to four columns on a tablet and two on
-a phone.
+five-column chip row under them, and fold to two columns on a phone. Every chip
+is the width of its column, so the row reads as one set of boxes rather than
+ten of different sizes.
 
 ## Folding and the guide panel
 
