@@ -1,8 +1,11 @@
 # Sharp Island, One Route, One Island
 
-> If the page will not open, read [`ABOUT.txt`](ABOUT.txt) beside this file. It
-> carries the whole description, the authors, the copyright line and the
-> timestamp in plain text, with no stylesheet or script needed.
+> The guide itself is the file named **CLICK ME (If not work, read about.txt).html**
+> in this folder. Download the ZIP, unzip the whole folder, and open that file.
+>
+> If the page will not open, read [`ABOUT.txt`](ABOUT.txt) beside it. It carries
+> the whole description, the authors, the copyright line and the timestamp in
+> plain text, with no stylesheet or script needed.
 
 A field-based GIS-style visitor guide to a single continuous walking route across
 Sharp Island (Kiu Tsui Chau), Kiu Tsui Country Park, Sai Kung, Hong Kong, China.
