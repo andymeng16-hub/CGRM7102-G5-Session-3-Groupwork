@@ -1,0 +1,153 @@
+================================================================================
+  SHARP ISLAND    桥咀洲
+  One island, one route.
+  A field guide to a single walking route across Sharp Island (Kiu Tsui Chau),
+  Kiu Tsui Country Park, Sai Kung, Hong Kong, China.
+================================================================================
+
+  Course            CGRM7102  Group 5  Session 3
+  Survey date       2026-11-13   (13 November 2026)
+  File built        2026-11-25T18:43:02+08:00   (Hong Kong time)
+  Version           1.0
+  Languages         English, 简体中文, 繁體中文
+  Extent            One route, 2.19 km, 8 observation points, 12 sections
+
+--------------------------------------------------------------------------------
+  1.  HOW TO OPEN IT
+--------------------------------------------------------------------------------
+
+  The guide is not a single file. index.html reads its layout from
+  styles.css, its behaviour from app.js, its survey from data/, and its
+  photographs and map tiles from assets/. Opened on its own, index.html
+  puts up a notice instead of the guide, because the folders beside it are
+  missing.
+
+  Two ways in:
+
+    a)  Download the whole repository (Code, then Download ZIP), unzip it,
+        and open index.html in a browser. Everything works offline once it
+        is unzipped, including the map, which uses committed tiles.
+
+    b)  Publish the folder with GitHub Pages and open the site it gives you.
+
+  GitHub shows the source of an HTML file rather than the page it draws, so
+  the link to this text file is the dependable way in:
+
+    This file, rendered
+      https://github.com/andymeng16-hub/CGRM7102-G5-Session-3-Groupwork/blob/main/ABOUT.txt
+
+    This file, plain text
+      https://raw.githubusercontent.com/andymeng16-hub/CGRM7102-G5-Session-3-Groupwork/main/ABOUT.txt
+
+    Whole repository as a zip
+      https://github.com/andymeng16-hub/CGRM7102-G5-Session-3-Groupwork/archive/refs/heads/main.zip
+
+  These links assume the main branch and a public repository.
+
+--------------------------------------------------------------------------------
+  2.  WHAT IT CONTAINS
+--------------------------------------------------------------------------------
+
+  Twelve sections, read one at a time. Opening any one of them folds the
+  other eleven away, so the page can be read a part at a time.
+
+    01  Tides             when the sandbar is above water       连岛沙洲时间表
+    02  Map               one route, three map layers           地图与路线
+    03  Height            the elevation profile, four stages    以米为单位的起伏
+    04  Sand bar          the tombolo, flooded to any tide      一座时有时无的桥
+    05  Route             the four stages, walked               四段路线
+    06  Sun               ground and sun exposure, in section   全程日照
+    07  Notes             where extra care is needed           实地提醒
+    08  Plants            four plant communities, painted      植被分区
+    09  Photographs       37 captioned photographs              照片
+    10  Reading           published papers and gazetteers      文献与方志
+    11  Before boarding   what to settle before the boat       登船之前
+    12  Sources           how each figure was arrived at       资料依据
+
+  Every figure is computed in the browser from the survey data committed
+  beside it. Nothing is a picture of a chart; the chart is drawn when the
+  page is opened.
+
+--------------------------------------------------------------------------------
+  3.  AUTHORS
+--------------------------------------------------------------------------------
+
+  Surveyed, written and built by the group below, CGRM7102 Group 5,
+  Session 3, 2026.
+
+    孟楷淇      team lead, route planning and stage division
+    金子涵      photograph log and point numbering
+    王馨悦      record indexing and caption check
+    伍佳慧      coastal stage notes, points 01 to 03
+    杨荟瑾      woodland stage notes, points 04 and 05
+    武若瞳      ridge stage notes, points 06 and 07
+    聂仕霖      beach stage notes, point 08
+    刘凯心      signage survey and board transcription
+    胡佳启      elevation readings along the route
+    吴叙静      weather and time log
+
+--------------------------------------------------------------------------------
+  4.  COPYRIGHT
+--------------------------------------------------------------------------------
+
+  Copyright (c) 2026 孟楷淇, 金子涵, 王馨悦, 伍佳慧, 杨荟瑾, 武若瞳, 聂仕霖,
+  刘凯心, 胡佳启, 吴叙静.  All rights reserved.
+
+  著作权所有 2026 年，作者为上文所列十人。保留一切权利。
+
+  The text, the code, the layout, the drawings and the photographs made by
+  the group are the group's own work and are not to be reproduced or
+  presented as another's without written permission.
+
+  Third party material keeps its own terms:
+
+    Map data, coastline geometry and canopy polygons
+      (c) OpenStreetMap contributors, released under ODbL 1.0.
+      Credited under each section that uses them.
+
+    Elevation
+      CGIAR SRTM, 90 m and 30 m, openly distributed. Resampled by this
+      project onto a 7.5 m grid and smoothed twice.
+
+    Quoted papers, gazetteers and official notices
+      Cited by DOI or by edition. Rights remain with their authors and
+      publishers. Short quotation only, for comment and criticism.
+
+    Base map tiles
+      Compiled by this project from OpenStreetMap data and committed to the
+      repository as a static pyramid, so the map works with no network.
+
+--------------------------------------------------------------------------------
+  5.  TIMESTAMP
+--------------------------------------------------------------------------------
+
+  Survey carried out      2026-11-13, 11:10 to 13:38 Hong Kong time
+  Record compiled         2026-11-13 to 2026-11-14
+  Guide built             2026-11-13 to 2026-11-25
+  This file written       2026-11-25T18:43:02+08:00
+  Last commit             see the commit history on the main branch
+
+  The timestamp above is the moment this file was written, in ISO 8601 with
+  the Hong Kong offset. Any later revision carries its own timestamp in the
+  commit history.
+
+--------------------------------------------------------------------------------
+  6.  A NOTE ON THE NUMBERS
+--------------------------------------------------------------------------------
+
+  The route is 2.19 km across the island, from Kiu Tsui Pier to Hap Mun Bay,
+  walked in 2 h 28 min on site. Elevation is CGIAR SRTM 30 m, which reads
+  77 m at the highest point of the corridor where the AFCD records 136 m for
+  the island, so the relief here is shallow and is labelled as indicative
+  wherever it is drawn.
+
+  Shade is tested, not guessed. The sun is placed with the NOAA position
+  algorithm for 13 November 2026, and each position along the path is tested
+  at the minute the group reached it: a ridge in the way takes the share of
+  sunlight to nothing at once, canopy takes it down gradually. The three
+  classes used throughout are unshaded above 0.9, partly shaded from 0.4 to
+  0.9, and mostly shaded below 0.4.
+
+================================================================================
+  End of file.  CGRM7102 Group 5 Session 3, 2026.
+================================================================================

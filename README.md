@@ -1,5 +1,9 @@
 # Sharp Island, One Route, One Island
 
+> If the page will not open, read [`ABOUT.txt`](ABOUT.txt) beside this file. It
+> carries the whole description, the authors, the copyright line and the
+> timestamp in plain text, with no stylesheet or script needed.
+
 A field-based GIS-style visitor guide to a single continuous walking route across
 Sharp Island (Kiu Tsui Chau), Kiu Tsui Country Park, Sai Kung, Hong Kong, China.
 Everything in it comes from the group's own survey of 13 November 2026: eight
@@ -13,8 +17,9 @@ head of the page is set as a letterpress.
 
 中文简介：本仓库是中国香港西贡桥咀洲一条连续步行路线的地理信息式实地导览，
 内容全部来自小组 2026 年 11 月 13 日的实地考察，共八个观察点、六十六张照片、
-一幅海拔剖面图、一个会随潮位涨落而淹没的连岛沙洲模型，以及一个以当天真实
-太阳位置投影的三维日照模型。网站为纯静态页面，无需安装任何依赖。
+一幅海拔剖面图、一个会随潮位涨落而淹没的连岛沙洲模型，以及一幅沿整条路线切开
+的剖面，把地面高程与各位置在实际通过时刻收到的日照份额画在一起。网站为纯静态
+页面，无需安装任何依赖。若网页无法打开，请读同目录下的 `ABOUT.txt`。
 
 ---
 
