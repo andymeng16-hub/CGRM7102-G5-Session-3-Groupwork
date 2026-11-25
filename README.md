@@ -59,6 +59,27 @@ together.
 
    then open <http://localhost:8000>.
 
+### On Windows
+
+The guide was built and tested on macOS. Nothing in it is particular to macOS,
+but Windows adds one thing of its own: a folder that came out of a downloaded ZIP
+carries a mark saying it came from another computer, and some browser and
+security settings read that mark as a reason to hold back the pictures and the
+scripts of a page opened from the local disk. The page then opens as text with
+empty boxes where the photographs should be. The files are intact; it is the
+setting that refuses them, and only on the machines where that setting is on.
+
+Double-click **`open-on-windows.bat`** in the unzipped folder. It clears the mark
+on every file, serves the folder on <http://127.0.0.1:8765> and opens the guide
+there. Python or Node has to be on the machine already, and either will do.
+Nothing is installed and nothing leaves the computer.
+
+The other way round is to right-click the ZIP before unzipping it, choose
+Properties, tick Unblock, and then extract.
+
+[`ABOUT.txt`](ABOUT.txt) carries the same instructions in plain text, along with
+two further things that break the pictures on any system.
+
 If `index.html` is ever opened on its own, the page says so plainly instead of
 showing a broken document.
 
@@ -78,6 +99,7 @@ Two things are worth knowing about the offline case:
 index.html              the page itself
 styles.css              the whole design system, light and dark
 app.js                  every map, chart, model and the language switch
+open-on-windows.bat     clears the downloaded-file mark and serves the folder
 data/
   field-data.js         the survey: points, stages, notes, sources, team
   field-data.json       the same survey as JSON, for QGIS

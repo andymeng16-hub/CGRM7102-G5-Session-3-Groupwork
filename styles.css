@@ -128,6 +128,20 @@ body {
   font-size: 17px; line-height: 1.6;
 }
 img { display: block; max-width: 100%; }
+/* A photograph the browser could not read keeps its box, hatched, so the
+   gap reads as a picture that is missing rather than a hole torn in the
+   layout. The alt text stays on the element, where a screen reader still
+   finds it, but it is not drawn inside the picture's place, because at
+   this size it would read as a paragraph set in the middle of a picture.
+   app.js names the file in the console. */
+img.img-fault {
+  background: repeating-linear-gradient(135deg,
+    var(--surface-2) 0 9px, var(--line-soft) 9px 10px);
+  outline: 1px solid var(--line-soft);
+  outline-offset: -1px;
+  color: transparent;
+  font-size: 0;
+}
 a { color: inherit; text-decoration: none; }
 button { font: inherit; cursor: pointer; }
 h1, h2, h3, h4, p, dl, dd, figure, ul, ol { margin: 0; }

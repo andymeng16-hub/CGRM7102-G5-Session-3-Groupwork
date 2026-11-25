@@ -2646,6 +2646,10 @@
     writeOpen([id]);
     syncGuideState();
     relayoutSection(id);
+    /* The pictures inside the part that has just been drawn open have only
+       now been given a height, so they are asked for once the drawer has
+       come to rest. */
+    setTimeout(imgWake, FOLD_MS + 120);
   }
   /* Fold a part away. If it was the last one standing open, the guide closes
      as a whole, which is the same state the panel's FOLD ALL button gives. */
@@ -3097,6 +3101,62 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Photographs                                                          */
+  /* ------------------------------------------------------------------ */
+  /* Every photograph is a file in assets/photos, asked for only when the
+     picture comes near the screen. A browser that never gets round to
+     asking leaves the box it reserved standing empty, and from where the
+     reader sits that is indistinguishable from a photograph the page does
+     not have. So anything on screen and still empty is asked for again,
+     directly, with the hint that deferred it dropped.
+
+     A file that cannot be read at all is marked, and named once in the
+     console. That separates the two things a reader would otherwise have
+     to guess between: a page still filling in, and files that never
+     arrived, which is what happens when the folder is copied across
+     without the contents of assets/photos, or when Windows holds back
+     files that came out of a downloaded archive. */
+  function imgWake() {
+    var imgs = document.images, woken = 0;
+    for (var i = 0; i < imgs.length; i++) {
+      var im = imgs[i], src = im.getAttribute('src');
+      if (!src || im.naturalWidth || im.dataset.woken) continue;
+      var r = im.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) continue;
+      if (r.bottom < -240 || r.top > (window.innerHeight || 0) + 480) continue;
+      im.dataset.woken = '1';
+      im.loading = 'eager';
+      im.src = src;
+      woken++;
+    }
+    return woken;
+  }
+  /* A photograph that fails is hatched where it stands, and named once in
+     the console. The browser fires this whether the picture was asked for
+     by the page or by imgWake above, so nothing has to be polled. */
+  function imgFault(im) {
+    if (!im || im.tagName !== 'IMG' || im.classList.contains('img-fault')) return;
+    /* An image with no source asked for nothing, so nothing failed. */
+    var src = im.getAttribute('src');
+    if (!src) return;
+    im.classList.add('img-fault');
+    if (window.console && console.warn) console.warn('PHOTOGRAPH NOT READ: ' + src);
+  }
+  document.addEventListener('error', function (e) {
+    var t = e.target;
+    if (t && t.tagName === 'IMG') imgFault(t);
+  }, true);
+  /* A photograph that failed before this line ran has already settled:
+     the request is over, and nothing came back. */
+  (function () {
+    var imgs = document.images;
+    for (var i = 0; i < imgs.length; i++) {
+      var im = imgs[i];
+      if (im.complete && im.currentSrc && !im.naturalWidth) imgFault(im);
+    }
+  })();
+
+  /* ------------------------------------------------------------------ */
   /* The visitor's last choice of language is remembered; English is the
      default. The Traditional twin of every Chinese block is generated once
      here, before anything is drawn. */
@@ -3141,6 +3201,20 @@
   applyFoldState();
   wire();
   wireGuide();
+  /* Photographs fill in as the reader moves down the page. The first pass
+     runs as soon as the guide is whole, and one more a second later picks
+     up anything the browser put off. */
+  imgWake();
+  window.addEventListener('load', function () {
+    imgWake();
+    setTimeout(imgWake, 1400);
+  });
+  var wakeTick = false;
+  window.addEventListener('scroll', function () {
+    if (wakeTick) return;
+    wakeTick = true;
+    requestAnimationFrame(function () { wakeTick = false; imgWake(); });
+  }, { passive: true });
   setProgress(0);
   setTide(0.95, true);
   /* The tiles come from the network. If they do not, the local survey tiles

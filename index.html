@@ -64,12 +64,18 @@ window.addEventListener('load', function () {
         '<pre>python3 -m http.server 8000</pre>' +
         '<p>then open <code>http://localhost:8000</code>. The whole guide is this folder: ' +
         '<code>data/</code>, <code>assets/</code>, <code>styles.css</code>, <code>app.js</code>.</p>' +
+        '<p><b>On Windows,</b> double-click <code>open-on-windows.bat</code> instead. It clears ' +
+        'the mark Windows puts on files that came out of a downloaded archive, serves the folder ' +
+        'on a local address and opens the guide there, which is the way past a browser that ' +
+        'refuses to read pictures from a local file.</p>' +
         '<hr>' +
         '<p class="zh"><b>此页面需要整个文件夹。</b><code>index.html</code> 要读取同级的 ' +
         '<code>data/</code>（调查数据）、<code>assets/</code>（照片与地图瓦片）、' +
         '<code>styles.css</code>（样式）与 <code>app.js</code>（交互）。请在下载好的仓库文件夹里打开它。</p>' +
         '<p class="zh"><b>不需要安装任何依赖。</b>也可以在文件夹内执行 ' +
-        '<code>python3 -m http.server 8000</code>，再访问 <code>http://localhost:8000</code>。</p>';
+        '<code>python3 -m http.server 8000</code>，再访问 <code>http://localhost:8000</code>。</p>' +
+        '<p class="zh"><b>在 Windows 上</b>请改为双击 <code>open-on-windows.bat</code>。它会清除 Windows ' +
+        '给下载来的文件加上的标记，再把本文件夹挂到本机地址上打开，绕开浏览器对本地图片的限制。</p>';
     } else {
       body =
         '<h1>styles.css is missing</h1>' +
