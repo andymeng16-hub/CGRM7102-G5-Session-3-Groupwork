@@ -21,6 +21,12 @@
   --amber-soft: #f8f0e2;
   --rust: #bf5b40;
   --rust-soft: #f9ece7;
+  /* The three shade classes are read as an ordered scale, so they carry an
+     ordered palette: warm and light for open sun, cool and dark for canopy.
+     These are the values the bands, the swatches and the ribbon all share. */
+  --shade-sun: #eac763;
+  --shade-part: #a9c58c;
+  --shade-most: #4a785d;
   --map-sea: #d8e9f0;
   /* matches the sea colour baked into assets/tiles/base, so uncovered canvas
      edges blend with the raster in both light and dark themes */
@@ -87,6 +93,10 @@ html[data-theme="dark"] {
   --amber-soft: #2c2314;
   --rust: #ef9679;
   --rust-soft: #2e1b16;
+  /* the same ordered scale, pulled down so it does not glare on black */
+  --shade-sun: #7a6226;
+  --shade-part: #4a6140;
+  --shade-most: #24402f;
   --map-sea: #16262e;
   --model-top: #16242c;
   --model-bottom: #0d171d;
@@ -649,9 +659,9 @@ html[data-theme="dark"] #tideModel { filter: brightness(.76) saturate(.9); }
 .shade-legend li { display: flex; align-items: center; gap: 8px; }
 .shade-legend i { letter-spacing: 0; }
 .swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
-.swatch.shade-mostly, .seg-shade.mostly { background: var(--green); }
-.swatch.shade-partly, .seg-shade.partly { background: var(--amber); }
-.swatch.shade-unshaded, .seg-shade.unshaded { background: var(--rust); }
+.swatch.shade-mostly, .seg-shade.mostly { background: var(--shade-most); }
+.swatch.shade-partly, .seg-shade.partly { background: var(--shade-part); }
+.swatch.shade-unshaded, .seg-shade.unshaded { background: var(--shade-sun); }
 .ribbon-card { padding: 26px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line-soft); box-shadow: var(--shadow-sm); }
 .ribbon-head { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-bottom: 16px; }
 .ribbon-head strong { font-size: 12px; letter-spacing: .1em; }
@@ -660,6 +670,10 @@ html[data-theme="dark"] #tideModel { filter: brightness(.76) saturate(.9); }
 .seg-shade { flex: 1; height: 40px; border-radius: 7px; position: relative; cursor: pointer; transition: transform .3s var(--ease); }
 .seg-shade:hover { transform: translateY(-3px); }
 .seg-shade span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 11px; font-weight: 700; white-space: nowrap; }
+/* the two light classes need ink on them, not white */
+.seg-shade.unshaded span, .seg-shade.partly span { color: rgba(29,29,31,.84); }
+html[data-theme="dark"] .seg-shade.unshaded span,
+html[data-theme="dark"] .seg-shade.partly span { color: #fff; }
 .ribbon-foot { display: flex; justify-content: space-between; margin-top: 10px; font-size: 10px; letter-spacing: .07em; color: var(--faint); }
 
 /* ---------- solar model ---------- */
@@ -710,6 +724,64 @@ html[data-theme="dark"] #tideModel { filter: brightness(.76) saturate(.9); }
 .sm-chip.ghost { background: transparent; color: var(--faint); border: 1px solid var(--line); }
 .sm-note { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line-soft);
   font-size: 11px; line-height: 1.7; color: var(--faint); max-width: 96ch; }
+
+/* ---------- the section through the route ---------- */
+/* One figure, two panels: the ground on top, the share of the sun that
+   reached the path below, with the four stages as a band between them. */
+.tx-figure { margin-top: 24px; }
+.tx-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.tx-svg text { font-family: var(--font-display); }
+.tx-grid line { stroke: var(--line-soft); stroke-width: 1; }
+.tx-ground { fill: var(--veg-sand); fill-opacity: .34; }
+.tx-ridge { fill: none; stroke: var(--veg-ochre); stroke-width: 1.5;
+  stroke-linejoin: round; stroke-linecap: round; }
+.tx-stations line { stroke: var(--rust); stroke-width: 1; stroke-dasharray: 3 5; opacity: .42; }
+.tx-station-num { fill: var(--rust); font-size: 10px; font-weight: 700; letter-spacing: .06em; }
+.tx-stages rect { fill: var(--line-soft); }
+.tx-stage-name { fill: var(--muted); font-size: 10.5px; font-weight: 600; letter-spacing: .04em; }
+.tx-bands rect.unshaded { fill: var(--shade-sun); }
+.tx-bands rect.partly { fill: var(--shade-part); }
+.tx-bands rect.mostly { fill: var(--shade-most); }
+.tx-share-line { fill: none; stroke: var(--ink); stroke-width: 1.3; stroke-opacity: .5;
+  stroke-linejoin: round; stroke-linecap: round; }
+.tx-thresholds line { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 4; opacity: .26; }
+/* the two labels that sit on the rules, and the source note, carry a stroke
+   of the panel colour so the dashed rules do not run through the letters */
+.tx-threshold-tag, .tx-source {
+  fill: var(--muted); font-size: 9px; font-weight: 600; letter-spacing: .04em;
+  paint-order: stroke; stroke: var(--surface); stroke-width: 3px;
+  stroke-linejoin: round; stroke-linecap: round;
+}
+.tx-ticks text { fill: var(--faint); font-size: 9.5px;
+  font-variant-numeric: tabular-nums; }
+.tx-axis-titles text { fill: var(--muted); font-size: 9.5px; font-weight: 600; letter-spacing: .08em; }
+.tx-axis-x { letter-spacing: .1em; }
+/* the pointer: a rule through both panels and a card at the cursor */
+.tx-hit { fill: transparent; cursor: crosshair; }
+.tx-cursor-line { stroke: var(--ink); stroke-width: 1; stroke-opacity: .45; }
+.tx-cursor-dot { fill: var(--ink); }
+.tx-tip-bg { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+.tx-tip text { fill: var(--ink); font-size: 9.5px; letter-spacing: .03em;
+  font-variant-numeric: tabular-nums; pointer-events: none; }
+.tx-tip text:last-child { fill: var(--muted); }
+.tx-legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 14px 0 0; padding: 0;
+  list-style: none; font-size: 9px; letter-spacing: .08em; color: var(--muted); }
+.tx-legend li { display: inline-flex; align-items: center; gap: 7px; }
+.tx-sw { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.tx-sw.unshaded { background: var(--shade-sun); }
+.tx-sw.partly { background: var(--shade-part); }
+.tx-sw.mostly { background: var(--shade-most); }
+.tx-sw.point { background: none; border-left: 2px dashed var(--rust); border-radius: 0;
+  width: 2px; height: 12px; }
+
+@media (max-width: 620px) {
+  .tx-legend { gap: 6px 14px; font-size: 8.5px; }
+  /* A section two kilometres long cannot be squeezed into a phone without
+     losing either the distance scale or the labels, so it keeps its width
+     and slides. */
+  .tx-figure { overflow-x: auto; overflow-y: hidden; margin-inline: -6px; padding-inline: 6px; }
+  .tx-svg { min-width: 600px; }
+}
 
 @media (max-width: 980px) {
   .sm-head { grid-template-columns: 1fr; }
@@ -854,9 +926,9 @@ html[data-theme="dark"] #tideModel { filter: brightness(.76) saturate(.9); }
 .d-count { position: absolute; bottom: 10px; right: 12px; background: rgba(0,0,0,.6); color: #fff; font-size: 10px; padding: 3px 9px; border-radius: 980px; }
 .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 20px; }
 .chip { font-size: 11px; padding: 5px 11px; border-radius: 980px; background: var(--line-soft); color: var(--muted); font-weight: 550; }
-.chip.shade-mostly { background: var(--green-soft); color: var(--green); }
-.chip.shade-partly { background: var(--amber-soft); color: var(--amber); }
-.chip.shade-unshaded { background: var(--rust-soft); color: var(--rust); }
+.chip.shade-mostly { background: color-mix(in srgb, var(--shade-most) 16%, var(--surface)); color: color-mix(in srgb, var(--shade-most) 72%, var(--ink)); }
+.chip.shade-partly { background: color-mix(in srgb, var(--shade-part) 22%, var(--surface)); color: color-mix(in srgb, var(--shade-part) 62%, var(--ink)); }
+.chip.shade-unshaded { background: color-mix(in srgb, var(--shade-sun) 22%, var(--surface)); color: color-mix(in srgb, var(--shade-sun) 66%, var(--ink)); }
 .chip.stage { background: var(--blue-soft); color: var(--blue); }
 .d-desc { font-size: 15px; line-height: 1.68; color: var(--ink); margin-bottom: 8px; }
 .d-desc-zh { font-size: 13px; line-height: 1.75; color: var(--muted); margin-bottom: 22px; }

@@ -373,38 +373,27 @@ window.addEventListener('load', function () {
     <div class="sun-model reveal">
       <div class="sm-head">
         <div class="sm-head-text">
-          <p class="eyebrow"><span class="t-en">SOLAR MODEL</span><span class="t-hans">日照模型</span></p>
-          <h3><span class="t-en">WHERE THE SUN WAS,<br>AND WHAT STOPPED IT.</span><span class="t-hans">太阳在哪里，什么挡住了它</span></h3>
-          <p class="body"><span class="t-en">A three dimensional model of the island, lit by the real sun for 13 November 2026. The ground is CGIAR SRTM 30 m elevation resampled onto a seven and a half metre grid, the canopy is the mapped woodland, and the sun is placed with the standard solar position algorithm, so the shadows are the ones that were actually cast. Drag the clock and the shadows move across the route.</span><span class="t-hans">桥咀洲的三维模型，用 2026 年 11 月 13 日真实的太阳位置照明。地表是 CGIAR SRTM 30 米高程，重采样到 7.5 米网格；树冠来自已绘制的林地图斑；太阳位置用标准太阳方位算法计算，因此投影是当天真实投下的。拖动时间轴，影子便沿路线移动。</span></p>
+          <p class="eyebrow"><span class="t-en">ALONG THE ROUTE</span><span class="t-hans">沿程剖面</span></p>
+          <h3><span class="t-en">THE WHOLE WALK,<br>IN ONE SECTION.</span><span class="t-hans">一条路线的起伏与日照</span></h3>
+          <p class="body"><span class="t-en">The route is cut open along its length. The upper line is the ground, from the beach at Kiu Tsui to the beach at Hap Mun Bay. The band below is the share of the sun that reached the path at the hour the group walked it, so it reads as the shade of this walk rather than the shade of one chosen moment.</span><span class="t-hans">把整条路线沿长度剖开。上方是地面高程，自桥咀泳滩到厦门湾泳滩；下方是队伍走到该处时，路径实际收到的日照份额，所以它是这次行走本身的遮阴，而不是某个选定时刻的遮阴。</span></p>
         </div>
         <dl class="sm-readout">
-          <div><dt><span class="t-en">TIME</span><span class="t-hans">时间</span></dt><dd id="smClock">12:47</dd></div>
-          <div><dt><span class="t-en">ALTITUDE</span><span class="t-hans">高度角</span></dt><dd id="smAlt">48.5°</dd></div>
-          <div><dt><span class="t-en">AZIMUTH</span><span class="t-hans">方位角</span></dt><dd id="smAz">194°</dd></div>
+          <div><dt><span class="t-en">ROUTE</span><span class="t-hans">路线</span></dt><dd id="txLength">2.19 km</dd></div>
+          <div><dt><span class="t-en">HIGH POINT</span><span class="t-hans">最高点</span></dt><dd id="txHigh">78 m</dd></div>
+          <div><dt><span class="t-en">IN SUN</span><span class="t-hans">收到日照</span></dt><dd id="txMean">61%</dd></div>
         </dl>
       </div>
 
-      <div class="sm-stage">
-        <canvas id="sunCanvas" aria-label="Three dimensional model of Sharp Island showing the shadows cast by the sun on 13 November 2026"></canvas>
-      </div>
+      <div class="tx-figure" id="txFigure"></div>
 
-      <div class="sm-legend">
-        <span class="lg"><i class="sw sw-sun"></i><span class="lg-txt"><span class="t-en">SUNLIT</span><span class="t-hans">日照</span></span></span>
-        <span class="lg"><i class="sw sw-shade"></i><span class="lg-txt"><span class="t-en">IN SHADE</span><span class="t-hans">遮阴</span></span></span>
-        <span class="lg"><i class="sw sw-canopy"></i><span class="lg-txt"><span class="t-en">CANOPY</span><span class="t-hans">树冠</span></span></span>
-        <span class="lg"><i class="sw sw-route"></i><span class="lg-txt"><span class="t-en">ROUTE</span><span class="t-hans">路线</span></span></span>
-        <span class="lg"><i class="sw sw-ring"></i><span class="lg-txt"><span class="t-en">SUN AT THIS HOUR</span><span class="t-hans">此刻日照</span></span></span>
-      </div>
+      <ul class="tx-legend">
+        <li><i class="tx-sw unshaded"></i><span class="lg-txt"><span class="t-en">UNSHADED, ABOVE 0.9</span><span class="t-hans">无遮阴，高于 0.9</span></span></li>
+        <li><i class="tx-sw partly"></i><span class="lg-txt"><span class="t-en">PARTLY SHADED, 0.4 TO 0.9</span><span class="t-hans">部分遮阴，0.4 至 0.9</span></span></li>
+        <li><i class="tx-sw mostly"></i><span class="lg-txt"><span class="t-en">MOSTLY SHADED, BELOW 0.4</span><span class="t-hans">大部分遮阴，低于 0.4</span></span></li>
+        <li><i class="tx-sw point"></i><span class="lg-txt"><span class="t-en">SURVEY POINT</span><span class="t-hans">观察点</span></span></li>
+      </ul>
 
-      <div class="sm-bar">
-        <input type="range" id="sunSlider" min="660" max="825" step="1" value="767" aria-label="Time of day on 13 November 2026">
-        <div class="sm-scale"><span>11:00</span><span class="sm-noon"><span class="t-en">SOLAR NOON 12:07</span><span class="t-hans">正午 12:07</span></span><span>13:45</span></div>
-        <button class="btn btn-primary" id="sunPlay"><span class="t-en">RUN THE DAY</span><span class="t-hans">推演一天</span></button>
-      </div>
-
-      <div class="sm-table" id="sunTable"></div>
-
-      <p class="fine sm-note"><span class="t-en">THE FIELD RECORD SETS THE CATEGORY. THE MODEL SHOWS THE MECHANISM: the sun stood 43 to 50 degrees above the southern sky all morning and swung from south south east to south south west, so a ten metre canopy threw a shadow of about nine to eleven metres to the north, and the open ridge and the two beaches were never shaded at all. The blue on the model is ground in shade at the hour on the dial, the green is mapped canopy, the contour lines are every ten metres with an index line every twenty, and the gold ring around each number is the share of the sun reaching that point at that hour, which is the same figure the model gives for the twenty metres assessed. Canopy heights are the ones quoted in the vegetation section, eight to twelve metres for closed woodland and under two for shrubland. OpenStreetMap tags the whole middle of the island as one scrub polygon, so the corridor along the path carries the group's own vegetation map instead. Elevation is CGIAR SRTM 30 m, which reads 88 m on the highest ground where AFCD records 136 m, so the relief is shallow, and the model stretches the vertical scale to make it readable. Canopy geometry © OpenStreetMap contributors, ODbL 1.0.</span><span class="t-hans">三级分类由现场记录决定，模型说明其成因：整个上午太阳都在南方天空、高度角 43 至 50 度，方位角由南偏东转到南偏西，因此十米高的树冠向北投下约九至十一米的影子，开阔山脊与两处泳滩则始终无遮阴。模型上的蓝色是此刻处于遮阴的地面，绿色是已绘制的树冠，等高线每十米一条、每二十米一条加粗，编号点外的金色圆环是此刻该点收到的日照占比，与模型对所评估二十米给出的数值相同。树冠高度取自本页植被板块所引数值，闭合林 8 至 12 米，灌丛不足 2 米。OpenStreetMap 把岛中部整体标为一块灌丛图斑，因此路径沿线改用本组自有植被图。高程为 CGIAR SRTM 30 米，最高处读数 88 米，而渔农自然护理署记载为 136 米，故地形起伏偏缓，模型另将垂直比例拉伸以便阅读。植被几何数据 © OpenStreetMap contributors，ODbL 1.0。</span></p>
+      <p class="fine sm-note"><span class="t-en">THE PROFILE IS THE WALK ITSELF. Ground is CGIAR SRTM 30 m resampled onto a seven and a half metre grid. The sun is placed with the NOAA position algorithm for 13 November 2026, and each position along the path is tested at the minute the group reached it, between 11:10 and 13:30. The share is the part of the sun that gets past terrain and canopy to head height: a ridge in the way takes it to nothing at once, and canopy along the ray takes it down gradually. A position is unshaded above 0.9, partly shaded between 0.4 and 0.9, and mostly shaded below 0.4, which are the thresholds the field categories were read against. Canopy geometry © OpenStreetMap contributors, ODbL 1.0, with the group's own vegetation map along the corridor.</span><span class="t-hans">这条剖面就是这次行走本身。地面为 CGIAR SRTM 30 米高程，重采样至 7.5 米网格。太阳位置用 NOAA 方位算法按 2026 年 11 月 13 日计算，路径上每一处都按队伍到达该处的分钟数检验，介于 11:10 与 13:30 之间。日照份额指越过地形与树冠、到达头部高度的太阳比例：前方有山脊挡着，份额立刻归零；沿视线有树冠，份额逐渐衰减。份额高于 0.9 记为无遮阴，0.4 至 0.9 为部分遮阴，低于 0.4 为大部分遮阴，这正是现场三级分类所依据的阈值。植被几何数据 © OpenStreetMap contributors，ODbL 1.0，路径沿线另用本组自有植被图。</span></p>
     </div>
   </div>
 </section>

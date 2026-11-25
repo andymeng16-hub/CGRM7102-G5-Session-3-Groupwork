@@ -4,8 +4,8 @@ A field-based GIS-style visitor guide to a single continuous walking route acros
 Sharp Island (Kiu Tsui Chau), Kiu Tsui Country Park, Sai Kung, Hong Kong, China.
 Everything in it comes from the group's own survey of 13 November 2026: eight
 observation points, sixty-six photographs, one elevation profile, a working model
-of the sandbar the tide takes away, and a three dimensional model of the island
-with the real sun of that day casting its shadows.
+of the sandbar the tide takes away, and a section along the route with the
+share of the sun that reached it at the hour each point was walked.
 
 The site is a static website. No build step, no package manager, no framework.
 The guide runs as an accordion, one part open at a time, and the title at the
@@ -114,7 +114,7 @@ tools/
 | **The climb, in metres** 以米为单位的起伏 | The elevation profile along the route, with the four stages marked |
 | **A bridge that comes and goes** 一座时有时无的桥 | A shaded-relief model of the tombolo, flooded to any tide height you choose |
 | **One route, four different walks** 一条路线，四段体验 | The four stages, with photographs, timings, shade and one caution each |
-| **How much sun are you walking in?** 全程日照评估 | How much of the walk is in shade, drawn as a ribbon, and then a three dimensional model of the island with the real sun of the day casting its shadows |
+| **How much sun are you walking in?** 全程日照评估 | How much of the walk is in shade, drawn as a ribbon, and then a section along the whole route with the ground on top and the share of the sun that reached the path below |
 | **Where extra care is needed** 需要格外留意之处 | Four conditions recorded in the field: erosion, geoconservation, intertidal life, sun |
 | **Four ways to be a plant here** 四种生存方式 | Four vegetation communities, painted as plates, with the species found in each |
 | **The places, in pictures** 照片里的地方 | Thirty-seven photographs of the day, grouped as the shore, the pier, Hap Mun Bay and the view from the ridge |
@@ -256,14 +256,15 @@ The division of work is on the page itself, under Sources.
   ends the march at once, so the share of sun that gets through is
   `exp(-tau)`. A point is unshaded when less than a tenth of its section is in
   shade, and mostly shaded when three fifths or more is. The model agrees with
-  the field record at all eight observation points. The browser re-runs the same
-  march on every cell to draw the shadows, and the gold ring around each
-  numbered point is read from the model's own table, so the picture and the
-  numbers come from one computation. The ground is drawn on its own layer and
-  laid back over the sea with a light blur, which takes the last of the stair
-  off the shoreline and the canopy edge. The contour lines are cut by marching
-  squares and drawn over the finished surface, so they come out as lines
-  rather than as pieces.
+  the field record at all eight observation points. The browser walks the route
+  at seven metre intervals and tests every station at the minute the group
+  reached it, which is what the sun exposure panel draws: the ground on top,
+  the share of the sun that reached the path below, and the four stages as a
+  band between them. A ridge ends the march at once, so the share drops to
+  nothing in one step; canopy along the ray takes it down gradually, which is
+  why the band breaks into fine stripes where the path runs under trees. The
+  two rules at 0.9 and 0.4 are the thresholds the field classes were read
+  against.
 * The canopy geometry in `data/sun-model.js` is © OpenStreetMap contributors,
   released under ODbL 1.0, and the page credits it under the section.
 * The OSM geometry in `data/tombolo-model.js` is © OpenStreetMap contributors,

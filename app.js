@@ -1814,6 +1814,316 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* The section through the route                                        */
+  /* ------------------------------------------------------------------ */
+  /* The solar model answers what the sun did to the island. This answers
+     what a walker asks: going along the route, how much of the sun reaches
+     me, and where. Every station on the line is tested at the minute the
+     group reached it, so the profile is this walk rather than one hour
+     pulled out of it. */
+  var TX = { ready: false, pts: [], maxChain: 0, maxElev: 0, mean: 0, stages: [] };
+
+  /* "11:10", or "12:28 to 12:52" for a station held for a while. */
+  function txMinutes(t) {
+    var s = String(t).split(' to ')[0].split(':');
+    return Number(s[0]) * 60 + Number(s[1] || 0);
+  }
+  function txClock(m) {
+    var h = Math.floor(m / 60), mm = Math.round(m % 60);
+    return (h < 10 ? '0' : '') + h + ':' + (mm < 10 ? '0' : '') + mm;
+  }
+  /* The group did not walk at a steady pace: they stopped at eight stations
+     and the record gives the clock at each. Between two stations the clock
+     is taken to run evenly, which is the only reading the record supports. */
+  function txMinuteAt(chain) {
+    var ps = SM.points, n = ps.length, i;
+    if (chain <= ps[0].chainage) return txMinutes(ps[0].time);
+    if (chain >= ps[n - 1].chainage) return txMinutes(ps[n - 1].time);
+    for (i = 0; i < n - 1; i++) {
+      var a = ps[i].chainage, b = ps[i + 1].chainage;
+      if (chain >= a && chain <= b) {
+        var f = b === a ? 0 : (chain - a) / (b - a);
+        return txMinutes(ps[i].time) + (txMinutes(ps[i + 1].time) - txMinutes(ps[i].time)) * f;
+      }
+    }
+    return txMinutes(ps[n - 1].time);
+  }
+  function txStageBounds() {
+    var out = [], list = D.stages || [], i;
+    for (i = 0; i < list.length; i++) {
+      var m = String(list[i].range || '').match(/([\d.]+)\s*to\s*([\d.]+)/);
+      if (!m) continue;
+      out.push({ id: list[i].id, name: list[i].name, zh: list[i].zh,
+                 a: Number(m[1]) * 1000, b: Number(m[2]) * 1000 });
+    }
+    return out;
+  }
+  function txBuild() {
+    if (!SM || !SUN.z) return;
+    var route = SM.route, pts = [], chain = 0, i, k;
+    for (i = 0; i < route.length - 1; i++) {
+      var a = smLocal(route[i][0], route[i][1]);
+      var b = smLocal(route[i + 1][0], route[i + 1][1]);
+      var d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      var n = Math.max(1, Math.round(d / 7));
+      for (k = 0; k < n; k++) {
+        var t = k / n;
+        var x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
+        pts.push({ c: chain + d * t, x: x, y: y, z: smHeight(x, y) });
+      }
+      chain += d;
+    }
+    var end = smLocal(route[route.length - 1][0], route[route.length - 1][1]);
+    pts.push({ c: chain, x: end[0], y: end[1], z: smHeight(end[0], end[1]) });
+
+    var sum = 0, mxC = 0, mxE = 0, walk = SM.meta.walkHeight;
+    for (i = 0; i < pts.length; i++) {
+      var p = pts[i], s = smSunAt(txMinuteAt(p.c));
+      p.m = txMinuteAt(p.c);
+      p.share = clamp(smSunShare(p.x, p.y, p.z + walk, s.az, s.alt), 0, 1);
+      sum += p.share;
+      if (p.c > mxC) mxC = p.c;
+      if (p.z > mxE) mxE = p.z;
+    }
+    TX.pts = pts;
+    TX.maxChain = mxC;
+    TX.maxElev = mxE;
+    TX.mean = pts.length ? sum / pts.length : 0;
+    TX.stages = txStageBounds();
+    TX.ready = true;
+  }
+  function txClassOf(v) { return v >= 0.9 ? 'unshaded' : (v >= 0.4 ? 'partly' : 'mostly'); }
+  function txEsc(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function txRender() {
+    var host = $('#txFigure');
+    if (!host || !TX.ready) return;
+    var cw = host.clientWidth || 1080;
+    var narrow = cw < 680;
+    var W = narrow ? 700 : 1080;
+    var L = narrow ? 40 : 64;
+    var R = W - (narrow ? 12 : 34);
+    var T1 = narrow ? 20 : 28, B1 = narrow ? 186 : 246;
+    var TB = narrow ? 196 : 258, BB = narrow ? 222 : 288;
+    var T2 = narrow ? 250 : 322, B2 = narrow ? 396 : 512;
+    var AX = narrow ? 416 : 540, AXT = narrow ? 442 : 572;
+    var fs = narrow ? 12 : 11;
+    var maxC = TX.maxChain || 1;
+    var maxE = Math.max(40, Math.ceil(TX.maxElev / 20) * 20);
+    var i, p, s = [];
+
+    function X(c) { return L + (c / maxC) * (R - L); }
+    function YE(h) { return B1 - (h / maxE) * (B1 - T1); }
+    function YS(v) { return B2 - v * (B2 - T2); }
+
+    /* the ground, as one filled line */
+    var ground = 'M' + L + ',' + B1;
+    for (i = 0; i < TX.pts.length; i++) {
+      ground += 'L' + X(TX.pts[i].c).toFixed(1) + ',' + YE(TX.pts[i].z).toFixed(1);
+    }
+    ground += 'L' + X(TX.pts[TX.pts.length - 1].c).toFixed(1) + ',' + B1 + 'Z';
+
+    /* the share of the sun, as one line */
+    var shareLine = '';
+    for (i = 0; i < TX.pts.length; i++) {
+      shareLine += (i ? 'L' : 'M') + X(TX.pts[i].c).toFixed(1) + ',' + YS(TX.pts[i].share).toFixed(1);
+    }
+
+    s.push('<svg class="tx-svg" viewBox="0 0 ' + W + ' ' + (AXT + 22) + '" role="img" aria-labelledby="txTitle">');
+    s.push('<title id="txTitle">' + txEsc(tr('Elevation and the share of the sun along the route', '路线沿程高程与日照份额')) + '</title>');
+
+    /* grid: one line every twenty metres of ground, every fifth of the sun */
+    s.push('<g class="tx-grid">');
+    for (i = 0; i <= maxE; i += 20) {
+      s.push('<line x1="' + L + '" y1="' + YE(i).toFixed(1) + '" x2="' + R + '" y2="' + YE(i).toFixed(1) + '"/>');
+    }
+    for (i = 0; i <= 5; i++) {
+      var vy = YS(i / 5);
+      s.push('<line x1="' + L + '" y1="' + vy.toFixed(1) + '" x2="' + R + '" y2="' + vy.toFixed(1) + '"/>');
+    }
+    s.push('</g>');
+
+    /* the ground, filled down to the axis, and its own ridge line above */
+    s.push('<path class="tx-ground" d="' + ground + '"/>');
+
+    var ridge = 'M' + X(TX.pts[0].c).toFixed(1) + ',' + YE(TX.pts[0].z).toFixed(1);
+    for (i = 1; i < TX.pts.length; i++) {
+      ridge += 'L' + X(TX.pts[i].c).toFixed(1) + ',' + YE(TX.pts[i].z).toFixed(1);
+    }
+    s.push('<path class="tx-ridge" d="' + ridge + '"/>');
+
+    /* the eight stations, as a dashed rule through both panels */
+    s.push('<g class="tx-stations">');
+    for (i = 0; i < SM.points.length; i++) {
+      var sp = SM.points[i], sx = X(sp.chainage).toFixed(1);
+      s.push('<line x1="' + sx + '" y1="' + T1 + '" x2="' + sx + '" y2="' + B2 + '"/>');
+      s.push('<text class="tx-station-num" x="' + sx + '" y="' + (T1 - (narrow ? 6 : 8)) + '" text-anchor="middle">' + sp.code + '</text>');
+    }
+    s.push('</g>');
+
+    /* the four stages, as a band between the panels */
+    s.push('<g class="tx-stages">');
+    for (i = 0; i < TX.stages.length; i++) {
+      var st = TX.stages[i];
+      var xa = X(Math.max(0, st.a)), xb = X(Math.min(maxC, st.b));
+      s.push('<rect x="' + xa.toFixed(1) + '" y="' + TB + '" width="' + Math.max(1, xb - xa).toFixed(1) +
+             '" height="' + (BB - TB) + '"/>');
+      var mid = (xa + xb) / 2;
+      var label = narrow ? st.id : (st.id + '  ' + tr(st.name, st.zh));
+      s.push('<text class="tx-stage-name" x="' + mid.toFixed(1) + '" y="' + ((TB + BB) / 2 + fs * 0.36).toFixed(1) +
+             '" text-anchor="middle">' + txEsc(label) + '</text>');
+    }
+    s.push('</g>');
+
+    /* the share of the sun, banded into the three field classes */
+    s.push('<g class="tx-bands">');
+    var runStart = 0, runCls = txClassOf(TX.pts[0].share);
+    for (i = 1; i <= TX.pts.length; i++) {
+      var cls = i < TX.pts.length ? txClassOf(TX.pts[i].share) : null;
+      if (cls !== runCls || i === TX.pts.length) {
+        var bx1 = X(TX.pts[runStart].c), bx2 = X(TX.pts[Math.min(i, TX.pts.length - 1)].c);
+        s.push('<rect class="' + runCls + '" x="' + bx1.toFixed(1) + '" y="' + T2 +
+               '" width="' + Math.max(0.8, bx2 - bx1).toFixed(1) + '" height="' + (B2 - T2) + '"/>');
+        runStart = i; runCls = cls;
+      }
+    }
+    s.push('</g>');
+    s.push('<path class="tx-share-line" d="' + shareLine + '"/>');
+
+    /* the two thresholds the field classes were read against. The labels go
+       on the rule itself rather than on the axis, where they would sit on
+       top of the 1.0 tick. */
+    s.push('<g class="tx-thresholds">');
+    [0.9, 0.4].forEach(function (v) {
+      var ty = YS(v).toFixed(1);
+      s.push('<line x1="' + L + '" y1="' + ty + '" x2="' + R + '" y2="' + ty + '"/>');
+      s.push('<text class="tx-threshold-tag" x="' + (R - 5) + '" y="' + (Number(ty) - 4).toFixed(1) + '" text-anchor="end">' + v.toFixed(1) + '</text>');
+    });
+    s.push('</g>');
+
+    /* ticks: metres on the left, kilometres along the bottom */
+    s.push('<g class="tx-ticks">');
+    for (i = 0; i <= maxE; i += 20) {
+      s.push('<text x="' + (L - 6) + '" y="' + (YE(i) + fs * 0.36).toFixed(1) + '" text-anchor="end">' + i + '</text>');
+    }
+    /* the share axis, read every fifth, so the left edge runs 0.0 to 1.0
+       without a gap; the two thresholds are named on the rules themselves */
+    for (i = 0; i <= 5; i++) {
+      s.push('<text x="' + (L - 6) + '" y="' + (YS(i / 5) + fs * 0.36).toFixed(1) + '" text-anchor="end">' + (i / 5).toFixed(1) + '</text>');
+    }
+    var stepC = narrow ? 500 : 250;
+    for (i = 0; i <= maxC; i += stepC) {
+      s.push('<text x="' + X(i).toFixed(1) + '" y="' + (AX + fs) + '" text-anchor="middle">' + i + '</text>');
+    }
+    s.push('</g>');
+
+    /* where the ground came from, inside the frame at the top right, the way
+       a printed section carries its source */
+    s.push('<text class="tx-source" x="' + R + '" y="' + (T1 + fs + 2) + '" text-anchor="end">' +
+           txEsc(tr('GROUND: SRTM 30 M RESAMPLED TO 7.5 M, INDICATIVE', '高程：SRTM 30 米重采样至 7.5 米，示意')) + '</text>');
+
+    /* axis titles. Latin turns on its side; Chinese stacks upright, because a
+       turned Chinese character is a character lying down, which is not how it
+       is read. */
+    function axisTitle(x, mid, text) {
+      if (state.lang === 'en') {
+        return '<text x="' + x + '" y="' + mid + '" text-anchor="middle" transform="rotate(-90 ' + x + ' ' + mid + ')">' + txEsc(text) + '</text>';
+      }
+      return '<text x="' + x + '" y="' + mid + '" text-anchor="middle" dominant-baseline="central" ' +
+             'style="writing-mode:vertical-rl">' + txEsc(text) + '</text>';
+    }
+    var gy = (T1 + B1) / 2, sy2 = (T2 + B2) / 2;
+    s.push('<g class="tx-axis-titles">');
+    s.push(axisTitle(L - 30, gy, tr('GROUND, M', '高程, 米')));
+    s.push(axisTitle(L - 30, sy2, tr('SHARE OF THE SUN', '日照份额')));
+    s.push('<text class="tx-axis-x" x="' + ((L + R) / 2) + '" y="' + AXT + '" text-anchor="middle">' +
+           txEsc(tr('DISTANCE ALONG THE ROUTE, M', '沿路线距离, 米')) + '</text>');
+    s.push('</g>');
+
+    /* the readout that follows the pointer */
+    s.push('<g class="tx-cursor" style="display:none">' +
+           '<line class="tx-cursor-line" y1="' + T1 + '" y2="' + B2 + '"/>' +
+           '<circle class="tx-cursor-dot" r="4"/>' +
+           '</g>');
+    s.push('<rect class="tx-hit" x="' + L + '" y="' + T1 + '" width="' + (R - L) + '" height="' + (B2 - T1) + '"/>');
+    s.push('<g class="tx-tip" style="display:none">' +
+           '<rect class="tx-tip-bg" rx="7" ry="7"/>' +
+           '<text class="tx-tip-a"></text><text class="tx-tip-b"></text><text class="tx-tip-c"></text>' +
+           '</g>');
+    s.push('</svg>');
+
+    host.innerHTML = s.join('');
+
+    /* the pointer reads the nearest station on the line */
+    var svg = host.querySelector('svg');
+    var hit = host.querySelector('.tx-hit');
+    var cur = host.querySelector('.tx-cursor');
+    var curLine = host.querySelector('.tx-cursor-line');
+    var curDot = host.querySelector('.tx-cursor-dot');
+    var tip = host.querySelector('.tx-tip');
+    var tipBg = host.querySelector('.tx-tip-bg');
+    var tipA = host.querySelector('.tx-tip-a');
+    var tipB = host.querySelector('.tx-tip-b');
+    var tipC = host.querySelector('.tx-tip-c');
+    if (!svg || !hit) return;
+
+    function nearest(vx) {
+      var c = (vx - L) / (R - L) * maxC;
+      var lo = 0, hi = TX.pts.length - 1;
+      while (lo < hi) {
+        var mid = (lo + hi) >> 1;
+        if (TX.pts[mid].c < c) lo = mid + 1; else hi = mid;
+      }
+      if (lo > 0 && Math.abs(TX.pts[lo - 1].c - c) < Math.abs(TX.pts[lo].c - c)) lo--;
+      return TX.pts[lo];
+    }
+    function move(ev) {
+      var box = svg.getBoundingClientRect();
+      var vx = (ev.clientX - box.left) / box.width * W;
+      if (vx < L || vx > R) { hide(); return; }
+      var p2 = nearest(vx);
+      var px = X(p2.c).toFixed(1);
+      cur.style.display = '';
+      curLine.setAttribute('x1', px); curLine.setAttribute('x2', px);
+      curDot.setAttribute('cx', px); curDot.setAttribute('cy', YS(p2.share).toFixed(1));
+      tip.style.display = '';
+      var co = txClassOf(p2.share);
+      tipA.textContent = (p2.c / 1000).toFixed(2) + ' km';
+      tipB.textContent = Math.round(p2.z) + ' m\u2003\u2003' + txClock(p2.m);
+      tipC.textContent = Math.round(p2.share * 100) + '%\u2003' + tr(shadeName[co], shadeZh[co]);
+      var tw = Math.max(tipA.getComputedTextLength(), tipB.getComputedTextLength(), tipC.getComputedTextLength()) + 22;
+      var tx0 = Math.min(Math.max(X(p2.c) + 12, L), R - tw);
+      var ty0 = T2 + 4;
+      tipBg.setAttribute('x', tx0.toFixed(1));
+      tipBg.setAttribute('y', ty0);
+      tipBg.setAttribute('width', tw.toFixed(1));
+      tipBg.setAttribute('height', (fs * 5).toFixed(1));
+      [tipA, tipB, tipC].forEach(function (el, k) {
+        el.setAttribute('x', (tx0 + 10).toFixed(1));
+        el.setAttribute('y', (ty0 + fs * 1.5 + k * fs * 1.35).toFixed(1));
+      });
+    }
+    function hide() {
+      cur.style.display = 'none';
+      tip.style.display = 'none';
+    }
+    svg.addEventListener('mousemove', move);
+    svg.addEventListener('mouseleave', hide);
+    svg.addEventListener('touchmove', function (ev) {
+      if (ev.touches && ev.touches[0]) move(ev.touches[0]);
+    }, { passive: true });
+    svg.addEventListener('touchend', hide);
+
+    /* the three figures above the chart */
+    var a = $('#txLength'), b = $('#txHigh'), c = $('#txMean');
+    if (a) a.textContent = (TX.maxChain / 1000).toFixed(2) + ' km';
+    if (b) b.textContent = Math.round(TX.maxElev) + ' m';
+    if (c) c.textContent = Math.round(TX.mean * 100) + '%';
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Progress control                                                      */
   /* ------------------------------------------------------------------ */
   function setProgress(p) {
@@ -2410,7 +2720,7 @@
   function relayoutSection(id) {
     if (id === 'map') { sizeCanvas(); drawTileMap(); }
     else if (id === 'tombolo') { tbLayout(); }
-    else if (id === 'shade' && SUN.ready) { smLayout(); }
+    else if (id === 'shade' && SUN.ready) { smLayout(); if (TX.ready) txRender(); }
     if (typeof queueRedraw === 'function') queueRedraw();
   }
   /* When the whole guide is laid out at once, every drawing is measured. */
@@ -2615,6 +2925,7 @@
     buildSection();
     smBuildTable();
     if (SUN.ready) smRender();
+    if (TX.ready) txRender();
     drawTileMap();
     drawTombolo();
     setProgress(state.progress);
@@ -2756,6 +3067,7 @@
         lastW = tbC.clientWidth; lastH = tbC.clientHeight;
         tbLayout();
         if (SUN.ready) smLayout();
+        if (TX.ready) txRender();
       }, 140);
     };
     if ('ResizeObserver' in window) {
@@ -2821,7 +3133,7 @@
   drawTileMap();
   tbLayout();
   buildSection();
-  if (smDecode()) { smBuildTable(); smLayout(); }
+  if (smDecode()) { smBuildTable(); txBuild(); txRender(); smLayout(); }
   /* The fold bars are built before the blocks are drawn, so the fold
      wrapper holds the finished content rather than an empty shell. */
   buildFoldHeads();
