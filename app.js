@@ -3221,8 +3221,8 @@
      take over and the page says so. */
   setTimeout(checkMapService, 5000);
 
-  /* The page is whole. index.html watches for this flag and puts up a notice
-     if it never arrives, which is what happens when the file is opened on
-     its own without the data and assets beside it. */
+  /* The page is whole. The page watches for this flag itself and puts up a
+     notice if it never arrives, which is what happens when the file is
+     opened on its own without the data and assets beside it. */
   window.__siBooted = true;
 })();

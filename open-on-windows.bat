@@ -18,7 +18,7 @@ setlocal EnableExtensions
 title Sharp Island
 cd /d "%~dp0"
 
-if not exist "index.html" goto wrongfolder
+if not exist "styles.css" goto wrongfolder
 
 echo.
 echo  Sharp Island: starting a local server for this folder.
@@ -76,9 +76,9 @@ exit /b 0
 
 :wrongfolder
 echo.
-echo  index.html is not in this folder.
+echo  The guide is not in this folder.
 echo  Extract the whole repository folder first, then run this file
-echo  from the folder that holds index.html, styles.css and app.js.
+echo  from the folder that holds styles.css, app.js and the CLICK ME page.
 echo.
 pause
 exit /b 1

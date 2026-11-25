@@ -17,20 +17,28 @@
   1.  HOW TO OPEN IT
 --------------------------------------------------------------------------------
 
-  The guide is not a single file. index.html reads its layout from
+  The guide is not a single file. The page reads its layout from
   styles.css, its behaviour from app.js, its survey from data/, and its
-  photographs and map tiles from assets/. Opened on its own, index.html
-  puts up a notice instead of the guide, because the folders beside it are
+  photographs and map tiles from assets/. Opened on its own, the page puts
+  up a notice instead of the guide, because the folders beside it are
   missing.
+
+  The page is named so that it can be found in a folder full of files:
+
+    CLICK ME (If not work, read about.txt).html
+
+  A small index.html sits beside it and forwards to the same page, so a
+  bare folder address also works.
 
   Two ways in:
 
     a)  Download the whole repository (Code, then Download ZIP), unzip it,
-        and open index.html in a browser. Everything works offline once it
-        is unzipped, including the map, which uses committed tiles.
+        and open CLICK ME (If not work, read about.txt).html in a browser.
+        Everything works offline once it is unzipped, including the map,
+        which uses committed tiles.
 
         On Windows, run open-on-windows.bat in the unzipped folder instead
-        of opening index.html directly. Section 2 says why.
+        of opening the page directly. Section 2 says why.
 
     b)  Publish the folder with GitHub Pages and open the site it gives you.
         This is the way that asks nothing of the reader's machine.
@@ -83,12 +91,12 @@
 
   Two things that break the pictures on any system, worth ruling out first:
 
-    Extract the whole archive. Unzipping only index.html, or dragging that
-    one file out of the archive window, leaves the folders beside it
+    Extract the whole archive. Unzipping only the HTML file, or dragging
+    that one file out of the archive window, leaves the folders beside it
     behind.
 
     Keep the folder structure. assets/photos, assets/tiles and data must
-    stay next to index.html, under the same names.
+    stay next to the HTML file, under the same names.
 
   A folder path containing a hash mark or a percent sign also breaks the
   page, because a browser reads those characters as instructions rather
@@ -113,10 +121,10 @@
   python -m http.server 8000，再用 http://localhost:8000 打开，走本机
   地址的页面不算本地文件，标记对它无效。
 
-  另外两点与系统无关，但同样会让图片消失：请整个压缩包一起解压，只解出
-  index.html 会把旁边的文件夹留在压缩包里；assets 与 data 必须与
-  index.html 同级，名字不要改。文件夹路径里也不要有井号或百分号，浏览器
-  会把这两个符号当成指令而不是路径的一部分。
+  另外两点与系统无关，但同样会让图片消失：请整个压缩包一起解压，只解出那个
+  网页文件会把旁边的文件夹留在压缩包里；assets 与 data 必须与网页文件同级，
+  名字不要改。文件夹路径里也不要有井号或百分号，浏览器会把这两个符号当成
+  指令而不是路径的一部分。
 
 --------------------------------------------------------------------------------
   3.  WHAT IT CONTAINS

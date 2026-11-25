@@ -41,15 +41,17 @@ directly with `?lang=zh-hant`, `?lang=zh-hans` or `?lang=en`.
 
 ## How to open it
 
-**One file is not enough.** `index.html` reads the survey data from `data/`, the
-photographs and map tiles from `assets/`, the layout from `styles.css` and the
-behaviour from `app.js`. All of them live in the same folder, so keep the folder
-together.
+**One file is not enough.** `CLICK ME (If not work, read about.txt).html` reads
+the survey data from `data/`, the photographs and map tiles from `assets/`, the
+layout from `styles.css` and the behaviour from `app.js`. All of them live in the
+same folder, so keep the folder together. A two-line `index.html` sits beside it
+and forwards to the same page, so a bare folder address still works.
 
 **Nothing needs to be installed.** Two ways to read the guide:
 
 1. Download the repository (Code, then Download ZIP), unzip it, and double-click
-   `index.html`. The page works straight from the file system.
+   `CLICK ME (If not work, read about.txt).html`. The page works straight from
+   the file system.
 2. Or serve the folder over HTTP, which is a little more faithful:
 
    ```bash
@@ -80,8 +82,8 @@ Properties, tick Unblock, and then extract.
 [`ABOUT.txt`](ABOUT.txt) carries the same instructions in plain text, along with
 two further things that break the pictures on any system.
 
-If `index.html` is ever opened on its own, the page says so plainly instead of
-showing a broken document.
+If the page is ever opened on its own, it says so plainly instead of showing a
+broken document.
 
 Two things are worth knowing about the offline case:
 
@@ -96,7 +98,9 @@ Two things are worth knowing about the offline case:
 ## What is in the folder
 
 ```
-index.html              the page itself
+CLICK ME (If not work, read about.txt).html
+                        the guide: the page itself
+index.html              forwards to it, so a bare folder address works
 styles.css              the whole design system, light and dark
 app.js                  every map, chart, model and the language switch
 open-on-windows.bat     clears the downloaded-file mark and serves the folder
